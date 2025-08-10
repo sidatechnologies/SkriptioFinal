@@ -226,6 +226,7 @@ def main():
     tests = [
         tester.test_health_check,
         tester.test_generate_content,
+        tester.test_generate_error_case,
         tester.test_get_content,
         tester.test_get_recent
     ]
