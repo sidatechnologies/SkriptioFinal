@@ -216,9 +216,9 @@ function Landing() {
         <div className="mt-2 space-x-4">
           <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">Email</a>
           <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">Instagram</a>
-          <a className="underline hover:no-underline" href="#">LinkedIn</a>
-          <a className="underline hover:no-underline" href="#">X</a>
-          <a className="underline hover:no-underline" href="#">Facebook</a>
+          <a className="underline hover:no-underline" href="https://linkedin.com/company/Skriptio" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a className="underline hover:no-underline" href="https://x.com/Skriptio" target="_blank" rel="noreferrer">X</a>
+          <a className="underline hover:no-underline" href="https://facebook.com/Skriptio" target="_blank" rel="noreferrer">Facebook</a>
         </div>
       </footer>
       <Toaster />
