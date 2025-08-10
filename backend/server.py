@@ -78,7 +78,7 @@ STOPWORDS = set(
     """.split()
 )
 
-SENT_SPLIT = re.compile(r"(?&lt;![A-Z])[\.\?\!]+\s+")
+SENT_SPLIT = re.compile(r"(?<![A-Z])[\.\?\!]+\s+")
 TOKEN = re.compile(r"[A-Za-z][A-Za-z\-']+")
 
 
@@ -97,27 +97,27 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
         raise HTTPException(status_code=400, detail=f"Failed to read PDF: {e}")
 
 
-def split_sentences(text: str) -&gt; List[str]:
+def split_sentences(text: str) -> List[str]:
     # A simple sentence splitter
     text = re.sub(r"\s+", " ", text.strip())
     if not text:
         return []
     # Split on .?! followed by space
-    parts = re.split(r"(?&lt;=[\.!\?])\s+", text)
+    parts = re.split(r"(?<=[\.!\?])\s+", text)
     # Filter very short sentences
-    return [s.strip() for s in parts if len(s.strip()) &gt;= 30]
+    return [s.strip() for s in parts if len(s.strip()) >= 30]
 
 
-def tokenize(text: str) -&gt; List[str]:
+def tokenize(text: str) -> List[str]:
     return [t.lower() for t in TOKEN.findall(text)]
 
 
-def top_keywords(text: str, k: int = 12) -&gt; List[str]:
+def top_keywords(text: str, k: int = 12) -> List[str]:
     freq: Dict[str, int] = {}
     for tok in tokenize(text):
         if tok in STOPWORDS:
             continue
-        if len(tok) &lt; 3:
+        if len(tok) < 3:
             continue
         freq[tok] = freq.get(tok, 0) + 1
     # sort by frequency desc then alphabetically
@@ -125,7 +125,7 @@ def top_keywords(text: str, k: int = 12) -&gt; List[str]:
     return [w for w, _ in candidates[:k]]
 
 
-def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -&gt; List[QuizQuestion]:
+def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -> List[QuizQuestion]:
     import random
     random.seed(42)
     quiz: List[QuizQuestion] = []
@@ -133,7 +133,7 @@ def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -&gt;
     distract_pool = [k for k in keywords]
 
     for s in sentences:
-        if len(quiz) &gt;= total:
+        if len(quiz) >= total:
             break
         # find a keyword present in sentence
         key = None
@@ -165,10 +165,10 @@ def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -&gt;
         )
     # If not enough, fallback to True/False type based on sentences
     i = 0
-    while len(quiz) &lt; total and i &lt; len(sentences):
+    while len(quiz) < total and i < len(sentences):
         s = sentences[i]
         i += 1
-        stmt = s if len(s) &lt;= 180 else s[:177] + "..."
+        stmt = s if len(s) <= 180 else s[:177] + "..."
         options = ["True", "False"]
         quiz.append(
             QuizQuestion(
@@ -182,11 +182,11 @@ def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -&gt;
     return quiz[:total]
 
 
-def build_flashcards(sentences: List[str], keywords: List[str], total: int = 12) -&gt; List[Flashcard]:
+def build_flashcards(sentences: List[str], keywords: List[str], total: int = 12) -> List[Flashcard]:
     cards: List[Flashcard] = []
     used = set()
     for k in keywords:
-        if len(cards) &gt;= total:
+        if len(cards) >= total:
             break
         # find a supporting sentence
         support = next((s for s in sentences if re.search(rf"\b{re.escape(k)}\b", s, flags=re.IGNORECASE)), None)
@@ -196,16 +196,16 @@ def build_flashcards(sentences: List[str], keywords: List[str], total: int = 12)
             continue
         used.add(k)
         front = f"Define: {k}"
-        back = support if len(support) &lt;= 280 else support[:277] + "..."
+        back = support if len(support) <= 280 else support[:277] + "..."
         cards.append(Flashcard(front=front, back=back))
     # if not enough, add generic concept questions
-    while len(cards) &lt; total and sentences:
+    while len(cards) < total and sentences:
         s = sentences[len(cards) % len(sentences)]
-        cards.append(Flashcard(front="Key idea?", back=s if len(s) &lt;= 280 else s[:277] + "..."))
+        cards.append(Flashcard(front="Key idea?", back=s if len(s) <= 280 else s[:277] + "..."))
     return cards[:total]
 
 
-def build_study_plan(sentences: List[str], keywords: List[str]) -&gt; List[StudyPlanDay]:
+def build_study_plan(sentences: List[str], keywords: List[str]) -> List[StudyPlanDay]:
     days = 7
     total = max(len(sentences), days)
     per_day = max(1, total // days)
@@ -213,14 +213,14 @@ def build_study_plan(sentences: List[str], keywords: List[str]) -&gt; List[Study
     for d in range(days):
         start = d * per_day
         end = start + per_day
-        chunk = sentences[start:end] if start &lt; len(sentences) else []
+        chunk = sentences[start:end] if start < len(sentences) else []
         # objectives: first 3 sentences short or keyword-based
         objectives: List[str] = []
         for s in chunk[:3]:
-            short = s if len(s) &lt;= 120 else s[:117] + "..."
+            short = s if len(s) <= 120 else s[:117] + "..."
             objectives.append(short)
         # if too few sentences, pad with keywords
-        if len(objectives) &lt; 3:
+        if len(objectives) < 3:
             pad = [f"Review concept: {k}" for k in keywords[d: d + (3 - len(objectives))]]
             objectives.extend(pad)
         title = f"Day {d+1}: {keywords[d%len(keywords)] if keywords else 'Focus'}"
@@ -228,12 +228,12 @@ def build_study_plan(sentences: List[str], keywords: List[str]) -&gt; List[Study
     return plan
 
 
-def generate_artifacts(raw_text: str, title: Optional[str] = None) -&gt; Dict[str, Any]:
+def generate_artifacts(raw_text: str, title: Optional[str] = None) -> Dict[str, Any]:
     text = raw_text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Empty content")
     # limit extremely long inputs to keep it fast
-    if len(text) &gt; 150000:
+    if len(text) > 150000:
         text = text[:150000]
     sentences = split_sentences(text)
     if not sentences:
