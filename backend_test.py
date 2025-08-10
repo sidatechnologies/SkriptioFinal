@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class StudyAppAPITester:
-    def __init__(self, base_url="https://5d17bc0a-8692-4abf-b780-134d660bbef8.preview.emergentagent.com"):
+    def __init__(self, base_url="https://7e661cc3-c253-4636-aeb0-69b3723c90fb.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
