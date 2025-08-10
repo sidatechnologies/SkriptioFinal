@@ -73,7 +73,7 @@ function Landing() {
                 <span className="h-1.5 w-1.5 rounded-full bg-foreground/70"/> A product by <span className="font-medium">Aceel AI</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
-              <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster—without complex setup.</p>
+              <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
               <div className="flex items-center gap-3">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try Skriptio Free</Button>
                 <a href="#how-it-works" className="text-foreground/80 hover:text-foreground text-sm flex items-center">How it works <ArrowRight size={16} className="ml-1"/></a>
