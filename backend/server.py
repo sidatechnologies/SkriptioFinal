@@ -179,6 +179,21 @@ def build_quiz(sentences: List[str], keywords: List[str], total: int = 10) -> Li
                 qtype="tf",
             )
         )
+    # Hard pad to ensure exactly `total` questions
+    j = 0
+    while len(quiz) < total:
+        key = keywords[j % max(1, len(keywords))] if keywords else f"concept {j+1}"
+        stmt = f"This content discusses {key}."
+        quiz.append(
+            QuizQuestion(
+                id=str(uuid.uuid4()),
+                question=f"True/False: {stmt}",
+                options=["True", "False"],
+                answer_index=0,
+                qtype="tf",
+            )
+        )
+        j += 1
     return quiz[:total]
 
 
