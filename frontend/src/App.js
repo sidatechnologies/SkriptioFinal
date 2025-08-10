@@ -193,7 +193,7 @@ function Landing() {
             <FAQ q="Do I need an AI API key?" a="No. Skriptio runs without external AI providers." />
             <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
             <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and true/false questions derived from your content." />
-            <FAQ q="Do you save my content?" a="No. Skriptio does not save your content." />
+            <FAQ q="Do you save my content?" a="No. Skriptio does not save or retain your content or conversations." />
           </div>
         </section>
 
