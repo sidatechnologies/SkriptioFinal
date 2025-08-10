@@ -74,8 +74,8 @@ class StudyAppAPITester:
 
     def test_generate_content(self):
         """Test POST /api/generate endpoint with sample text"""
-        sample_text = "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water. It generally involves chlorophyll and produces oxygen. Chloroplasts are organelles where photosynthesis occurs."
-        sample_title = "Photosynthesis"
+        sample_text = "Photosynthesis is the process by which plants convert light energy into chemical energy. Chlorophyll absorbs light."
+        sample_title = "Bio Basics"
         
         form_data = {
             'text': sample_text,
