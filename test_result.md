@@ -163,8 +163,8 @@
 
 ## test_plan:
   current_focus:
-    - "Backend smoke test: GET /api/"
-    - "Backend generate: POST /api/generate with text only"
+    - "Backend smoke test: GET /api/ - COMPLETED"
+    - "Backend generate: POST /api/generate with text only - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
