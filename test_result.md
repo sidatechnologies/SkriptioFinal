@@ -154,7 +154,17 @@
       - working: true
         agent: "main"
         comment: "Refactored to Tailwind CSS variables bg-background, text-foreground, bg-card, text-card-foreground, border-border."
-
+  - task: "Expand Landing page content with SEO copy, sections, and SIDA Labs attribution; rename product to Skriptio"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added multiple sections (benefits, how it works, features, use-cases, SEO block, FAQ, CTA), updated copy and footer, and set product name to Skriptio across landing and studio headers. Updated index.html meta tags for SEO."
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
