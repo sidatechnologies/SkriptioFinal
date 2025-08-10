@@ -107,15 +107,18 @@
 ## backend:
   - task: "Health endpoint and generation pipeline"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "No backend changes in this iteration. Planning to run smoke tests for /api/, /api/generate (text input)."
+      - working: true
+        agent: "testing"
+        comment: "Backend smoke tests completed successfully. All 5 tests passed: 1) GET /api/ returns 200 with correct message 'Study Generator API', 2) POST /api/generate with text='Photosynthesis is the process by which plants convert light energy into chemical energy. Chlorophyll absorbs light.' and title='Bio Basics' returns 200 with quiz[10], flashcards[12], plan[7], and UUID id, 3) POST /api/generate with no input returns 400 with proper error detail, 4) GET /api/content/{id} retrieves content successfully, 5) GET /api/recent returns array with generated content. All API endpoints working correctly with proper validation and error handling."
 
 ## frontend:
   - task: "Add Vercel config to build only frontend with SPA fallback"
