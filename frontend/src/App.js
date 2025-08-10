@@ -476,14 +476,7 @@ function Studio() {
             </CardContent>
           </Card>
 
-          {result?.id && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-sm">Saved Session</CardTitle>
-                <CardDescription className="truncate">ID: {result.id}</CardDescription>
-              </CardHeader>
-            </Card>
-          )}
+
         </div>
 
         <div className="lg:col-span-2 space-y-4">
