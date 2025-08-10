@@ -100,23 +100,29 @@ class StudyAppAPITester:
                 print(f"❌ Missing required keys: {missing_keys}")
                 return False
             
-            # Validate quiz array length (note: backend generates fewer questions for short text)
+            # Validate quiz array length (should be 10)
             quiz_length = len(response.get('quiz', []))
-            if quiz_length < 5:
-                print(f"❌ Quiz should have at least 5 questions, got {quiz_length}")
+            if quiz_length != 10:
+                print(f"❌ Quiz should have exactly 10 questions, got {quiz_length}")
                 return False
             else:
-                print(f"⚠️  Quiz has {quiz_length} questions (expected 10, but acceptable for short text)")
+                print(f"✅ Quiz has {quiz_length} questions")
             
-            # Validate flashcards array length (>= 6)
-            if len(response.get('flashcards', [])) < 6:
-                print(f"❌ Flashcards should have at least 6 cards, got {len(response.get('flashcards', []))}")
+            # Validate flashcards array length (>= 8)
+            flashcard_count = len(response.get('flashcards', []))
+            if flashcard_count < 8:
+                print(f"❌ Flashcards should have at least 8 cards, got {flashcard_count}")
                 return False
+            else:
+                print(f"✅ Flashcards has {flashcard_count} cards (>= 8)")
             
             # Validate plan array length (7 days)
-            if len(response.get('plan', [])) != 7:
-                print(f"❌ Plan should have 7 days, got {len(response.get('plan', []))}")
+            plan_count = len(response.get('plan', []))
+            if plan_count != 7:
+                print(f"❌ Plan should have exactly 7 days, got {plan_count}")
                 return False
+            else:
+                print(f"✅ Plan has {plan_count} days")
             
             # Save content ID for later tests
             self.content_id = response.get('id')
