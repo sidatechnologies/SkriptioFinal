@@ -480,12 +480,12 @@ function Studio() {
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          {/* Download toolbar */}
+          {/* Download toolbar
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" disabled={!result?.quiz?.length} onClick={downloadQuizPDF}>Download Quiz PDF</Button>
             <Button variant="outline" disabled={!result?.flashcards?.length} onClick={downloadCardsPDF}>Download Flashcards PDF</Button>
             <Button variant="outline" disabled={!result?.plan?.length} onClick={downloadPlanPDF}>Download Plan PDF</Button>
-          </div>
+          </div> */}
 
           <Tabs defaultValue="quiz" className="w-full">
             <TabsList className="bg-white/10">
