@@ -101,3 +101,71 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: "Deploy to Vercel from monorepo, ensure frontend builds correctly; fix UI issue where text appears black on black cards; add light/dark theme with a toggle."
+
+## backend:
+  - task: "Health endpoint and generation pipeline"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "No backend changes in this iteration. Planning to run smoke tests for /api/, /api/generate (text input)."
+
+## frontend:
+  - task: "Add Vercel config to build only frontend with SPA fallback"
+    implemented: true
+    working: "NA"
+    file: "/app/vercel.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added vercel.json with buildCommand for /frontend and index fallback."
+  - task: "Implement light/dark theme with toggle"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/theme.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "ThemeProvider with localStorage persistence and class-based .dark."
+  - task: "Fix black-on-black text on cards"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Refactored to Tailwind CSS variables bg-background, text-foreground, bg-card, text-card-foreground, border-border."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Backend smoke test: GET /api/"
+    - "Backend generate: POST /api/generate with text only"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+  - agent: "main"
+    message: "Prepared Vercel config and theme fixes. Proceeding to backend smoke tests."
