@@ -127,9 +127,6 @@ class StudyAppAPITester:
             # Save content ID for later tests
             self.content_id = response.get('id')
             print(f"✅ Content generated successfully with ID: {self.content_id}")
-            print(f"✅ Quiz questions: {len(response.get('quiz', []))}")
-            print(f"✅ Flashcards: {len(response.get('flashcards', []))}")
-            print(f"✅ Plan days: {len(response.get('plan', []))}")
             
             return True
         
