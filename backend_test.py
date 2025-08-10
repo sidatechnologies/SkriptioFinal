@@ -191,6 +191,30 @@ class StudyAppAPITester:
         
         return False
 
+    def test_generate_error_case(self):
+        """Test POST /api/generate endpoint with neither file nor text (should return 400)"""
+        form_data = {}  # Empty form data - no text or file
+        
+        success, response = self.run_test(
+            "Generate Content Error Case (No Input)",
+            "POST",
+            "generate",
+            400,
+            data=form_data,
+            is_multipart=True
+        )
+        
+        if success:
+            # Validate that response contains error detail
+            if 'detail' in response:
+                print(f"✅ Error response contains detail: {response['detail']}")
+                return True
+            else:
+                print("❌ Error response missing 'detail' field")
+                return False
+        
+        return False
+
 def main():
     print("🚀 Starting Study App API Tests")
     print("=" * 50)
