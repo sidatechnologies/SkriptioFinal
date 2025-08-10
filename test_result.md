@@ -173,8 +173,8 @@
 
 ## test_plan:
   current_focus:
-    - "Backend smoke test: GET /api/ - COMPLETED"
-    - "Backend generate: POST /api/generate with text only - COMPLETED"
+    - "Frontend UI: Verify Landing nav responsive, hero animations visible, footer links (Email, Instagram, LinkedIn, X, Facebook) open new tabs"
+    - "Frontend UI: Verify Theme toggle, Studio generation flow, and PDF downloads (quiz, flashcards, plan) include header/footer branding"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
