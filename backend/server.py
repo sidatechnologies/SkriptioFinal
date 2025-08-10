@@ -82,7 +82,7 @@ SENT_SPLIT = re.compile(r"(?&lt;![A-Z])[\.\?\!]+\s+")
 TOKEN = re.compile(r"[A-Za-z][A-Za-z\-']+")
 
 
-def extract_text_from_pdf(file_bytes: bytes) -&gt; str:
+def extract_text_from_pdf(file_bytes: bytes) -> str:
     try:
         from io import BytesIO
         reader = PdfReader(BytesIO(file_bytes))
