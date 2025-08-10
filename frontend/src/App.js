@@ -9,7 +9,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
-import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight } from "lucide-react";
+import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -17,26 +17,50 @@ const API = `${BACKEND_URL}/api`;
 
 function Landing() {
   const navigate = useNavigate();
+  const [navOpen, setNavOpen] = useState(false);
   useEffect(() => { axios.get(`${API}/`).catch(() => {}); }, []);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-foreground/90" />
             <div className="font-semibold tracking-tight text-lg">Skriptio</div>
           </Link>
-          <nav className="flex items-center gap-2">
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-2">
             <a href="#how-it-works" className="text-sm text-foreground/80 hover:text-foreground">How it works</a>
             <a href="#features" className="text-sm text-foreground/80 hover:text-foreground">Features</a>
             <a href="#use-cases" className="text-sm text-foreground/80 hover:text-foreground">Use cases</a>
             <a href="#faq" className="text-sm text-foreground/80 hover:text-foreground">FAQ</a>
+            <span className="text-xs text-foreground/70 px-2 py-1 border rounded-full border-border">A product by Aceel AI</span>
             <ThemeToggle />
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>
               Open Studio <ArrowRight size={16} className="ml-1"/>
             </Button>
           </nav>
+          {/* Mobile nav toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button aria-label="Toggle menu" className="p-2 border rounded-md border-border" onClick={() => setNavOpen(o => !o)}>
+              {navOpen ? <X size={18}/> : <Menu size={18}/>} 
+            </button>
+          </div>
         </div>
+        {/* Mobile menu */}
+        {navOpen && (
+          <div className="md:hidden border-t border-border bg-background">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3">
+              <a href="#how-it-works" className="text-sm" onClick={() => setNavOpen(false)}>How it works</a>
+              <a href="#features" className="text-sm" onClick={() => setNavOpen(false)}>Features</a>
+              <a href="#use-cases" className="text-sm" onClick={() => setNavOpen(false)}>Use cases</a>
+              <a href="#faq" className="text-sm" onClick={() => setNavOpen(false)}>FAQ</a>
+              <div className="text-xs text-foreground/70">A product by Aceel AI</div>
+              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setNavOpen(false); navigate("/studio"); }}>
+                Open Studio
+              </Button>
+            </div>
+          </div>
+        )}
       </header>
 
       <main>
@@ -46,7 +70,7 @@ function Landing() {
           <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 text-xs text-foreground/70 bg-card border border-border rounded-full px-3 py-1 w-fit">
-                <span className="h-1.5 w-1.5 rounded-full bg-foreground/70"/> A product by <span className="font-medium">SIDA Labs</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-foreground/70"/> A product by <span className="font-medium">Aceel AI</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
               <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster—without complex setup.</p>
@@ -60,7 +84,7 @@ function Landing() {
                 <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
               </div>
             </div>
-            {/* Replaced preview with animated hero cards */}
+            {/* Animated hero cards */}
             <div className="lg:block hidden">
               <div className="relative h-[320px]">
                 <div className="absolute -top-6 -right-6 h-48 w-48 rounded-full bg-primary/10 blur-2xl" />
@@ -147,7 +171,7 @@ function Landing() {
         <section id="about" className="max-w-4xl mx-auto px-6 py-12">
           <h2 className="text-2xl font-semibold">What is Skriptio?</h2>
           <p className="text-foreground/80 mt-3 leading-7">
-            Skriptio by SIDA Labs is a minimal study companion that converts your documents and notes into
+            Skriptio by Aceel AI is a minimal study companion that converts your documents and notes into
             a structured plan for learning. Instead of passively re‑reading, Skriptio helps you practice
             active recall, organize key ideas as flashcards, and focus on achievable daily objectives.
             Upload a PDF or paste text, click generate, and start studying immediately.
@@ -169,7 +193,7 @@ function Landing() {
             <FAQ q="Do I need an AI API key?" a="No. Skriptio runs without external AI providers." />
             <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
             <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and true/false questions derived from your content." />
-            <FAQ q="Is my content stored?" a="Your generated sessions are stored with a UUID so you can revisit them. Content is not shared externally." />
+            <FAQ q="Do you save my content?" a="No. Skriptio does not save your content." />
           </div>
         </section>
 
@@ -185,42 +209,10 @@ function Landing() {
             </CardContent>
           </Card>
         </section>
-
-        {/* Contact / Socials */}
-        <section className="max-w-6xl mx-auto px-6 pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">Contact</CardTitle>
-                <CardDescription>
-                  <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">skriptio@sidahq.com</a>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">Instagram</CardTitle>
-                <CardDescription>
-                  <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">instagram.com/skriptio</a>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">Socials</CardTitle>
-                <CardDescription className="space-x-4">
-                  <a className="underline hover:no-underline" href="#" title="LinkedIn placeholder">LinkedIn</a>
-                  <a className="underline hover:no-underline" href="#" title="X placeholder">X</a>
-                  <a className="underline hover:no-underline" href="#" title="Facebook placeholder">Facebook</a>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-border py-8 text-center text-foreground/70 text-sm">
-        © {new Date().getFullYear()} Skriptio · A product by <span className="font-medium">SIDA Labs</span>
+        © {new Date().getFullYear()} Skriptio · A product by <span className="font-medium">Aceel AI</span>
         <div className="mt-2 space-x-4">
           <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">Email</a>
           <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">Instagram</a>
@@ -340,16 +332,119 @@ function Studio() {
     setScore(`${sc}/${result.quiz.length}`);
   };
 
+  // PDF Helpers
+  const ensureJsPDF = async () => {
+    try {
+      const mod = await import("jspdf");
+      return mod.jsPDF;
+    } catch (err) {
+      toast("Download not available in this runtime.");
+      throw err;
+    }
+  };
+
+  const addHeader = (doc) => {
+    const pw = doc.internal.pageSize.getWidth();
+    doc.setFontSize(16);
+    doc.text("Skriptio", pw / 2, 15, { align: "center" });
+    doc.setFontSize(11);
+  };
+
+  const addFooter = (doc) => {
+    const ph = doc.internal.pageSize.getHeight();
+    const pw = doc.internal.pageSize.getWidth();
+    doc.setFontSize(10);
+    doc.text("skriptio@sidahq.com", pw / 2, ph - 10, { align: "center" });
+  };
+
+  const newPage = (doc) => {
+    doc.addPage();
+    addHeader(doc);
+  };
+
+  const lineWrap = (doc, text, x, y, maxWidth) => {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    lines.forEach((ln) => {
+      const ph = doc.internal.pageSize.getHeight();
+      if (y > ph - 20) {
+        newPage(doc);
+        y = 25;
+      }
+      doc.text(ln, x, y);
+      y += 7;
+    });
+    return y;
+  };
+
+  const downloadQuizPDF = async () => {
+    if (!result?.quiz?.length) return;
+    const jsPDF = await ensureJsPDF();
+    const doc = new jsPDF();
+    addHeader(doc);
+    let y = 25;
+    doc.setFontSize(13);
+    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+    doc.setFontSize(12);
+    for (let i = 0; i < result.quiz.length; i++) {
+      const q = result.quiz[i];
+      y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
+      for (let oi = 0; oi < q.options.length; oi++) {
+        y = lineWrap(doc, `• ${q.options[oi]}`, 20, y, 170);
+      }
+      y += 4;
+    }
+    addFooter(doc);
+    doc.save("skriptio-quiz.pdf");
+  };
+
+  const downloadCardsPDF = async () => {
+    if (!result?.flashcards?.length) return;
+    const jsPDF = await ensureJsPDF();
+    const doc = new jsPDF();
+    addHeader(doc);
+    let y = 25;
+    doc.setFontSize(13);
+    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+    doc.setFontSize(12);
+    result.flashcards.forEach((c, idx) => {
+      y = lineWrap(doc, `Card ${idx + 1}:`, 15, y, 180);
+      y = lineWrap(doc, `Q: ${c.front}`, 20, y, 170);
+      y = lineWrap(doc, `A: ${c.back}`, 20, y, 170);
+      y += 4;
+    });
+    addFooter(doc);
+    doc.save("skriptio-flashcards.pdf");
+  };
+
+  const downloadPlanPDF = async () => {
+    if (!result?.plan?.length) return;
+    const jsPDF = await ensureJsPDF();
+    const doc = new jsPDF();
+    addHeader(doc);
+    let y = 25;
+    doc.setFontSize(13);
+    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+    doc.setFontSize(12);
+    result.plan.forEach((d) => {
+      y = lineWrap(doc, `${d.title}`, 15, y, 180);
+      d.objectives.forEach((o) => {
+        y = lineWrap(doc, `• ${o}`, 20, y, 170);
+      });
+      y += 4;
+    });
+    addFooter(doc);
+    doc.save("skriptio-plan.pdf");
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded-full bg-foreground/90" />
             <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
           <div className="flex items-center gap-2">
-            <div className="text-sm text-foreground/80">Skriptio Studio · by SIDA Labs</div>
+            <div className="text-sm text-foreground/80">Skriptio Studio · by Aceel AI</div>
             <ThemeToggle />
           </div>
         </div>
@@ -391,7 +486,14 @@ function Studio() {
           )}
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
+          {/* Download toolbar */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" disabled={!result?.quiz?.length} onClick={downloadQuizPDF}>Download Quiz PDF</Button>
+            <Button variant="outline" disabled={!result?.flashcards?.length} onClick={downloadCardsPDF}>Download Flashcards PDF</Button>
+            <Button variant="outline" disabled={!result?.plan?.length} onClick={downloadPlanPDF}>Download Plan PDF</Button>
+          </div>
+
           <Tabs defaultValue="quiz" className="w-full">
             <TabsList className="bg-white/10">
               <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
