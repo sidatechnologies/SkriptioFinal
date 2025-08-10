@@ -172,3 +172,5 @@
 ## agent_communication:
   - agent: "main"
     message: "Prepared Vercel config and theme fixes. Proceeding to backend smoke tests."
+  - agent: "testing"
+    message: "Backend smoke tests completed successfully. All 5 API tests passed including health check, content generation with proper validation (quiz[10], flashcards[>=8], plan[7]), error handling for missing input, content retrieval, and recent content listing. Backend APIs are fully functional and ready for production."
