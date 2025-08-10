@@ -60,16 +60,34 @@ function Landing() {
                 <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
               </div>
             </div>
+            {/* Replaced preview with animated hero cards */}
             <div className="lg:block hidden">
-              <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6">
-                <div className="text-sm text-foreground/80 mb-3">Preview</div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="h-28 rounded-xl bg-foreground/10"/>
-                  <div className="h-28 rounded-xl bg-foreground/10"/>
-                  <div className="h-28 rounded-xl bg-foreground/10"/>
-                  <div className="col-span-3 h-14 rounded-xl bg-foreground/10"/>
-                  <div className="col-span-2 h-14 rounded-xl bg-foreground/10"/>
-                  <div className="h-14 rounded-xl bg-foreground/10"/>
+              <div className="relative h-[320px]">
+                <div className="absolute -top-6 -right-6 h-48 w-48 rounded-full bg-primary/10 blur-2xl" />
+                <div className="absolute bottom-0 -left-10 h-40 w-40 rounded-full bg-foreground/10 blur-2xl" />
+                <div className="absolute right-0 top-8 w-[320px] animate-fade-in-up">
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow">
+                    <CardHeader>
+                      <CardTitle className="text-base">Auto Quiz</CardTitle>
+                      <CardDescription>10 questions generated from your content for quick recall.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+                <div className="absolute right-24 top-40 w-[280px] animate-fade-in-up" style={{animationDelay: '150ms'}}>
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow" style={{animationDelay: '300ms'}}>
+                    <CardHeader>
+                      <CardTitle className="text-base">Flashcards</CardTitle>
+                      <CardDescription>Key concepts organized for spaced repetition.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+                <div className="absolute right-10 top-64 w-[300px] animate-fade-in-up" style={{animationDelay: '300ms'}}>
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow" style={{animationDelay: '600ms'}}>
+                    <CardHeader>
+                      <CardTitle className="text-base">7‑Day Plan</CardTitle>
+                      <CardDescription>Daily objectives to keep you moving.</CardDescription>
+                    </CardHeader>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -148,7 +166,7 @@ function Landing() {
             <h2 className="text-2xl font-semibold">Frequently asked questions</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FAQ q="Do I need an AI API key?" a="No. Skriptio's MVP runs locally on the server and does not require external AI providers." />
+            <FAQ q="Do I need an AI API key?" a="No. Skriptio runs without external AI providers." />
             <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
             <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and true/false questions derived from your content." />
             <FAQ q="Is my content stored?" a="Your generated sessions are stored with a UUID so you can revisit them. Content is not shared externally." />
@@ -156,7 +174,7 @@ function Landing() {
         </section>
 
         {/* CTA */}
-        <section className="max-w-6xl mx-auto px-6 pb-20">
+        <section className="max-w-6xl mx-auto px-6 pb-6">
           <Card className="bg-card border-border">
             <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
@@ -167,10 +185,49 @@ function Landing() {
             </CardContent>
           </Card>
         </section>
+
+        {/* Contact / Socials */}
+        <section className="max-w-6xl mx-auto px-6 pb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-base">Contact</CardTitle>
+                <CardDescription>
+                  <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">skriptio@sidahq.com</a>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-base">Instagram</CardTitle>
+                <CardDescription>
+                  <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">instagram.com/skriptio</a>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-base">Socials</CardTitle>
+                <CardDescription className="space-x-4">
+                  <a className="underline hover:no-underline" href="#" title="LinkedIn placeholder">LinkedIn</a>
+                  <a className="underline hover:no-underline" href="#" title="X placeholder">X</a>
+                  <a className="underline hover:no-underline" href="#" title="Facebook placeholder">Facebook</a>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-border py-8 text-center text-foreground/70 text-sm">
         © {new Date().getFullYear()} Skriptio · A product by <span className="font-medium">SIDA Labs</span>
+        <div className="mt-2 space-x-4">
+          <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">Email</a>
+          <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">Instagram</a>
+          <a className="underline hover:no-underline" href="#">LinkedIn</a>
+          <a className="underline hover:no-underline" href="#">X</a>
+          <a className="underline hover:no-underline" href="#">Facebook</a>
+        </div>
       </footer>
       <Toaster />
     </div>
@@ -292,7 +349,7 @@ function Studio() {
             <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
           <div className="flex items-center gap-2">
-            <div className="text-sm text-foreground/80">MVP · by SIDA Labs</div>
+            <div className="text-sm text-foreground/80">Skriptio Studio · by SIDA Labs</div>
             <ThemeToggle />
           </div>
         </div>
