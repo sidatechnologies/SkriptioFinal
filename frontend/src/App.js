@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check } from "lucide-react";
+import ThemeToggle from "./components/ThemeToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,17 +19,20 @@ function Landing() {
   const navigate = useNavigate();
   useEffect(() => { axios.get(`${API}/`).catch(() => {}); }, []);
   return (
-    <div className="min-h-screen bg-[#0b0b0c] text-white">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-black/40 border-b border-white/10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-white/90" />
+            <div className="h-9 w-9 rounded-full bg-foreground/90" />
             <div className="font-semibold tracking-tight text-lg">StudyCrafter</div>
           </Link>
-          <nav className="flex items-center gap-3">
-            <Link to="/studio" className="text-sm text-neutral-300 hover:text-white">Studio</Link>
-            <a href="#features" className="text-sm text-neutral-300 hover:text-white">Features</a>
-            <Button className="bg-neutral-100 text-black hover:bg-white" onClick={() => navigate("/studio")}>Open Studio <ArrowRight size={16} className="ml-1"/></Button>
+          <nav className="flex items-center gap-2">
+            <Link to="/studio" className="text-sm text-foreground/80 hover:text-foreground">Studio</Link>
+            <a href="#features" className="text-sm text-foreground/80 hover:text-foreground">Features</a>
+            <ThemeToggle />
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>
+              Open Studio <ArrowRight size={16} className="ml-1"/>
+            </Button>
           </nav>
         </div>
       </header>
@@ -39,27 +43,27 @@ function Landing() {
           <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Turn PDFs & notes into a study kit in seconds.</h1>
-              <p className="text-neutral-300 text-lg">Upload content → get a 10‑question quiz, smart flashcards, and a 7‑day plan. No external AI required.</p>
+              <p className="text-foreground/80 text-lg">Upload content → get a 10‑question quiz, smart flashcards, and a 7‑day plan. No external AI required.</p>
               <div className="flex items-center gap-3">
-                <Button className="bg-neutral-100 text-black hover:bg-white" onClick={() => navigate("/studio")}>Try the Studio</Button>
-                <Link to="#features" className="text-neutral-300 hover:text-white text-sm flex items-center">See features <ArrowRight size={16} className="ml-1"/></Link>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try the Studio</Button>
+                <Link to="#features" className="text-foreground/80 hover:text-foreground text-sm flex items-center">See features <ArrowRight size={16} className="ml-1"/></Link>
               </div>
-              <div className="flex items-center gap-4 text-neutral-400 text-sm pt-2">
+              <div className="flex items-center gap-4 text-foreground/70 text-sm pt-2">
                 <span className="flex items-center gap-2"><Check size={16}/> Minimal & fast</span>
                 <span className="flex items-center gap-2"><Check size={16}/> Private (offline MVP)</span>
                 <span className="flex items-center gap-2"><Check size={16}/> No setup</span>
               </div>
             </div>
             <div className="lg:block hidden">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-6">
-                <div className="text-sm text-neutral-300 mb-3">Preview</div>
+              <div className="rounded-2xl border border-border bg-card backdrop-blur-sm p-6">
+                <div className="text-sm text-foreground/80 mb-3">Preview</div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="h-28 rounded-xl bg-white/10"/>
-                  <div className="h-28 rounded-xl bg-white/10"/>
-                  <div className="h-28 rounded-xl bg-white/10"/>
-                  <div className="col-span-3 h-14 rounded-xl bg-white/10"/>
-                  <div className="col-span-2 h-14 rounded-xl bg-white/10"/>
-                  <div className="h-14 rounded-xl bg-white/10"/>
+                  <div className="h-28 rounded-xl bg-foreground/10"/>
+                  <div className="h-28 rounded-xl bg-foreground/10"/>
+                  <div className="h-28 rounded-xl bg-foreground/10"/>
+                  <div className="col-span-3 h-14 rounded-xl bg-foreground/10"/>
+                  <div className="col-span-2 h-14 rounded-xl bg-foreground/10"/>
+                  <div className="h-14 rounded-xl bg-foreground/10"/>
                 </div>
               </div>
             </div>
@@ -73,7 +77,7 @@ function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 py-8 text-center text-neutral-400 text-sm">© {new Date().getFullYear()} StudyCrafter</footer>
+      <footer className="border-t border-border py-8 text-center text-foreground/70 text-sm">© {new Date().getFullYear()} StudyCrafter</footer>
       <Toaster />
     </div>
   );
@@ -81,7 +85,7 @@ function Landing() {
 
 function Feature({ icon, title, desc }) {
   return (
-    <Card className="bg-white/5 border-white/10">
+    <Card className="bg-card border-border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">{icon} {title}</CardTitle>
         <CardDescription>{desc}</CardDescription>
@@ -138,45 +142,48 @@ function Studio() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0b0c] text-white">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-black/40 border-b border-white/10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded-full bg-white/90" />
+            <div className="h-7 w-7 rounded-full bg-foreground/90" />
             <div className="font-semibold tracking-tight">StudyCrafter</div>
           </Link>
-          <div className="text-sm text-neutral-300">Offline MVP</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-foreground/80">Offline MVP</div>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-4">
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><FileText size={18}/> Add Content</CardTitle>
               <CardDescription>Paste raw text or upload a PDF. Fully local generation on server.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-neutral-400" />
+              <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
               <div>
-                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-neutral-400" />
-                <div className="mt-2 text-xs text-neutral-400">Tip: You can combine PDF + pasted notes.</div>
+                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
+                <div className="mt-2 text-xs text-foreground/70">Tip: You can combine PDF + pasted notes.</div>
               </div>
               <div className="flex items-center gap-3">
                 <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="hidden" />
                 <Button variant="secondary" className="bg-white/10 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
-                {file && <div className="text-xs text-neutral-300 truncate max-w-[180px]">{file.name}</div>}
+                {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
               </div>
-              <Button disabled={loading} onClick={handleGenerate} className="w-full bg-neutral-100 text-black hover:bg-white">
+              <Button disabled={loading} onClick={handleGenerate} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                 {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Generating</> : "Generate Study Kit"}
               </Button>
             </CardContent>
           </Card>
 
           {result?.id && (
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-sm">Saved Session</CardTitle>
                 <CardDescription className="truncate">ID: {result.id}</CardDescription>
@@ -199,12 +206,12 @@ function Studio() {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-neutral-300">{result.title}</div>
-                      <div className="text-sm text-neutral-400">{score ? `Score: ${score}` : `${result.quiz?.length || 0} questions`}</div>
+                      <div className="text-sm text-foreground/80">{result.title}</div>
+                      <div className="text-sm text-foreground/70">{score ? `Score: ${score}` : `${result.quiz?.length || 0} questions`}</div>
                     </div>
                     <div className="space-y-4">
                       {result.quiz?.map((q, idx) => (
-                        <Card key={q.id} className="bg-white/5 border-white/10">
+                        <Card key={q.id} className="bg-card border-border">
                           <CardContent className="p-5 space-y-3">
                             <div className="font-medium">Q{idx + 1}. {q.question}</div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -231,8 +238,8 @@ function Studio() {
                       ))}
                     </div>
                     <div className="flex items-center gap-3">
-                      <Button onClick={evaluate} disabled={!result?.quiz?.length || score !== null} className="bg-neutral-100 text-black hover:bg-white">Evaluate</Button>
-                      {score && <div className="text-sm text-neutral-300">Great work! Review explanations in flashcards.</div>}
+                      <Button onClick={evaluate} disabled={!result?.quiz?.length || score !== null} className="bg-primary text-primary-foreground hover:bg-primary/90">Evaluate</Button>
+                      {score && <div className="text-sm text-foreground/80">Great work! Review explanations in flashcards.</div>}
                     </div>
                   </div>
                 )}
@@ -264,7 +271,7 @@ function Studio() {
 
 function EmptyState({ label }) {
   return (
-    <div className="border border-dashed border-white/15 rounded-xl p-8 text-center text-neutral-400 bg-white/5">
+    <div className="border border-dashed border-border rounded-xl p-8 text-center text-foreground/70 bg-card">
       {label}
     </div>
   );
@@ -277,9 +284,9 @@ function Flashcards({ cards }) {
   if (!card) return <EmptyState label="No flashcards"/>;
   return (
     <div className="space-y-4">
-      <div className="text-sm text-neutral-300">Card {idx + 1} of {cards.length}</div>
+      <div className="text-sm text-foreground/80">Card {idx + 1} of {cards.length}</div>
       <div onClick={() => setFlipped(!flipped)} className="cursor-pointer select-none">
-        <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+        <Card className="bg-card border-border hover:bg-white/10 transition-colors">
           <CardHeader>
             <CardTitle className="text-base">{flipped ? "Answer" : "Question"}</CardTitle>
             <CardDescription>{flipped ? card.back : card.front}</CardDescription>
@@ -288,7 +295,7 @@ function Flashcards({ cards }) {
       </div>
       <div className="flex items-center gap-3">
         <Button variant="secondary" className="bg-white/10 hover:bg-white/20" onClick={() => { setIdx(i => Math.max(0, i - 1)); setFlipped(false); }}>Prev</Button>
-        <Button className="bg-neutral-100 text-black hover:bg-white" onClick={() => { setIdx(i => Math.min(cards.length - 1, i + 1)); setFlipped(false); }}>Next</Button>
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setIdx(i => Math.min(cards.length - 1, i + 1)); setFlipped(false); }}>Next</Button>
       </div>
     </div>
   );
@@ -299,13 +306,13 @@ function Plan({ days }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {days.map(d => (
-        <Card key={d.day} className="bg-white/5 border-white/10">
+        <Card key={d.day} className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-base">{d.title}</CardTitle>
             <CardDescription>Objectives</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="list-disc pl-5 space-y-1 text-neutral-200">
+            <ul className="list-disc pl-5 space-y-1 text-foreground/90">
               {d.objectives.map((o, i) => <li key={i}>{o}</li>)}
             </ul>
           </CardContent>
