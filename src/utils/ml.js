@@ -201,6 +201,19 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const phrases = keyphrases;
   const mcqs = [];
   function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
+
+  function removePhraseOnce(sentence, phrase) {
+    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
+    return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
+  }
+  function contextFromSentence(sentence, phrase, maxLen = 220) {
+    let ctx = removePhraseOnce(sentence, phrase);
+    if (!ctx || ctx.length < 30) ctx = sentence;
+    if (!/[.!?]$/.test(ctx)) ctx += '.';
+    if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
+    return ctx;
+  }
+
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
   mcqTargets.forEach((s, idx) => {
     for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx);
@@ -228,23 +241,19 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
       || phrases.find(p => hasPhraseInSentence(p, s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
-    // avoid masking first word
-    const maskRegex = new RegExp(`(?!^)\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
-    if (!maskRegex.test(s)) continue;
-    const qtext = s.replace(maskRegex, '_____');
+    // Build question from context rather than cloze
+    const ctx = contextFromSentence(s, phrase);
+    const qtext = `Which term is described by: "${ctx}"`;
     const pool = distractorsFor(phrase);
     const choices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
     while (choices.length < 4) {
       const r = phrases.find(p => !choices.includes(p));
       if (!r) break; choices.push(r);
     }
-    const shuffled = [...choices];
-    for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
-    const answerIndex = shuffled.indexOf(phrase);
-    if (answerIndex < 0) continue;
-    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: shuffled, answer_index: answerIndex, qtype: 'mcq' });
+    const answerIndex = 0;
+    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: choices, answer_index: answerIndex, qtype: 'mcq' });
   }
-  // True/False up to 2
+  // True/False up to 2 (keep deterministic)
   const tfs = [];
   for (let i = 0; i < dedup.sentences.length && tfs.length < 2; i++) {
     const s = dedup.sentences[i];

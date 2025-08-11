@@ -15,6 +15,9 @@ export function generateUUID() {
   });
 }
 
+// Tiny yielding helper to keep UI responsive during heavy work
+async function tick() { return new Promise(resolve => setTimeout(resolve, 0)); }
+
 // Extract text from PDF using pdf.js
 export async function extractTextFromPDF(file) {
   try {
@@ -33,6 +36,7 @@ export async function extractTextFromPDF(file) {
       const textContent = await page.getTextContent();
       const pageText = textContent.items.map(item => item.str).join(' ');
       fullText += pageText + '\n';
+      if (i % 2 === 0) await tick(); // yield periodically on large PDFs
     }
 
     return fullText;
@@ -113,7 +117,7 @@ export function tokenize(text) {
   return matches.map(token => token.toLowerCase());
 }
 
-// Extract keyphrases: unigrams + bigrams + trigrams
+// Extract keyPhrases: unigrams + bigrams + trigrams
 export function extractKeyPhrases(text, k = 14) {
   const tokens = tokenize(text).filter(t => !STOPWORDS.has(t));
   const counts = new Map();
@@ -151,7 +155,21 @@ export function topKeywords(text, k = 12) {
   return candidates.slice(0, k).map(([word]) => word);
 }
 
-// Build quiz questions from sentences and phrases
+function removePhraseOnce(sentence, phrase) {
+  const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
+  return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
+}
+
+function contextFromSentence(sentence, phrase, maxLen = 220) {
+  let ctx = removePhraseOnce(sentence, phrase);
+  // if nothing remains (e.g., short titles), fall back to original sentence without change
+  if (!ctx || ctx.length < 30) ctx = sentence;
+  if (!/[.!?]$/.test(ctx)) ctx += '.';
+  if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
+  return ctx;
+}
+
+// Build quiz questions from sentences and phrases (deterministic, no shuffling)
 export function buildQuiz(sentences, phrases, total = 10) {
   const quiz = [];
   const used = new Set();
@@ -176,22 +194,23 @@ export function buildQuiz(sentences, phrases, total = 10) {
       || phrases.find(p => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
-    const maskRegex = new RegExp(`(?!^)\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
-    if (!maskRegex.test(s)) continue;
-    const qtext = s.replace(maskRegex, '_____');
+
+    // Build an intelligent, non-cloze question stem from context
+    const ctx = contextFromSentence(s, phrase);
+    const qtext = `Which term is described by: "${ctx}"`;
+
     const pool = distractorsFor(phrase);
+    // Deterministic options: correct first, then top 3 similar distractors
     const choices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
     while (choices.length < 4) {
       const r = phrases.find(p => !choices.includes(p));
       if (!r) break; choices.push(r);
     }
-    const shuffled = [...choices];
-    for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
-    const answerIndex = shuffled.indexOf(phrase);
-    quiz.push({ id: generateUUID(), question: qtext, options: shuffled, answer_index: Math.max(0, answerIndex), qtype: 'mcq' });
+    const answerIndex = 0; // correct is first (no randomization)
+    quiz.push({ id: generateUUID(), question: qtext, options: choices, answer_index: answerIndex, qtype: 'mcq' });
   }
 
-  // Up to 2 True/False with light mutation
+  // Up to 2 True/False with light mutation (deterministic order)
   let tfCount = 0;
   for (const s of sentences) {
     if (quiz.length >= total || tfCount >= 2) break;
@@ -265,7 +284,9 @@ export async function generateArtifacts(rawText, title = null) {
   }
   const limitedText = text.length > 150000 ? text.slice(0, 150000) : text;
 
+  await tick();
   let sentences = splitSentences(limitedText);
+  await tick();
   if (sentences.length === 0) {
     // Create pseudo-sentences by chunking
     sentences = [];
@@ -274,12 +295,16 @@ export async function generateArtifacts(rawText, title = null) {
     }
   }
 
+  await tick();
   // Prefer keyphrases (multi-word) with unigram fallback
   const phrases = extractKeyPhrases(limitedText, 14);
 
+  await tick();
   // Heuristic build first (fast)
   let quiz = buildQuiz(sentences, phrases, 10);
+  await tick();
   let flashcards = buildFlashcards(sentences, phrases, 12);
+  await tick();
   let plan = buildStudyPlan(sentences, phrases);
 
   const base = {

@@ -95,7 +95,7 @@ function Landing() {
                 <div className="absolute right-0 top-8 w-[320px] animate-fade-in-up">
                   <Card className="bg-card/90 border-border shadow-xl animate-float-slow">
                     <CardHeader>
-                      <CardTitle className="text-base">Auto Quiz</CardTitle>
+                      <CardTitle className="text;base">Auto Quiz</CardTitle>
                       <CardDescription>10 questions generated from your content for quick recall.</CardDescription>
                     </CardHeader>
                   </Card>
@@ -293,6 +293,7 @@ function Studio() {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("");
   const [result, setResult] = useState(null);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
@@ -301,36 +302,43 @@ function Studio() {
   // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmML(); }, []);
 
+  const pause = () => new Promise(res => setTimeout(res, 0));
+
   const handleGenerate = async () => {
     if (!text && !file) {
       toast("Paste text or upload a PDF to generate your study kit.");
       return;
     }
-    
     setLoading(true);
+    setLoadingStep('Preparing...');
     setScore(null);
     setAnswers({});
-    
+    await pause();
+
     try {
       let extractedText = "";
-      
-      // Process PDF if uploaded
+
       if (file) {
         if (!file.name.toLowerCase().endsWith(".pdf")) {
           throw new Error("Only PDF files are supported");
         }
+        setLoadingStep('Reading PDF...');
+        await pause();
         extractedText = await extractTextFromPDF(file);
       }
-      
-      // Combine PDF text with pasted text
+
       if (text) {
         extractedText = extractedText ? extractedText + "\n" + text : text;
       }
-      
-      // Generate study artifacts (async, ML-refined when available)
+
+      setLoadingStep('Analyzing content...');
+      await pause();
+
+      setLoadingStep('Generating study kit...');
+      await pause();
       const studyData = await generateArtifacts(extractedText, title);
       setResult(studyData);
-      
+
       toast("Generated! Quiz, flashcards and 7-day plan are ready.");
     } catch (error) {
       const msg = error.message || "Failed to generate study kit";
@@ -338,6 +346,7 @@ function Studio() {
       console.error("Generation error:", error);
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   };
 
@@ -498,7 +507,7 @@ function Studio() {
                 </ul>
               </div>
               <Button disabled={loading} onClick={handleGenerate} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Generating</> : "Generate Study Kit"}
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> {loadingStep || 'Generating'} </> : "Generate Study Kit"}
               </Button>
             </CardContent>
           </Card>
@@ -513,8 +522,8 @@ function Studio() {
           </div>
 
           <Tabs defaultValue="quiz" className="w-full">
-            <TabsList className="bg-white/10">
-                {/* ensure theme awareness */}
+            <TabsList className="bg.white/10">
+              {/* ensure theme awareness */}
               <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
               <TabsTrigger value="flashcards" className="data-[state=active]:bg-white data-[state=active]:text-black"><BookOpen size={16} className="mr-2"/>Flashcards</TabsTrigger>
               <TabsTrigger value="plan" className="data-[state=active]:bg-white data-[state=active]:text-black"><Calendar size={16} className="mr-2"/>7-Day Plan</TabsTrigger>
