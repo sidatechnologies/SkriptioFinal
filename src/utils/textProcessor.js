@@ -221,8 +221,8 @@ export function buildStudyPlan(sentences, keywords) {
     const objectives = [];
     for (let i = 0; i < Math.min(3, chunk.length); i++) {
       const s = chunk[i];
-      const short = s.length <= 120 ? s : s.slice(0, 117) + '...';
-      objectives.push(short);
+      // Show full sentence for each objective (no truncation)
+      objectives.push(s);
     }
     
     // Pad with keywords if needed
