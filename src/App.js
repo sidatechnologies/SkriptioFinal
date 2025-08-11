@@ -20,6 +20,8 @@ function Landing() {
   // Prewarm ML model in background so first Studio use is fast
   useEffect(() => { prewarmML(); }, []);
   
+  const heroBg = { background: 'radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)' };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
