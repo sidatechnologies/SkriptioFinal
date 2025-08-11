@@ -218,7 +218,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   };
   const used = new Set();
   for (const s of mcqTargets) {
-    if (mcqs.length &gt;= 8) break;
+    if (mcqs.length >= 8) break;
     // prefer multi-word phrase in sentence
     const phrase = phrases.find(p => p.includes(' ') &amp;&amp; hasPhraseInSentence(p, s) &amp;&amp; !used.has(p))
       || phrases.find(p => hasPhraseInSentence(p, s) &amp;&amp; !used.has(p));
