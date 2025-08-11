@@ -524,7 +524,7 @@ function Studio() {
                                 return (
                                   <button
                                     key={oi}
-                                    className={`text-left px-3 py-2 rounded-md border transition-colors ${selected ? 'bg-black text-white dark:bg-white dark:text-black border-transparent' : 'bg-white/10 border-white/10 hover:bg-white/20 dark:bg-white/10 dark:border-white/10 dark:hover:bg-white/20'} ${isCorrect ? 'ring-1 ring-green-500' : ''} ${wrongSelected ? 'ring-1 ring-red-500' : ''}`}
+                                    className={`quiz-option text-left px-3 py-2 rounded-md border transition-colors ${selected ? 'quiz-option--selected' : ''} ${isCorrect ? 'ring-1 ring-green-500' : ''} ${wrongSelected ? 'ring-1 ring-red-500' : ''}`}
                                     onClick={() => {
                                       if (score) return; // lock after evaluation
                                       setAnswers(prev => ({ ...prev, [idx]: oi }));
