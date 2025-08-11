@@ -140,8 +140,8 @@
 
 ## test_plan:
   current_focus:
-    - "Frontend UI: Verify Landing nav responsive, hero animations visible, footer links (Email, Instagram, LinkedIn, X, Facebook) open new tabs"
-    - "Frontend UI: Verify Theme toggle, Studio generation flow, and PDF downloads (quiz, flashcards, plan) include header/footer branding"
+    - "Studio: Generate from pasted text, verify 10 quiz questions rendered and Evaluate shows score"
+    - "Downloads: Each of the three PDFs contains 'Skriptio' header and 'skriptio@sidahq.com' footer along with content"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
