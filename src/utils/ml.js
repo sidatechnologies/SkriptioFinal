@@ -79,7 +79,7 @@ export async function embedSentences(sentences, deadlineMs = 0) {
 
 export function cosine(a, b) {
   let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i &lt; a.length; i++) {
+  for (let i = 0; i < a.length; i++) {
     const x = a[i];
     const y = b[i];
     dot += x * y;
