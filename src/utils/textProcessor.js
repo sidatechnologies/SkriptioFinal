@@ -162,11 +162,11 @@ export function buildQuiz(sentences, phrases, total = 10) {
 
   function distractorsFor(p) {
     const base = cooccur[p];
-    const sims = phrases.filter(q =&gt; q !== p).map(q =&gt; {
-      const inter = new Set([...base].filter(x =&gt; cooccur[q].has(x))).size;
+    const sims = phrases.filter(q => q !== p).map(q => {
+      const inter = new Set([...base].filter(x => cooccur[q].has(x))).size;
       const uni = new Set([...base, ...cooccur[q]]).size || 1;
       return { q, jacc: inter / uni };
-    }).sort((a, b) =&gt; b.jacc - a.jacc).slice(0, 6).map(o =&gt; o.q);
+    }).sort((a, b) => b.jacc - a.jacc).slice(0, 6).map(o => o.q);
     return sims;
   }
 
