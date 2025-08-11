@@ -18,11 +18,19 @@ export async function extractTextFromPDF(file) {
   try {
     const pdfjsLib = await import('pdfjs-dist');
     
-    // Set worker source to use the package version
-    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url
-    ).toString();
+    // Use legacy self-contained worker to avoid nested ESM imports that can 404 via proxies
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+        import.meta.url
+      ).toString();
+    } catch (e) {
+      // Fallback to non-legacy worker path if bundler resolution changes in future
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/build/pdf.worker.min.mjs',
+        import.meta.url
+      ).toString();
+    }
     
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
