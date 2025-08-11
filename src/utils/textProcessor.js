@@ -142,8 +142,8 @@ export function extractKeyPhrases(text, k = 14) {
 export function topKeywords(text, k = 12) {
   const freq = {};
   const tokens = tokenize(text);
-  tokens.forEach(token =&gt; {
-    if (STOPWORDS.has(token) || token.length &lt; 3) return;
+  tokens.forEach(token => {
+    if (STOPWORDS.has(token) || token.length < 3) return;
     freq[token] = (freq[token] || 0) + 1;
   });
   const candidates = Object.entries(freq)
