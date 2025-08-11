@@ -50,10 +50,10 @@ function isAllCaps(s) {
 }
 function isTitleCaseLine(s) {
   const words = s.trim().split(/\s+/);
-  if (words.length &gt; 10) return false;
+  if (words.length > 10) return false;
   let caps = 0;
-  for (const w of words) if (w[0] &amp;&amp; w[0] === w[0].toUpperCase()) caps++;
-  return caps / Math.max(1, words.length) &gt; 0.6;
+  for (const w of words) if (w[0] && w[0] === w[0].toUpperCase()) caps++;
+  return caps / Math.max(1, words.length) > 0.6;
 }
 function looksLikeHeading(s) {
   const t = s.trim();
