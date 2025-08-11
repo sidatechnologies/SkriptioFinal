@@ -177,6 +177,56 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
   return { labels, centroids };
 }
 
+// Option similarity helpers
+function optionTokens(str) {
+  return (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+}
+function jaccardText(a, b) {
+  const A = new Set(optionTokens(a));
+  const B = new Set(optionTokens(b));
+  if (A.size === 0 && B.size === 0) return 1;
+  let inter = 0;
+  for (const x of A) if (B.has(x)) inter++;
+  const uni = A.size + B.size - inter;
+  return uni === 0 ? 0 : inter / uni;
+}
+function tooSimilar(a, b) {
+  if (!a || !b) return false;
+  if (a.trim().toLowerCase() === b.trim().toLowerCase()) return true;
+  return jaccardText(a, b) >= 0.7;
+}
+function detIndex(str, n) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return n ? h % n : h; }
+function placeDeterministically(choices, correct) {
+  const n = choices.length;
+  const idx = Math.min(n - 1, detIndex(correct, n));
+  const others = choices.filter(c => c !== correct);
+  const arranged = new Array(n);
+  arranged[idx] = correct;
+  let oi = 0;
+  for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; }
+  return { arranged, idx };
+}
+function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
+  const selected = [correct];
+  const seen = new Set([correct.toLowerCase()]);
+  const addIf = (opt) => {
+    if (!opt) return false;
+    const norm = opt.trim();
+    if (!norm) return false;
+    if (seen.has(norm.toLowerCase())) return false;
+    for (const s of selected) { if (tooSimilar(s, norm)) return false; }
+    selected.push(norm);
+    seen.add(norm.toLowerCase());
+    return true;
+  };
+  for (const c of pool || []) { if (selected.length >= needed) break; addIf(c); }
+  if (selected.length < needed) { for (const c of (fallbackPool || [])) { if (selected.length >= needed) break; addIf(c); } }
+  if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (c === correct) continue; addIf(c); } }
+  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+  let gi = 0; while (selected.length < needed && gi < generics.length) { addIf(generics[gi++]); }
+  return selected.slice(0, needed);
+}
+
 export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, deadlineMs = 120) {
   // Attempt to get embeddings quickly; if not ready, return artifacts unchanged
   const vecs = await embedSentences(sentences, deadlineMs);
@@ -196,8 +246,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   for (let i = 0; i < dedup.sentences.length; i++) clusters[labels[i]].push(dedup.sentences[i]);
 
   // Helpers for tough question generation
-  function removePhraseOnce(sentence, phrase) {
-    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
+  function removePhraseOnce(sentence, phrase, maxLen = 220) {
+    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
     return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
   }
   function contextFromSentence(sentence, phrase, maxLen = 220) {
@@ -208,28 +258,13 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
     return ctx;
   }
-  function detIndex(str, n) {
-    let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return n ? h % n : h;
-  }
-  function placeDeterministically(choices, correct) {
-    const n = choices.length;
-    const withoutDupes = Array.from(new Set(choices));
-    const filtered = withoutDupes.slice(0, n);
-    const idx = Math.min(n - 1, detIndex(correct, n));
-    const others = filtered.filter(c => c !== correct);
-    const arranged = new Array(n);
-    arranged[idx] = correct;
-    let oi = 0;
-    for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; }
-    return { arranged, idx };
-  }
+  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
 
-  // Rebuild quiz entirely as tough MCQs (no cloze, no TF)
+  // Rebuild quiz entirely as tough MCQs (no cloze, no TF) and enforce exactly 10 with 4 distinct options
   const rebuilt = { ...artifacts };
   const mcqTargets = dedup.sentences.slice(0, 36);
   const phrases = keyphrases;
   const mcqs = [];
-  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
 
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
   mcqTargets.forEach((s, idx) => { for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx); });
@@ -239,34 +274,55 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
       .filter(q => q !== p)
       .map(q => { const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size; const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1; return { q, jacc: inter / uni }; })
       .sort((a, b) => b.jacc - a.jacc)
-      .slice(0, 6)
       .map(o => o.q);
-    return sims;
+    return sims.filter(opt => !tooSimilar(opt, p));
   };
   const used = new Set();
+
+  function buildOne(s, phrase) {
+    const primary = contextFromSentence(s, phrase);
+    let secondary = '';
+    const supIdx = mcqTargets.findIndex((t) => t !== s && hasPhraseInSentence(phrase, t) && t.length >= 50);
+    if (supIdx !== -1) secondary = contextFromSentence(mcqTargets[supIdx], phrase, 160);
+    const qtext = secondary
+      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
+      : `Which concept is best described by: "${primary}"`;
+
+    const pool = distractorsFor(phrase);
+    const fallbackPool = phrases.filter(p => p !== phrase && !tooSimilar(p, phrase));
+    const opts = distinctFillOptions(phrase, pool.slice(0, 10), fallbackPool, phrases, 4);
+    const { arranged, idx } = placeDeterministically(opts, phrase);
+    return { question: qtext, options: arranged, answer_index: idx };
+  }
+
   for (const s of mcqTargets) {
     if (mcqs.length >= 10) break;
     const phrase = phrases.find(p => p.includes(' ') && hasPhraseInSentence(p, s) && !used.has(p))
       || phrases.find(p => hasPhraseInSentence(p, s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
-    const primary = contextFromSentence(s, phrase);
-    let secondary = '';
-    const supIdx = mcqTargets.findIndex((t) => t !== s && hasPhraseInSentence(phrase, t) && t.length >= 50);
-    if (supIdx !== -1) secondary = contextFromSentence(mcqTargets[supIdx], phrase, 160);
-
-    const qtext = secondary
-      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
-      : `Which concept is best described by: "${primary}"`;
-
-    const pool = distractorsFor(phrase);
-    const baseChoices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
-    while (baseChoices.length < 4) { const r = phrases.find(p => !baseChoices.includes(p)); if (!r) break; baseChoices.push(r); }
-    const { arranged, idx } = placeDeterministically(baseChoices, phrase);
-
-    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: arranged, answer_index: idx, qtype: 'mcq' });
+    const { question, options, answer_index } = buildOne(s, phrase);
+    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
   }
-  rebuilt.quiz = mcqs.slice(0, 10);
+
+  // Pad to 10 if needed using fallback construction
+  let si = 0; let pi = 0;
+  while (mcqs.length < 10 && (si < mcqTargets.length || pi < phrases.length)) {
+    const s = mcqTargets[si % Math.max(1, mcqTargets.length)] || (mcqTargets[0] || 'This passage discusses key ideas and definitions.');
+    const phrase = phrases[pi % Math.max(1, phrases.length)] || 'core concept';
+    if (!used.has(phrase)) {
+      used.add(phrase);
+      const { question, options, answer_index } = buildOne(s, phrase);
+      mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
+    }
+    si++; pi++;
+  }
+
+  rebuilt.quiz = mcqs.slice(0, 10).map(q => {
+    const opts = distinctFillOptions(q.options[q.answer_index], q.options.filter((o, i) => i !== q.answer_index), [], phrases, 4);
+    const placed = placeDeterministically(opts, q.options[q.answer_index]);
+    return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' };
+  });
 
   // Flashcards: pick top 12 distinct phrases; back = highest-centrality sentence containing phrase
   const cards = [];

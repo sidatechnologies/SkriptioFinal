@@ -142,21 +142,27 @@ export function extractKeyPhrases(text, k = 14) {
   return [...multi.slice(0, Math.min(k - 4, multi.length)), ...uni].slice(0, k);
 }
 
-// Get top keywords (legacy unigrams) – used only as fallback
-export function topKeywords(text, k = 12) {
-  const freq = {};
-  const tokens = tokenize(text);
-  tokens.forEach(token => {
-    if (STOPWORDS.has(token) || token.length < 3) return;
-    freq[token] = (freq[token] || 0) + 1;
-  });
-  const candidates = Object.entries(freq)
-    .sort(([a, freqA], [b, freqB]) => freqB - freqA || a.localeCompare(b));
-  return candidates.slice(0, k).map(([word]) => word);
+// Option similarity helpers
+function optionTokens(str) {
+  return (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+}
+function jaccard(a, b) {
+  const A = new Set(optionTokens(a));
+  const B = new Set(optionTokens(b));
+  if (A.size === 0 && B.size === 0) return 1;
+  let inter = 0;
+  for (const x of A) if (B.has(x)) inter++;
+  const uni = A.size + B.size - inter;
+  return uni === 0 ? 0 : inter / uni;
+}
+function tooSimilar(a, b) {
+  if (!a || !b) return false;
+  if (a.trim().toLowerCase() === b.trim().toLowerCase()) return true;
+  return jaccard(a, b) >= 0.7; // stricter threshold
 }
 
 function removePhraseOnce(sentence, phrase) {
-  const rx = new RegExp(`\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i');
+  const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
   return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
 }
 
@@ -178,10 +184,8 @@ function detIndex(str, n) {
 
 function placeDeterministically(choices, correct) {
   const n = choices.length;
-  const withoutDupes = Array.from(new Set(choices));
-  const filtered = withoutDupes.slice(0, n);
   const idx = Math.min(n - 1, detIndex(correct, n));
-  const others = filtered.filter(c => c !== correct);
+  const others = choices.filter(c => c !== correct);
   const arranged = new Array(n);
   arranged[idx] = correct;
   let oi = 0;
@@ -192,13 +196,54 @@ function placeDeterministically(choices, correct) {
   return { arranged, idx };
 }
 
-// Build quiz questions from sentences and phrases (deterministic, tough, non-cloze)
+function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
+  const selected = [correct];
+  const seen = new Set([correct.toLowerCase()]);
+  const addIf = (opt) => {
+    if (!opt) return false;
+    const norm = opt.trim();
+    if (!norm) return false;
+    if (seen.has(norm.toLowerCase())) return false;
+    for (const s of selected) { if (tooSimilar(s, norm)) return false; }
+    selected.push(norm);
+    seen.add(norm.toLowerCase());
+    return true;
+  };
+  for (const c of pool || []) {
+    if (selected.length >= needed) break;
+    addIf(c);
+  }
+  if (selected.length < needed) {
+    for (const c of (fallbackPool || [])) {
+      if (selected.length >= needed) break;
+      addIf(c);
+    }
+  }
+  if (selected.length < needed) {
+    for (const c of (allPhrases || [])) {
+      if (selected.length >= needed) break;
+      if (c === correct) continue;
+      addIf(c);
+    }
+  }
+  // Final hard fallbacks
+  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+  let gi = 0;
+  while (selected.length < needed && gi < generics.length) {
+    addIf(generics[gi++]);
+  }
+  // Ensure exactly needed count
+  return selected.slice(0, needed);
+}
+
+// Build quiz questions from sentences and phrases (deterministic, tough, non-cloze) – always return exactly `total` MCQs with 4 options each
 export function buildQuiz(sentences, phrases, total = 10) {
   const quiz = [];
   const used = new Set();
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
+  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
   sentences.forEach((s, idx) => {
-    phrases.forEach(p => { if (new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s)) cooccur[p].add(idx); });
+    phrases.forEach(p => { if (hasPhrase(p, s)) cooccur[p].add(idx); });
   });
 
   function distractorsFor(p) {
@@ -207,47 +252,69 @@ export function buildQuiz(sentences, phrases, total = 10) {
       const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size;
       const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1;
       return { q, jacc: inter / uni };
-    }).sort((a, b) => b.jacc - a.jacc).slice(0, 6).map(o => o.q);
-    return sims;
+    }).sort((a, b) => b.jacc - a.jacc).map(o => o.q);
+    // filter out items too similar textually to the correct
+    return sims.filter(opt => !tooSimilar(opt, p));
   }
 
-  for (const s of sentences) {
-    if (quiz.length >= total) break;
-    const phrase = phrases.find(p => p.includes(' ') && new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s) && !used.has(p))
-      || phrases.find(p => new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s) && !used.has(p));
-    if (!phrase) continue;
-    used.add(phrase);
-
-    // Primary and optional secondary context to make question tougher
+  function buildOne(s, phrase) {
     const primary = contextFromSentence(s, phrase);
     let secondary = '';
-    const supIdx = sentences.findIndex((t, ti) => ti !== sentences.indexOf(s) && new RegExp(`\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(t) && t.length >= 50);
+    const supIdx = sentences.findIndex((t, ti) => ti !== sentences.indexOf(s) && hasPhrase(phrase, t) && t.length >= 50);
     if (supIdx !== -1) secondary = contextFromSentence(sentences[supIdx], phrase, 160);
-
     const qtext = secondary
       ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
       : `Which concept is best described by: "${primary}"`;
 
     const pool = distractorsFor(phrase);
-    const baseChoices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
-    while (baseChoices.length < 4) {
-      const r = phrases.find(p => !baseChoices.includes(p));
-      if (!r) break; baseChoices.push(r);
-    }
-    const { arranged, idx } = placeDeterministically(baseChoices, phrase);
-    quiz.push({ id: generateUUID(), question: qtext, options: arranged, answer_index: idx, qtype: 'mcq' });
+    const fallbackPool = phrases.filter(p => p !== phrase && !tooSimilar(p, phrase));
+    const opts = distinctFillOptions(phrase, pool.slice(0, 10), fallbackPool, phrases, 4);
+    const { arranged, idx } = placeDeterministically(opts, phrase);
+    return { question: qtext, options: arranged, answer_index: idx };
   }
 
-  return quiz.slice(0, total);
+  for (const s of sentences) {
+    if (quiz.length >= total) break;
+    const phrase = phrases.find(p => p.includes(' ') && hasPhrase(p, s) && !used.has(p))
+      || phrases.find(p => hasPhrase(p, s) && !used.has(p));
+    if (!phrase) continue;
+    used.add(phrase);
+    const { question, options, answer_index } = buildOne(s, phrase);
+    quiz.push({ id: generateUUID(), question, options, answer_index, qtype: 'mcq' });
+  }
+
+  // Fallback padding to ensure exactly `total` MCQs
+  let si = 0;
+  let pi = 0;
+  while (quiz.length < total && (si < sentences.length || pi < phrases.length)) {
+    const s = sentences[si % Math.max(1, sentences.length)] || (sentences[0] || 'This passage discusses key ideas and definitions.');
+    const phrase = phrases[pi % Math.max(1, phrases.length)] || 'core concept';
+    if (!used.has(phrase)) {
+      used.add(phrase);
+      const { question, options, answer_index } = buildOne(s, phrase);
+      quiz.push({ id: generateUUID(), question, options, answer_index, qtype: 'mcq' });
+    }
+    si++; pi++;
+  }
+
+  // Final safeguard: truncate to total and ensure each question has 4 distinct non-similar options
+  const fixed = quiz.slice(0, total).map(q => {
+    const opts = distinctFillOptions(q.options[q.answer_index], q.options.filter((o, i) => i !== q.answer_index), [], q.options, 4);
+    const placed = placeDeterministically(opts, q.options[q.answer_index]);
+    return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' };
+  });
+
+  return fixed;
 }
 
 // Build flashcards from sentences and phrases
 export function buildFlashcards(sentences, phrases, total = 12) {
   const cards = [];
   const used = new Set();
+  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
   for (const p of phrases) {
     if (cards.length >= total) break;
-    const s = sentences.find(sen => new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(sen));
+    const s = sentences.find(sen => hasPhrase(p, sen));
     if (!s || used.has(p) || s.length < 60) continue;
     used.add(p);
     const front = `Define: ${p}`;
@@ -269,8 +336,9 @@ export function buildStudyPlan(sentences, phrases) {
   const groups = Array.from({ length: days }, () => []);
   // Assign sentences greedily to phrase buckets by first match
   const buckets = phrases.slice(0, days).map(p => ({ phrase: p, items: [] }));
+  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
   for (const s of sentences) {
-    const idx = buckets.findIndex(b => new RegExp(`\b${b.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s));
+    const idx = buckets.findIndex(b => hasPhrase(b.phrase, s));
     if (idx !== -1) buckets[idx].items.push(s);
   }
   // Backfill remaining sentences round-robin
@@ -314,7 +382,7 @@ export async function generateArtifacts(rawText, title = null) {
   const phrases = extractKeyPhrases(limitedText, 14);
 
   await tick();
-  // Heuristic build first (fast) – now all MCQ (no cloze/TF)
+  // Heuristic build first (fast) – all MCQ; enforce 10
   let quiz = buildQuiz(sentences, phrases, 10);
   await tick();
   let flashcards = buildFlashcards(sentences, phrases, 12);
@@ -334,6 +402,11 @@ export async function generateArtifacts(rawText, title = null) {
   // Try ML refinement within a short deadline to avoid blocking UX
   try {
     const enhanced = await tryEnhanceArtifacts(base, sentences, phrases, 120);
+    // Ensure constraints after enhancement too
+    if (enhanced && Array.isArray(enhanced.quiz)) {
+      const fixedQuiz = buildQuiz(sentences, phrases, 10); // rebuild constraints if needed
+      return { ...enhanced, quiz: fixedQuiz };
+    }
     return enhanced || base;
   } catch {
     return base;
