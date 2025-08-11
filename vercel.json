@@ -1,8 +1,8 @@
 {
   "version": 2,
   "framework": "create-react-app",
-  "buildCommand": "yarn --cwd frontend install && yarn --cwd frontend build",
-  "outputDirectory": "frontend/build",
+  "buildCommand": "yarn install && yarn build",
+  "outputDirectory": "build",
   "routes": [
     { "handle": "filesystem" },
     { "src": "/.*", "dest": "/index.html" }
