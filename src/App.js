@@ -29,7 +29,7 @@ function Landing() {
             <a href="#features" className="text-sm text-foreground/80 hover:text-foreground">Features</a>
             <a href="#use-cases" className="text-sm text-foreground/80 hover:text-foreground">Use cases</a>
             <a href="#faq" className="text-sm text-foreground/80 hover:text-foreground">FAQ</a>
-            <span className="text-xs text-foreground/70 px-2 py-1 border rounded-full border-border">A product by Aceel AI</span>
+            <span className="text-xs px-2 py-1 border rounded-full border-yellow-500 text-yellow-500">A product by Aceel AI</span>
             <ThemeToggle />
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>
               Open Studio <ArrowRight size={16} className="ml-1"/>
@@ -66,8 +66,8 @@ function Landing() {
           <div className="absolute inset-0 pointer-events-none opacity-50" style={{background: "radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)"}}/>
           <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 text-xs text-foreground/70 bg-card border border-border rounded-full px-3 py-1 w-fit">
-                <span className="h-1.5 w-1.5 rounded-full bg-foreground/70"/> A product by <span className="font-medium">Aceel AI</span>
+              <div className="inline-flex items-center gap-2 text-xs bg-card border rounded-full px-3 py-1 w-fit border-yellow-500 text-yellow-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
               <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
@@ -479,6 +479,14 @@ function Studio() {
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
                 {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
+              </div>
+              <div className="text-xs text-foreground/70 space-y-1">
+                <div className="mt-2">Disclaimer:</div>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Scanned/image-only PDFs are not supported (no OCR).</li>
+                  <li>Password-protected PDFs will fail to open.</li>
+                  <li>Very large PDFs may take longer to process in the browser.</li>
+                </ul>
               </div>
               <Button disabled={loading} onClick={handleGenerate} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                 {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Generating</> : "Generate Study Kit"}
