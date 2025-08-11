@@ -110,7 +110,7 @@ export function splitSentences(text) {
 export function tokenize(text) {
   const tokenRegex = /[A-Za-z][A-Za-z\-']+/g;
   const matches = text.match(tokenRegex) || [];
-  return matches.map(token =&gt; token.toLowerCase());
+  return matches.map(token => token.toLowerCase());
 }
 
 // Extract keyphrases: unigrams + bigrams + trigrams
