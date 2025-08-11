@@ -90,11 +90,11 @@ export function splitSentences(text) {
   const merged = clean.replace(/\s+/g, ' ').trim();
   if (!merged) return [];
   // Split on .?! followed by space
-  const parts = merged.split(/(?&lt;=[.!?])\s+/);
+  const parts = merged.split(/(?<=[.!?])\s+/);
   // Keep well-formed sentences only
   const res = parts
-    .map(s =&gt; s.trim())
-    .filter(s =&gt; s.length &gt;= 50 &amp;&amp; /[.!?]$/.test(s) &amp;&amp; !isAllCaps(s))
+    .map(s => s.trim())
+    .filter(s => s.length >= 50 && /[.!?]$/.test(s) && !isAllCaps(s))
     .slice(0, 2000);
   // Deduplicate near exact
   const seen = new Set();
