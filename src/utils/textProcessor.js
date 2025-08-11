@@ -68,14 +68,14 @@ function looksLikeHeading(s) {
 }
 function normalizeText(raw) {
   // Remove excessive whitespace and join hyphenated line breaks
-  const lines = raw.replace(/\r/g, '').split(/\n+/).map(l =&gt; l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const lines = raw.replace(/\r/g, '').split(/\n+/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
   const kept = [];
-  for (let i = 0; i &lt; lines.length; i++) {
+  for (let i = 0; i < lines.length; i++) {
     let l = lines[i];
     // Strip bullet/number markers
     l = l.replace(/^\s*([•\-*–\u2013]|\d+\.?)\s+/, '');
     // Merge lines that look like continuation (no terminal punctuation)
-    if (kept.length &gt; 0 &amp;&amp; !/[.!?]$/.test(kept[kept.length - 1])) {
+    if (kept.length > 0 && !/[.!?]$/.test(kept[kept.length - 1])) {
       kept[kept.length - 1] = (kept[kept.length - 1] + ' ' + l).trim();
       continue;
     }
