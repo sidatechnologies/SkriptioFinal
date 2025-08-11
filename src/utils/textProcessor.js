@@ -186,7 +186,7 @@ export function buildQuiz(sentences, phrases, total = 10) {
       if (!r) break; choices.push(r);
     }
     const shuffled = [...choices];
-    for (let i = shuffled.length - 1; i &gt; 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+    for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
     const answerIndex = shuffled.indexOf(phrase);
     quiz.push({ id: generateUUID(), question: qtext, options: shuffled, answer_index: Math.max(0, answerIndex), qtype: 'mcq' });
   }
