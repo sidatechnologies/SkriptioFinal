@@ -195,13 +195,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const clusters = Array.from({ length: k }, () => []);
   for (let i = 0; i < dedup.sentences.length; i++) clusters[labels[i]].push(dedup.sentences[i]);
 
-  // Rebuild quiz: take top 8 MCQs from high-centrality sentences; cap TF to 2
-  const rebuilt = { ...artifacts };
-  const mcqTargets = dedup.sentences.slice(0, 24);
-  const phrases = keyphrases;
-  const mcqs = [];
-  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
-
+  // Helpers for tough question generation
   function removePhraseOnce(sentence, phrase) {
     const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
     return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
@@ -209,25 +203,41 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   function contextFromSentence(sentence, phrase, maxLen = 220) {
     let ctx = removePhraseOnce(sentence, phrase);
     if (!ctx || ctx.length < 30) ctx = sentence;
+    ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
     if (!/[.!?]$/.test(ctx)) ctx += '.';
     if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
     return ctx;
   }
+  function detIndex(str, n) {
+    let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return n ? h % n : h;
+  }
+  function placeDeterministically(choices, correct) {
+    const n = choices.length;
+    const withoutDupes = Array.from(new Set(choices));
+    const filtered = withoutDupes.slice(0, n);
+    const idx = Math.min(n - 1, detIndex(correct, n));
+    const others = filtered.filter(c => c !== correct);
+    const arranged = new Array(n);
+    arranged[idx] = correct;
+    let oi = 0;
+    for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; }
+    return { arranged, idx };
+  }
+
+  // Rebuild quiz entirely as tough MCQs (no cloze, no TF)
+  const rebuilt = { ...artifacts };
+  const mcqTargets = dedup.sentences.slice(0, 36);
+  const phrases = keyphrases;
+  const mcqs = [];
+  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
 
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
-  mcqTargets.forEach((s, idx) => {
-    for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx);
-  });
+  mcqTargets.forEach((s, idx) => { for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx); });
   const distractorsFor = (p) => {
-    // pick phrases sharing similar co-occurrence footprint
-    const base = cooccur[p];
+    const base = cooccur[p] || new Set();
     const sims = phrases
       .filter(q => q !== p)
-      .map(q => {
-        const inter = new Set([...base].filter(x => cooccur[q].has(x))).size;
-        const uni = new Set([...base, ...cooccur[q]]).size || 1;
-        return { q, jacc: inter / uni };
-      })
+      .map(q => { const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size; const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1; return { q, jacc: inter / uni }; })
       .sort((a, b) => b.jacc - a.jacc)
       .slice(0, 6)
       .map(o => o.q);
@@ -235,38 +245,28 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   };
   const used = new Set();
   for (const s of mcqTargets) {
-    if (mcqs.length >= 8) break;
-    // prefer multi-word phrase in sentence
+    if (mcqs.length >= 10) break;
     const phrase = phrases.find(p => p.includes(' ') && hasPhraseInSentence(p, s) && !used.has(p))
       || phrases.find(p => hasPhraseInSentence(p, s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
-    // Build question from context rather than cloze
-    const ctx = contextFromSentence(s, phrase);
-    const qtext = `Which term is described by: "${ctx}"`;
+    const primary = contextFromSentence(s, phrase);
+    let secondary = '';
+    const supIdx = mcqTargets.findIndex((t) => t !== s && hasPhraseInSentence(phrase, t) && t.length >= 50);
+    if (supIdx !== -1) secondary = contextFromSentence(mcqTargets[supIdx], phrase, 160);
+
+    const qtext = secondary
+      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
+      : `Which concept is best described by: "${primary}"`;
+
     const pool = distractorsFor(phrase);
-    const choices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
-    while (choices.length < 4) {
-      const r = phrases.find(p => !choices.includes(p));
-      if (!r) break; choices.push(r);
-    }
-    const answerIndex = 0;
-    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: choices, answer_index: answerIndex, qtype: 'mcq' });
+    const baseChoices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
+    while (baseChoices.length < 4) { const r = phrases.find(p => !baseChoices.includes(p)); if (!r) break; baseChoices.push(r); }
+    const { arranged, idx } = placeDeterministically(baseChoices, phrase);
+
+    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: arranged, answer_index: idx, qtype: 'mcq' });
   }
-  // True/False up to 2 (keep deterministic)
-  const tfs = [];
-  for (let i = 0; i < dedup.sentences.length && tfs.length < 2; i++) {
-    const s = dedup.sentences[i];
-    const m = s.match(/(\d+\.?\d*)/);
-    if (m) {
-      // mutate number by +/- 1 (basic approach)
-      const num = m[1];
-      const replacement = String(Number(num) + 1);
-      const falseStmt = s.replace(num, replacement);
-      tfs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: `True/False: ${falseStmt}`, options: ['True', 'False'], answer_index: 1, qtype: 'tf' });
-    }
-  }
-  rebuilt.quiz = [...mcqs, ...tfs].slice(0, 10);
+  rebuilt.quiz = mcqs.slice(0, 10);
 
   // Flashcards: pick top 12 distinct phrases; back = highest-centrality sentence containing phrase
   const cards = [];

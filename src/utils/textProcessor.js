@@ -156,72 +156,86 @@ export function topKeywords(text, k = 12) {
 }
 
 function removePhraseOnce(sentence, phrase) {
-  const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
+  const rx = new RegExp(`\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i');
   return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
 }
 
 function contextFromSentence(sentence, phrase, maxLen = 220) {
   let ctx = removePhraseOnce(sentence, phrase);
-  // if nothing remains (e.g., short titles), fall back to original sentence without change
   if (!ctx || ctx.length < 30) ctx = sentence;
+  // de-emphasize raw numbers to avoid giveaways
+  ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
   if (!/[.!?]$/.test(ctx)) ctx += '.';
   if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
   return ctx;
 }
 
-// Build quiz questions from sentences and phrases (deterministic, no shuffling)
+function detIndex(str, n) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return n ? h % n : h;
+}
+
+function placeDeterministically(choices, correct) {
+  const n = choices.length;
+  const withoutDupes = Array.from(new Set(choices));
+  const filtered = withoutDupes.slice(0, n);
+  const idx = Math.min(n - 1, detIndex(correct, n));
+  const others = filtered.filter(c => c !== correct);
+  const arranged = new Array(n);
+  arranged[idx] = correct;
+  let oi = 0;
+  for (let i = 0; i < n; i++) {
+    if (arranged[i]) continue;
+    arranged[i] = others[oi++] || '';
+  }
+  return { arranged, idx };
+}
+
+// Build quiz questions from sentences and phrases (deterministic, tough, non-cloze)
 export function buildQuiz(sentences, phrases, total = 10) {
   const quiz = [];
   const used = new Set();
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
   sentences.forEach((s, idx) => {
-    phrases.forEach(p => { if (new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s)) cooccur[p].add(idx); });
+    phrases.forEach(p => { if (new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s)) cooccur[p].add(idx); });
   });
 
   function distractorsFor(p) {
-    const base = cooccur[p];
+    const base = cooccur[p] || new Set();
     const sims = phrases.filter(q => q !== p).map(q => {
-      const inter = new Set([...base].filter(x => cooccur[q].has(x))).size;
-      const uni = new Set([...base, ...cooccur[q]]).size || 1;
+      const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size;
+      const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1;
       return { q, jacc: inter / uni };
     }).sort((a, b) => b.jacc - a.jacc).slice(0, 6).map(o => o.q);
     return sims;
   }
 
   for (const s of sentences) {
-    if (quiz.length >= total - 2) break; // leave space for up to 2 TF
-    const phrase = phrases.find(p => p.includes(' ') && new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) && !used.has(p))
-      || phrases.find(p => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) && !used.has(p));
+    if (quiz.length >= total) break;
+    const phrase = phrases.find(p => p.includes(' ') && new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s) && !used.has(p))
+      || phrases.find(p => new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
 
-    // Build an intelligent, non-cloze question stem from context
-    const ctx = contextFromSentence(s, phrase);
-    const qtext = `Which term is described by: "${ctx}"`;
+    // Primary and optional secondary context to make question tougher
+    const primary = contextFromSentence(s, phrase);
+    let secondary = '';
+    const supIdx = sentences.findIndex((t, ti) => ti !== sentences.indexOf(s) && new RegExp(`\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(t) && t.length >= 50);
+    if (supIdx !== -1) secondary = contextFromSentence(sentences[supIdx], phrase, 160);
+
+    const qtext = secondary
+      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
+      : `Which concept is best described by: "${primary}"`;
 
     const pool = distractorsFor(phrase);
-    // Deterministic options: correct first, then top 3 similar distractors
-    const choices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
-    while (choices.length < 4) {
-      const r = phrases.find(p => !choices.includes(p));
-      if (!r) break; choices.push(r);
+    const baseChoices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
+    while (baseChoices.length < 4) {
+      const r = phrases.find(p => !baseChoices.includes(p));
+      if (!r) break; baseChoices.push(r);
     }
-    const answerIndex = 0; // correct is first (no randomization)
-    quiz.push({ id: generateUUID(), question: qtext, options: choices, answer_index: answerIndex, qtype: 'mcq' });
-  }
-
-  // Up to 2 True/False with light mutation (deterministic order)
-  let tfCount = 0;
-  for (const s of sentences) {
-    if (quiz.length >= total || tfCount >= 2) break;
-    const m = s.match(/(\d+\.?\d*)/);
-    if (m) {
-      const num = m[1];
-      const replacement = String(Number(num) + 1);
-      const falseStmt = s.replace(num, replacement);
-      quiz.push({ id: generateUUID(), question: `True/False: ${falseStmt}`, options: ['True', 'False'], answer_index: 1, qtype: 'tf' });
-      tfCount++;
-    }
+    const { arranged, idx } = placeDeterministically(baseChoices, phrase);
+    quiz.push({ id: generateUUID(), question: qtext, options: arranged, answer_index: idx, qtype: 'mcq' });
   }
 
   return quiz.slice(0, total);
@@ -233,7 +247,7 @@ export function buildFlashcards(sentences, phrases, total = 12) {
   const used = new Set();
   for (const p of phrases) {
     if (cards.length >= total) break;
-    const s = sentences.find(sen => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(sen));
+    const s = sentences.find(sen => new RegExp(`\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(sen));
     if (!s || used.has(p) || s.length < 60) continue;
     used.add(p);
     const front = `Define: ${p}`;
@@ -256,7 +270,7 @@ export function buildStudyPlan(sentences, phrases) {
   // Assign sentences greedily to phrase buckets by first match
   const buckets = phrases.slice(0, days).map(p => ({ phrase: p, items: [] }));
   for (const s of sentences) {
-    const idx = buckets.findIndex(b => new RegExp(`\\b${b.phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s));
+    const idx = buckets.findIndex(b => new RegExp(`\b${b.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\b`, 'i').test(s));
     if (idx !== -1) buckets[idx].items.push(s);
   }
   // Backfill remaining sentences round-robin
@@ -300,7 +314,7 @@ export async function generateArtifacts(rawText, title = null) {
   const phrases = extractKeyPhrases(limitedText, 14);
 
   await tick();
-  // Heuristic build first (fast)
+  // Heuristic build first (fast) – now all MCQ (no cloze/TF)
   let quiz = buildQuiz(sentences, phrases, 10);
   await tick();
   let flashcards = buildFlashcards(sentences, phrases, 12);
