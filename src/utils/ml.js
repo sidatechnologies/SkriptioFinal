@@ -130,9 +130,9 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
   const chosen = new Set();
   centroids.push(vectors[0]);
   chosen.add(0);
-  while (centroids.length &lt; k) {
+  while (centroids.length < k) {
     let bestIdx = -1; let bestDist = -1;
-    for (let i = 0; i &lt; n; i++) {
+    for (let i = 0; i < n; i++) {
       if (chosen.has(i)) continue;
       // use 1 - cosine as distance to nearest centroid
       let dmin = 1;
