@@ -237,7 +237,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const shuffled = [...choices];
     for (let i = shuffled.length - 1; i &gt; 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
     const answerIndex = shuffled.indexOf(phrase);
-    if (answerIndex &lt; 0) continue;
+    if (answerIndex < 0) continue;
     mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question: qtext, options: shuffled, answer_index: answerIndex, qtype: 'mcq' });
   }
   // True/False up to 2
