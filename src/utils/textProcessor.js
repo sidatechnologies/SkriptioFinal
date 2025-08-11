@@ -213,9 +213,9 @@ export function buildFlashcards(sentences, phrases, total = 12) {
   const cards = [];
   const used = new Set();
   for (const p of phrases) {
-    if (cards.length &gt;= total) break;
-    const s = sentences.find(sen =&gt; new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(sen));
-    if (!s || used.has(p) || s.length &lt; 60) continue;
+    if (cards.length >= total) break;
+    const s = sentences.find(sen => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(sen));
+    if (!s || used.has(p) || s.length < 60) continue;
     used.add(p);
     const front = `Define: ${p}`;
     const back = s.length &lt;= 280 ? s : s.slice(0, 277) + '...';
