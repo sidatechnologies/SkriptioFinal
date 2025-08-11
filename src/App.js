@@ -299,6 +299,7 @@ function Studio() {
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
   const fileInputRef = useRef();
+  const [pdfBusy, setPdfBusy] = useState({ quiz: false, cards: false, plan: false });
 
   // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
@@ -411,62 +412,77 @@ function Studio() {
 
   const downloadQuizPDF = async () => {
     if (!result?.quiz?.length) return;
-    const jsPDF = await ensureJsPDF();
-    const doc = new jsPDF();
-    addHeader(doc);
-    let y = 25;
-    doc.setFontSize(13);
-    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
-    doc.setFontSize(12);
-    for (let i = 0; i < result.quiz.length; i++) {
-      const q = result.quiz[i];
-      y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
-      for (let oi = 0; oi < q.options.length; oi++) {
-        y = lineWrap(doc, `• ${q.options[oi]}`, 20, y, 170);
+    setPdfBusy(s => ({ ...s, quiz: true }));
+    try {
+      const jsPDF = await ensureJsPDF();
+      const doc = new jsPDF();
+      addHeader(doc);
+      let y = 25;
+      doc.setFontSize(13);
+      y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+      doc.setFontSize(12);
+      for (let i = 0; i < result.quiz.length; i++) {
+        const q = result.quiz[i];
+        y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
+        for (let oi = 0; oi < q.options.length; oi++) {
+          y = lineWrap(doc, `• ${q.options[oi]}`, 20, y, 170);
+        }
+        y += 4;
       }
-      y += 4;
+      addFooter(doc);
+      doc.save("skriptio-quiz.pdf");
+    } finally {
+      setPdfBusy(s => ({ ...s, quiz: false }));
     }
-    addFooter(doc);
-    doc.save("skriptio-quiz.pdf");
   };
 
   const downloadCardsPDF = async () => {
     if (!result?.flashcards?.length) return;
-    const jsPDF = await ensureJsPDF();
-    const doc = new jsPDF();
-    addHeader(doc);
-    let y = 25;
-    doc.setFontSize(13);
-    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
-    doc.setFontSize(12);
-    result.flashcards.forEach((c, idx) => {
-      y = lineWrap(doc, `Card ${idx + 1}:`, 15, y, 180);
-      y = lineWrap(doc, `Q: ${c.front}`, 20, y, 170);
-      y = lineWrap(doc, `A: ${c.back}`, 20, y, 170);
-      y += 4;
-    });
-    addFooter(doc);
-    doc.save("skriptio-flashcards.pdf");
+    setPdfBusy(s => ({ ...s, cards: true }));
+    try {
+      const jsPDF = await ensureJsPDF();
+      const doc = new jsPDF();
+      addHeader(doc);
+      let y = 25;
+      doc.setFontSize(13);
+      y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+      doc.setFontSize(12);
+      result.flashcards.forEach((c, idx) => {
+        y = lineWrap(doc, `Card ${idx + 1}:`, 15, y, 180);
+        y = lineWrap(doc, `Q: ${c.front}`, 20, y, 170);
+        y = lineWrap(doc, `A: ${c.back}`, 20, y, 170);
+        y += 4;
+      });
+      addFooter(doc);
+      doc.save("skriptio-flashcards.pdf");
+    } finally {
+      setPdfBusy(s => ({ ...s, cards: false }));
+    }
   };
 
   const downloadPlanPDF = async () => {
     if (!result?.plan?.length) return;
-    const jsPDF = await ensureJsPDF();
-    const doc = new jsPDF();
-    addHeader(doc);
-    let y = 25;
-    doc.setFontSize(13);
-    y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
-    doc.setFontSize(12);
-    result.plan.forEach((d) => {
-      y = lineWrap(doc, `${d.title}`, 15, y, 180);
-      d.objectives.forEach((o) => {
-        y = lineWrap(doc, `• ${o}`, 20, y, 170);
+    setPdfBusy(s => ({ ...s, plan: true }));
+    try {
+      const jsPDF = await ensureJsPDF();
+      const doc = new jsPDF();
+      addHeader(doc);
+      let y = 25;
+      doc.setFontSize(13);
+      y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
+      doc.setFontSize(12);
+      result.plan.forEach((d) => {
+        y = lineWrap(doc, `${d.title}`, 15, y, 180);
+        d.objectives.forEach((o) => {
+          y = lineWrap(doc, `• ${o}`, 20, y, 170);
+        });
+        y += 4;
       });
-      y += 4;
-    });
-    addFooter(doc);
-    doc.save("skriptio-plan.pdf");
+      addFooter(doc);
+      doc.save("skriptio-plan.pdf");
+    } finally {
+      setPdfBusy(s => ({ ...s, plan: false }));
+    }
   };
 
   return (
@@ -493,7 +509,7 @@ function Studio() {
             <CardContent className="space-y-4">
               <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
               <div>
-                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg.white/10 border.white/10 placeholder:text-foreground/60" />
+                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
                 <div className="mt-2 text-xs text-foreground/70">Tip: You can combine PDF + pasted notes.</div>
               </div>
               <div className="flex items-center gap-3">
@@ -521,9 +537,15 @@ function Studio() {
         <div className="lg:col-span-2 space-y-4">
           {/* Download toolbar */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" disabled={!result?.quiz?.length} onClick={downloadQuizPDF}>Download Quiz PDF</Button>
-            <Button variant="outline" disabled={!result?.flashcards?.length} onClick={downloadCardsPDF}>Download Flashcards PDF</Button>
-            <Button variant="outline" disabled={!result?.plan?.length} onClick={downloadPlanPDF}>Download Plan PDF</Button>
+            <Button variant="outline" disabled={!result?.quiz?.length || pdfBusy.quiz} onClick={downloadQuizPDF} aria-busy={pdfBusy.quiz}>
+              {pdfBusy.quiz ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Quiz PDF'}
+            </Button>
+            <Button variant="outline" disabled={!result?.flashcards?.length || pdfBusy.cards} onClick={downloadCardsPDF} aria-busy={pdfBusy.cards}>
+              {pdfBusy.cards ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Flashcards PDF'}
+            </Button>
+            <Button variant="outline" disabled={!result?.plan?.length || pdfBusy.plan} onClick={downloadPlanPDF} aria-busy={pdfBusy.plan}>
+              {pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Plan PDF'}
+            </Button>
           </div>
 
           <Tabs defaultValue="quiz" className="w-full">
