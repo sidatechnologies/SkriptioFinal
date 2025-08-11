@@ -11,10 +11,14 @@ import { toast } from "sonner";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts } from "./utils/textProcessor";
+import { prewarmML } from "./utils/ml";
 
 function Landing() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
+
+  // Prewarm ML model in background so first Studio use is fast
+  useEffect(() => { prewarmML(); }, []);
   
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -63,20 +67,20 @@ function Landing() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-50" style={{background: "radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)"}}/>
+          <div className="absolute inset-0 pointer-events-none opacity-50" style={{background: "radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)"}/>
           <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 text-xs bg-card border rounded-full px-3 py-1 w-fit border-yellow-500 text-yellow-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
+              <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
               <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
               <div className="flex items-center gap-3">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try Skriptio Free</Button>
                 <a href="#how-it-works" className="text-foreground/80 hover:text-foreground text-sm flex items-center">How it works <ArrowRight size={16} className="ml-1"/></a>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-foreground/70 text-sm pt-2">
-                <span className="flex items-center gap-2"><Check size={16}/> Fast & minimal</span>
+                <span className="flex items-center gap-2"><Check size={16}/> Fast &amp; minimal</span>
                 <span className="flex items-center gap-2"><Shield size={16}/> Private (runs in your browser)</span>
                 <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
               </div>
@@ -189,7 +193,7 @@ function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FAQ q="Do I need an internet connection?" a="No. Skriptio runs entirely in your browser after the initial page load." />
             <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
-            <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and true/false questions derived from your content." />
+            <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and True/False derived from your content. We use a lightweight ML model locally to improve relevance and avoid headings." />
             <FAQ q="Do you save my content?" a="No. Everything runs in your browser session - nothing is sent to servers or saved." />
           </div>
         </section>
@@ -292,6 +296,9 @@ function Studio() {
   const [score, setScore] = useState(null);
   const fileInputRef = useRef();
 
+  // Prewarm ML model here as well, in case user lands directly on Studio
+  useEffect(() => { prewarmML(); }, []);
+
   const handleGenerate = async () => {
     if (!text && !file) {
       toast("Paste text or upload a PDF to generate your study kit.");
@@ -318,8 +325,8 @@ function Studio() {
         extractedText = extractedText ? extractedText + "\n" + text : text;
       }
       
-      // Generate study artifacts
-      const studyData = generateArtifacts(extractedText, title);
+      // Generate study artifacts (async, ML-refined when available)
+      const studyData = await generateArtifacts(extractedText, title);
       setResult(studyData);
       
       toast("Generated! Quiz, flashcards and 7-day plan are ready.");

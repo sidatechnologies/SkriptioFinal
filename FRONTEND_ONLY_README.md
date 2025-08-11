@@ -9,9 +9,9 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 ### Core Functionality
 - **Text Processing**: All NLP algorithms converted from Python to JavaScript
 - **PDF Upload**: PDF text extraction using PDF.js library
-- **Quiz Generation**: 10-question quizzes with fill-in-the-blank and T/F questions
-- **Flashcard Creation**: Smart flashcards from key concepts
-- **7-Day Study Plans**: Daily objectives and structured learning paths
+- **Quiz Generation**: 10-question quizzes with fill-in-the-blank and T/F questions (ML-enhanced)
+- **Flashcard Creation**: Smart flashcards from key concepts (ML-enhanced)
+- **7-Day Study Plans**: Daily objectives and structured learning paths (topic grouping)
 - **PDF Downloads**: Generate and download study materials as PDFs
 
 ### UI/UX Features
@@ -25,60 +25,87 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 - **No Database**: Session-only storage (no persistence needed)
 - **No API Calls**: All processing happens client-side
 - **Fast Generation**: Immediate processing without server delays
+- **ML-Enhanced Parsing**: Lightweight, fully local embeddings model refines selection and grouping
 
 ## 🛠️ Technical Implementation
 
-### Frontend Processing Pipeline
-1. **Text Input**: User pastes text or uploads PDF
-2. **PDF Processing**: Extract text using PDF.js
-3. **NLP Analysis**: 
-   - Sentence splitting and tokenization
-   - Keyword extraction with frequency analysis
-   - Stopword filtering
-4. **Content Generation**:
-   - Quiz: Fill-in-the-blank + True/False questions
-   - Flashcards: Keyword definitions and explanations  
-   - Study Plan: 7-day structured objectives
-5. **Interactive Display**: Tabs, selections, progress tracking
-6. **PDF Export**: Generate downloadable study materials
+### End-to-End Workflow (Data Flow)
+1. Input
+   - User pastes text and/or uploads a PDF.
+2. PDF Parsing (pdf.js)
+   - We load the legacy pdf.js build and a static worker from /public to avoid dynamic ESM issues.
+   - Extract textContent.items and join into page text.
+3. Heuristic Cleaning & Segmentation
+   - Line-level cleanup: remove headings (short lines without punctuation, ALL‑CAPS, Title‑Case headings, known boilerplate like Table of Contents/References, page labels).
+   - Merge bullets/continuations; strip list markers (•, -, 1., etc.).
+   - Sentence split: keep sentences ending with . ! ? and length ≥ 50; drop ALL‑CAPS; dedupe near-identical.
+4. Keyphrase Extraction
+   - Unigrams + bigrams + trigrams frequencies (stopword-aware); prefer multi-word phrases.
+5. Baseline Generation (fast path)
+   - Quiz: fill-in-the-blank from non-heading sentences containing keyphrases; up to 2 True/False by safe numeric mutation; semantic distractors by co-occurrence.
+   - Flashcards: front = keyphrase; back = highest-quality supporting sentence; dedupe and minimum length checks.
+   - Study Plan: group sentences by matching top phrases; 7 days with objectives from grouped sentences; backfill with “Review concept: …” when sparse.
+6. ML Refinement (non-blocking)
+   - Lazy-load TensorFlow.js + Universal Sentence Encoder during idle time or on Studio load (prewarmML()).
+   - If the model is ready within ~120ms at generation time, we:
+     - Compute sentence embeddings
+     - Rank by centrality (average cosine similarity)
+     - Dedupe by cosine (> 0.86)
+     - Rebuild quiz from high-centrality sentences with phrase masking; cap True/False ≤ 2
+     - Rebuild flashcards from top sentences per phrase (ensure informative backs)
+     - Cluster sentences (k-means, k=7) to produce topical day titles/objectives
+   - If the model is not ready yet, we return the baseline immediately and keep loading in the background for subsequent generations.
 
 ### Key Files
-- `/src/App.js` - Main application with all UI components
-- `/src/utils/textProcessor.js` - Complete text processing and generation logic
-- `/src/components/ThemeToggle.js` - Theme management
-- `/vercel.json` - Deployment configuration
+- /src/App.js — Main application and UI; triggers prewarm of ML on Landing and Studio.
+- /src/utils/textProcessor.js — Cleaning, segmentation, phrase extraction, heuristic generation; orchestrates optional ML refinement.
+- /src/utils/ml.js — Lazy-loading ML helpers (USE embeddings, centrality, dedupe, k-means clustering).
+- /public/pdf.worker.min.mjs — pdf.js worker served statically.
+
+### Performance Strategy (No Slowing Down)
+- Lazy loading: @tensorflow/tfjs and @tensorflow-models/universal-sentence-encoder are dynamically imported only after initial UI render, using requestIdleCallback where available.
+- Time-bounded enhancement: Generation never blocks on ML. A short deadline (~120ms) is used to attempt ML refinement; otherwise baseline results are returned immediately.
+- Prefetching: prewarmML() is called on Landing and Studio mount to download weights in the background before the user generates a kit.
+- Memory: embeddings tensors are converted to arrays and disposed to avoid leaks.
+
+### Known Trade-offs
+- First-time model download (~7–10 MB) occurs in the background. Subsequent use is instant due to browser cache.
+- On very long documents, embedding all sentences can be heavy. We mitigate by:
+  - Truncating to first 2000 sentences
+  - Ranking and deduping before clustering
+
+### Edge Cases
+- Scanned PDFs (images only) are not supported (no OCR).
+- Password-protected PDFs will fail.
+- Headings that end with punctuation can still slip through; our ML ranking reduces their impact.
 
 ## 🚀 Deployment
 
 ### Vercel Deployment
-```json
 {
-  "buildCommand": "yarn install && yarn build",
+  "buildCommand": "yarn install &amp;&amp; yarn build",
   "outputDirectory": "build"
 }
-```
 
 ### Local Development
-```bash
-yarn install
-yarn start
-```
+- yarn install
+- yarn start
 
 ## 📦 Dependencies
-- React 19.0.0
-- PDF.js (pdfjs-dist) for PDF processing
-- jsPDF for PDF generation
-- Tailwind CSS + Radix UI components
+- React 19
+- pdfjs-dist 5
+- jsPDF 2
+- Tailwind + Radix UI
 - Lucide React icons
+- @tensorflow/tfjs, @tensorflow-models/universal-sentence-encoder (lazy-loaded)
 
 ## 🎯 Benefits of Frontend-Only Architecture
-
-1. **Privacy**: No data sent to servers - everything processed locally
-2. **Speed**: Instant generation without network delays
-3. **Scalability**: No server infrastructure needed
-4. **Cost**: Zero backend hosting costs
-5. **Reliability**: Works offline after initial load
-6. **Security**: No API vulnerabilities
+1. Privacy: No data sent to servers - everything processed locally
+2. Speed: Instant generation without network delays
+3. Scalability: No server infrastructure needed
+4. Cost: Zero backend hosting costs
+5. Reliability: Works offline after initial load
+6. Security: No API vulnerabilities
 
 ## 🔄 Removed Features
 - Recent content history (was database-dependent)
@@ -86,4 +113,4 @@ yarn start
 - Backend API endpoints
 - MongoDB storage
 
-All core study generation functionality remains identical to the original full-stack version!
+All core study generation functionality remains identical in UX — now with higher quality content via local ML.
