@@ -147,8 +147,8 @@ export function topKeywords(text, k = 12) {
     freq[token] = (freq[token] || 0) + 1;
   });
   const candidates = Object.entries(freq)
-    .sort(([a, freqA], [b, freqB]) =&gt; freqB - freqA || a.localeCompare(b));
-  return candidates.slice(0, k).map(([word]) =&gt; word);
+    .sort(([a, freqA], [b, freqB]) => freqB - freqA || a.localeCompare(b));
+  return candidates.slice(0, k).map(([word]) => word);
 }
 
 // Build quiz questions from sentences and phrases
