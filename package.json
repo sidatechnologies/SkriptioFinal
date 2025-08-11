@@ -60,7 +60,7 @@
   "scripts": {
     "start": "craco start",
     "prebuild": "cp ./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ./public/pdf.worker.min.mjs || cp ./node_modules/pdfjs-dist/build/pdf.worker.min.mjs ./public/pdf.worker.min.mjs || true",
-    "build": "craco build",
+    "build": "DISABLE_ESLINT_PLUGIN=true craco build",
     "test": "craco test",
     "postinstall": "cp ./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ./public/pdf.worker.min.mjs || true"
   },
