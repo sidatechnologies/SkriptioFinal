@@ -13,7 +13,11 @@ export function prewarmML() {
         import('@tensorflow/tfjs'),
         import('@tensorflow-models/universal-sentence-encoder')
       ]);
-      // Use webgl if available; otherwise tfjs falls back automatically
+      // Force CPU backend to avoid WebGL context loss on some hosts (e.g., Vercel preview)
+      try {
+        await tf.setBackend('cpu');
+        await tf.ready();
+      } catch {}
       _useModel = await use.load();
       return _useModel;
     };
