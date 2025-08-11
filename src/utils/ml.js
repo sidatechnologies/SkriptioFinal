@@ -158,15 +158,15 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
     // Update
     const sums = Array.from({ length: k }, () => new Array(vectors[0].length).fill(0));
     const counts = new Array(k).fill(0);
-    for (let i = 0; i &lt; n; i++) {
+    for (let i = 0; i < n; i++) {
       const c = labels[i];
       const v = vectors[i];
-      for (let d = 0; d &lt; v.length; d++) sums[c][d] += v[d];
+      for (let d = 0; d < v.length; d++) sums[c][d] += v[d];
       counts[c]++;
     }
-    for (let c = 0; c &lt; k; c++) {
+    for (let c = 0; c < k; c++) {
       if (counts[c] === 0) continue;
-      for (let d = 0; d &lt; sums[c].length; d++) sums[c][d] /= counts[c];
+      for (let d = 0; d < sums[c].length; d++) sums[c][d] /= counts[c];
       centroids[c] = sums[c];
     }
   }
