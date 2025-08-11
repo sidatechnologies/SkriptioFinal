@@ -242,7 +242,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   }
   // True/False up to 2
   const tfs = [];
-  for (let i = 0; i &lt; dedup.sentences.length &amp;&amp; tfs.length &lt; 2; i++) {
+  for (let i = 0; i < dedup.sentences.length && tfs.length < 2; i++) {
     const s = dedup.sentences[i];
     const m = s.match(/(\d+\.?\d*)/);
     if (m) {
