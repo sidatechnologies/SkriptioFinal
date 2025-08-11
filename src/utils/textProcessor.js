@@ -28,10 +28,10 @@ export async function extractTextFromPDF(file) {
 
     let fullText = '';
 
-    for (let i = 1; i &lt;= pdf.numPages; i++) {
+    for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map(item =&gt; item.str).join(' ');
+      const pageText = textContent.items.map(item => item.str).join(' ');
       fullText += pageText + '\n';
     }
 
