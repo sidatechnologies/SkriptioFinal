@@ -12,18 +12,18 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
-      
-      // Disable hot reload completely if environment variable is set
-      if (config.disableHotReload) {
+      // Always make build stable in container previews by avoiding HMR/WebSocket reliance
+      const disable = config.disableHotReload || true; // default to disabling in this environment
+
+      if (disable) {
         // Remove hot reload related plugins
         webpackConfig.plugins = webpackConfig.plugins.filter(plugin => {
           return !(plugin.constructor.name === 'HotModuleReplacementPlugin');
         });
-        
-        // Disable watch mode
+        // Disable watch mode (supervisor handles restarts)
         webpackConfig.watch = false;
         webpackConfig.watchOptions = {
-          ignored: /.*/, // Ignore all files
+          ignored: /.*/,
         };
       } else {
         // Add ignored patterns to reduce watched directories
@@ -39,8 +39,18 @@ module.exports = {
           ],
         };
       }
-      
       return webpackConfig;
     },
+  },
+  devServer: (devServerConfig) => {
+    // Turn off hot reload & websockets to avoid cross-origin WSS failures in preview harness
+    devServerConfig.hot = false;
+    devServerConfig.liveReload = false;
+    devServerConfig.webSocketServer = false;
+    devServerConfig.client = {
+      ...devServerConfig.client,
+      overlay: false,
+    };
+    return devServerConfig;
   },
 };
