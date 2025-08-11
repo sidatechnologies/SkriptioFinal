@@ -110,9 +110,9 @@ export function dedupeByCosine(sentences, vectors, threshold = 0.85) {
 export function centralityRank(vectors) {
   const n = vectors.length;
   const scores = new Array(n).fill(0);
-  for (let i = 0; i &lt; n; i++) {
+  for (let i = 0; i < n; i++) {
     let s = 0;
-    for (let j = 0; j &lt; n; j++) {
+    for (let j = 0; j < n; j++) {
       if (i === j) continue;
       s += cosine(vectors[i], vectors[j]);
     }
