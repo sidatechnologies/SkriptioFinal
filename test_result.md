@@ -152,18 +152,18 @@
   - task: "Serve PDF.js worker from /public and set absolute workerSrc"
     implemented: true
     working: true
-    file: "/app/src/utils/textProcessor.js, /app/package.json, /app/public/pdf.worker.min.js (copied at build time)"
+    file: "/app/src/utils/textProcessor.js, /app/package.json, /app/public/pdf.worker.min.mjs (copied at build time)"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: true
         agent: "main"
-        comment: "Configured build scripts to copy pdf.worker.min.js into /public and set workerSrc='/pdf.worker.min.js' to avoid dynamic ESM imports and MIME type issues on Vercel."
+        comment: "Configured build scripts to copy pdf.worker.min.mjs into /public and set workerSrc='/pdf.worker.min.mjs' to avoid dynamic ESM imports and MIME type issues on Vercel."
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 ## test_plan:
@@ -186,4 +186,4 @@
   - agent: "testing"
     message: "Comprehensive automated UI testing completed successfully using Playwright browser automation. All requested test scenarios passed: 1) Landing page verification - hero headline contains 'Skriptio turns your PDFs' and 'Open Studio' button is visible and functional, 2) Studio navigation and content input working correctly, 3) Study kit generation from pasted React text creates quiz with questions, 4) Quiz interaction allows option selection and evaluation displays score in X/10 format, 5) All three PDF downloads (Quiz: 9122 bytes, Flashcards: 9017 bytes, Plan: 7191 bytes) work without errors, 6) PDF branding implementation verified in source code - addHeader() function adds 'Skriptio' centered at page top, addFooter() adds 'skriptio@sidahq.com' at bottom, both functions called by all PDF generation methods, 7) Content verification shows expected patterns (Q1, React-related terms, proper formatting). No console errors or runtime issues detected. The frontend-only conversion is fully functional and meets all requirements. Both tasks now marked as working with needs_retesting set to false."
   - agent: "main"
-    message: "Added public-served PDF.js worker and locked workerSrc to absolute path. Requesting UI smoke test to verify PDF upload flow on Vercel."
+    message: "Adjusted to copy legacy .mjs worker and removed module-based fallbacks to avoid webpack resolution errors. Requesting redeploy and live URL for automated UI smoke test."

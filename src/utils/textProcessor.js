@@ -19,28 +19,8 @@ export async function extractTextFromPDF(file) {
     // Use legacy bundle to avoid nested ESM imports in worker
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
     
-    // Prefer a public, absolute worker path served by our app
-    try {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-    } catch (e) {
-      // no-op; we'll try legacy packaged paths below
-    }
-
-    // Fallbacks in case public asset is missing
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/legacy/build/pdf.worker.min.js',
-          import.meta.url
-        ).toString();
-      } catch (e) {
-        // Final fallback to ESM worker path
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.mjs',
-          import.meta.url
-        ).toString();
-      }
-    }
+    // Serve worker as a static asset to avoid bundler/module resolution issues
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
     
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
