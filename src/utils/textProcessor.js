@@ -16,20 +16,30 @@ export function generateUUID() {
 // Extract text from PDF using pdf.js
 export async function extractTextFromPDF(file) {
   try {
+    // Use legacy bundle to avoid nested ESM imports in worker
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
     
-    // Use legacy self-contained worker to avoid nested ESM imports that can 404 via proxies
+    // Prefer a public, absolute worker path served by our app
     try {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/legacy/build/pdf.worker.min.js',
-        import.meta.url
-      ).toString();
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
     } catch (e) {
-      // Fallback to non-legacy worker path if bundler resolution changes in future
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url
-      ).toString();
+      // no-op; we'll try legacy packaged paths below
+    }
+
+    // Fallbacks in case public asset is missing
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/legacy/build/pdf.worker.min.js',
+          import.meta.url
+        ).toString();
+      } catch (e) {
+        // Final fallback to ESM worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/build/pdf.worker.min.mjs',
+          import.meta.url
+        ).toString();
+      }
     }
     
     const arrayBuffer = await file.arrayBuffer();
@@ -116,7 +126,7 @@ export function buildQuiz(sentences, keywords, total = 10) {
     for (const k of keywords) {
       if (usedKeys.has(k)) continue;
       
-      const regex = new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      const regex = new RegExp(`\\b${k.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'i');
       if (regex.test(sentence)) {
         key = k;
         break;
@@ -127,7 +137,7 @@ export function buildQuiz(sentences, keywords, total = 10) {
     usedKeys.add(key);
     
     const qtext = sentence.replace(
-      new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'),
+      new RegExp(`\\b${key.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'i'),
       '_____'
     );
     
@@ -191,7 +201,7 @@ export function buildFlashcards(sentences, keywords, total = 12) {
     
     // Find a supporting sentence
     const support = sentences.find(s => 
-      new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s)
+      new RegExp(`\\b${k.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'i').test(s)
     );
     
     if (!support || used.has(k)) continue;
