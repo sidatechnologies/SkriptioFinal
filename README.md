@@ -1,47 +1,70 @@
-#Skriptio — Your Notes, Supercharged
+# Getting Started with Create React App
 
-Skriptio turns your PDFs and notes into a complete study kit in seconds.
-Upload your content → get an auto-generated quiz, smart flashcards, and a 7-day plan to help you learn faster, remember more, and stay consistent.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-No complicated setup. No external AI. Just focused learning.
+## Available Scripts
 
-🚀 Why Skriptio?
-Fast & Minimal — Go from raw content to a structured plan in under a minute.
+In the project directory, you can run:
 
-Private by Default — Your content stays on our secure server, never sent to external AI providers.
+### `npm start`
 
-Boost Retention — Active recall + spaced repetition built right in.
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-📦 What You Get
-Auto Quiz — 10 targeted questions generated from your content to test understanding.
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-Flashcards — Key concepts distilled for effective spaced repetition.
+### `npm test`
 
-7-Day Plan — Actionable daily objectives to keep you on track.
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-Combine Sources — Upload PDFs and paste notes together for richer study kits.
+### `npm run build`
 
-Study Anywhere — Works seamlessly on desktop and mobile.
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-💡 How It Works
-Add Your Material — Upload a PDF, paste your notes, or do both.
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-Generate Your Kit — Skriptio creates your quiz, flashcards, and plan in seconds.
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-Study Smarter — Practice active recall, reinforce memory, and follow your plan.
+### `npm run eject`
 
-🎯 Who It’s For
-Students — Exam prep, concept reinforcement, and staying consistent.
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-Professionals — Digest reports, onboard faster, and retain critical information.
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Lifelong Learners — Turn articles and notes into repeatable learning habits.
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-🔒 Privacy First
-We don’t save your files. We don’t store your conversations.
-Everything is processed securely without third-party AI services.
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-📬 Get Started
-👉 Open Skriptio Studio — Generate your first study kit in under a minute.
+## Learn More
 
-© 2025 Skriptio · A product by Aceel AI
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
