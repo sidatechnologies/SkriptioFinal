@@ -171,9 +171,9 @@ export function buildQuiz(sentences, phrases, total = 10) {
   }
 
   for (const s of sentences) {
-    if (quiz.length &gt;= total - 2) break; // leave space for up to 2 TF
-    const phrase = phrases.find(p =&gt; p.includes(' ') &amp;&amp; new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) &amp;&amp; !used.has(p))
-      || phrases.find(p =&gt; new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) &amp;&amp; !used.has(p));
+    if (quiz.length >= total - 2) break; // leave space for up to 2 TF
+    const phrase = phrases.find(p => p.includes(' ') && new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) && !used.has(p))
+      || phrases.find(p => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
     const maskRegex = new RegExp(`(?!^)\\b${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
