@@ -227,6 +227,32 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
   return selected.slice(0, needed);
 }
 
+// MMR selection helper for distractors using embeddings
+function mmrSelect(queryVec, candidateVecs, candidateLabels, k = 3, lambda = 0.7) {
+  const selected = [];
+  const selectedIdxs = [];
+  const used = new Set();
+  while (selected.length < k && selected.length < candidateLabels.length) {
+    let bestIdx = -1;
+    let bestScore = -Infinity;
+    for (let i = 0; i < candidateLabels.length; i++) {
+      if (used.has(i)) continue;
+      const rel = cosine(queryVec, candidateVecs[i]);
+      let div = 0;
+      for (const si of selectedIdxs) {
+        div = Math.max(div, cosine(candidateVecs[i], candidateVecs[si]));
+      }
+      const score = lambda * rel - (1 - lambda) * div;
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    }
+    if (bestIdx === -1) break;
+    used.add(bestIdx);
+    selectedIdxs.push(bestIdx);
+    selected.push(candidateLabels[bestIdx]);
+  }
+  return selected;
+}
+
 export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, deadlineMs = 120) {
   // Attempt to get embeddings quickly; if not ready, return artifacts unchanged
   const vecs = await embedSentences(sentences, deadlineMs);
@@ -239,90 +265,128 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const orderedVecs = order.map(i => vecs[i]);
   const dedup = dedupeByCosine(orderedSentences, orderedVecs, 0.86);
 
-  // Cluster for plan titles
+  // Cluster for plan titles and topic coverage
   const k = Math.min(7, dedup.sentences.length);
   const { labels } = kmeans(dedup.vectors, k, 12);
   const clusters = Array.from({ length: k }, () => []);
-  for (let i = 0; i < dedup.sentences.length; i++) clusters[labels[i]].push(dedup.sentences[i]);
+  for (let i = 0; i < dedup.sentences.length; i++) clusters[labels[i]].push({ s: dedup.sentences[i], v: dedup.vectors[i], idx: i });
 
-  // Helpers for tough question generation
-  function removePhraseOnce(sentence, phrase, maxLen = 220) {
-    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-    return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
-  }
-  function contextFromSentence(sentence, phrase, maxLen = 220) {
-    let ctx = removePhraseOnce(sentence, phrase);
-    if (!ctx || ctx.length < 30) ctx = sentence;
-    ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
-    if (!/[.!?]$/.test(ctx)) ctx += '.';
-    if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
-    return ctx;
-  }
+  // Phrase embeddings (for MMR distractors)
+  const phrases = keyphrases;
+  const phraseVecs = await embedSentences(phrases, 80); // quick try; may be null
+
   function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
 
-  // Rebuild quiz entirely as tough MCQs (no cloze, no TF) and enforce exactly 10 with 4 distinct options
-  const rebuilt = { ...artifacts };
-  const mcqTargets = dedup.sentences.slice(0, 36);
-  const phrases = keyphrases;
+  // Build candidate order for questions to maximize topic coverage (round-robin clusters, central sentence first)
+  const perClusterIdx = new Array(k).fill(0);
+  const clusterOrder = [];
+  let added = true;
+  while (clusterOrder.length < Math.min(36, dedup.sentences.length) && added) {
+    added = false;
+    for (let c = 0; c < k; c++) {
+      const list = clusters[c];
+      if (perClusterIdx[c] < list.length) {
+        clusterOrder.push(list[perClusterIdx[c]++]);
+        added = true;
+      }
+    }
+  }
+
+  // Distractors using MMR over phrase embeddings with textual dissimilarity safeguards; fallback to co-occurrence if embeddings missing
+  const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
+  dedup.sentences.forEach((s, idx) => { for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx); });
+
+  const distractorsFor = (pCorrect) => {
+    // Prefer MMR if phrase embeddings available
+    if (phraseVecs) {
+      const correctIdx = phrases.findIndex(pp => pp === pCorrect);
+      const qv = phraseVecs[correctIdx] || null;
+      if (qv) {
+        const cands = [];
+        const candVecs = [];
+        for (let i = 0; i < phrases.length; i++) {
+          const lab = phrases[i];
+          if (lab === pCorrect) continue;
+          if (tooSimilar(lab, pCorrect)) continue;
+          if (!phraseVecs[i]) continue;
+          cands.push(lab);
+          candVecs.push(phraseVecs[i]);
+        }
+        const mmr = mmrSelect(qv, candVecs, cands, 6, 0.72);
+        return mmr;
+      }
+    }
+    // Fallback: co-occurrence Jaccard
+    const base = cooccur[pCorrect] || new Set();
+    const sims = phrases
+      .filter(q => q !== pCorrect)
+      .map(q => {
+        const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size;
+        const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1;
+        return { q, jacc: inter / uni };
+      })
+      .sort((a, b) => b.jacc - a.jacc)
+      .map(o => o.q)
+      .filter(opt => !tooSimilar(opt, pCorrect));
+    return sims;
+  };
+
+  const usedPhrases = new Set();
   const mcqs = [];
 
-  const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
-  mcqTargets.forEach((s, idx) => { for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx); });
-  const distractorsFor = (p) => {
-    const base = cooccur[p] || new Set();
-    const sims = phrases
-      .filter(q => q !== p)
-      .map(q => { const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size; const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1; return { q, jacc: inter / uni }; })
-      .sort((a, b) => b.jacc - a.jacc)
-      .map(o => o.q);
-    return sims.filter(opt => !tooSimilar(opt, p));
-  };
-  const used = new Set();
-
   function buildOne(s, phrase) {
-    const primary = contextFromSentence(s, phrase);
-    let secondary = '';
-    const supIdx = mcqTargets.findIndex((t) => t !== s && hasPhraseInSentence(phrase, t) && t.length >= 50);
-    if (supIdx !== -1) secondary = contextFromSentence(mcqTargets[supIdx], phrase, 160);
-    const qtext = secondary
-      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
-      : `Which concept is best described by: "${primary}"`;
-
+    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    const primary = (() => {
+      const ctx = s.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
+      let t = ctx.length < 30 ? s : ctx;
+      t = t.replace(/\b\d+(\.\d+)?\b/g, 'X');
+      if (!/[.!?]$/.test(t)) t += '.';
+      return t.length > 220 ? t.slice(0, 217) + '...' : t;
+    })();
+    const qtext = `Which concept is best described by: "${primary}"`;
     const pool = distractorsFor(phrase);
-    const fallbackPool = phrases.filter(p => p !== phrase && !tooSimilar(p, phrase));
+    const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase));
     const opts = distinctFillOptions(phrase, pool.slice(0, 10), fallbackPool, phrases, 4);
     const { arranged, idx } = placeDeterministically(opts, phrase);
     return { question: qtext, options: arranged, answer_index: idx };
   }
 
-  for (const s of mcqTargets) {
+  // Walk cluster-balanced order to maximize topic coverage
+  for (const item of clusterOrder) {
     if (mcqs.length >= 10) break;
-    const phrase = phrases.find(p => p.includes(' ') && hasPhraseInSentence(p, s) && !used.has(p))
-      || phrases.find(p => hasPhraseInSentence(p, s) && !used.has(p));
+    const s = item.s;
+    // prefer multi-word phrase in s that hasn't been used
+    const phrase = phrases.find(p => p.includes(' ') && hasPhraseInSentence(p, s) && !usedPhrases.has(p))
+      || phrases.find(p => hasPhraseInSentence(p, s) && !usedPhrases.has(p));
     if (!phrase) continue;
-    used.add(phrase);
+    usedPhrases.add(phrase);
     const { question, options, answer_index } = buildOne(s, phrase);
     mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
   }
 
-  // Pad to 10 if needed using fallback construction
+  // Pad to 10 if needed using remaining sentences/phrases
   let si = 0; let pi = 0;
-  while (mcqs.length < 10 && (si < mcqTargets.length || pi < phrases.length)) {
-    const s = mcqTargets[si % Math.max(1, mcqTargets.length)] || (mcqTargets[0] || 'This passage discusses key ideas and definitions.');
+  while (mcqs.length < 10 && (si < dedup.sentences.length || pi < phrases.length)) {
+    const s = dedup.sentences[si % Math.max(1, dedup.sentences.length)] || (dedup.sentences[0] || 'This passage discusses key ideas and definitions.');
     const phrase = phrases[pi % Math.max(1, phrases.length)] || 'core concept';
-    if (!used.has(phrase)) {
-      used.add(phrase);
+    if (!usedPhrases.has(phrase)) {
+      usedPhrases.add(phrase);
       const { question, options, answer_index } = buildOne(s, phrase);
       mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
     }
     si++; pi++;
   }
 
-  rebuilt.quiz = mcqs.slice(0, 10).map(q => {
-    const opts = distinctFillOptions(q.options[q.answer_index], q.options.filter((o, i) => i !== q.answer_index), [], phrases, 4);
-    const placed = placeDeterministically(opts, q.options[q.answer_index]);
+  // Final normalization to guarantee constraints
+  const normalized = mcqs.slice(0, 10).map(q => {
+    const correct = q.options[q.answer_index];
+    const opts = distinctFillOptions(correct, q.options.filter((o, i) => i !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4);
+    const placed = placeDeterministically(opts, correct);
     return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' };
   });
+
+  const rebuilt = { ...artifacts };
+  rebuilt.quiz = normalized;
 
   // Flashcards: pick top 12 distinct phrases; back = highest-centrality sentence containing phrase
   const cards = [];
@@ -341,9 +405,9 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   for (let c = 0; c < k; c++) {
     const items = clusters[c] || [];
     if (items.length === 0) continue;
-    const titlePhrase = phrases.find(p => items.some(s => hasPhraseInSentence(p, s))) || phrases[c % phrases.length] || 'Focus';
-    const objectives = items.slice(0, 3).map(s => s.length > 320 ? s.slice(0, 317) + '...' : s);
-    while (objectives.length < 3 && objectives.length < items.length) objectives.push(items[objectives.length]);
+    const titlePhrase = phrases.find(p => items.some(obj => hasPhraseInSentence(p, obj.s))) || phrases[c % phrases.length] || 'Focus';
+    const objectives = items.slice(0, 3).map(obj => obj.s.length > 320 ? obj.s.slice(0, 317) + '...' : obj.s);
+    while (objectives.length < 3 && objectives.length < items.length) objectives.push(items[objectives.length].s);
     if (objectives.length < 3) {
       const pad = 3 - objectives.length;
       for (let i = 0; i < pad; i++) objectives.push(`Review concept: ${phrases[(c + i) % phrases.length]}`);
@@ -353,7 +417,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   // Ensure 7 days
   while (days.length < 7) days.push({ day: days.length + 1, title: `Day ${days.length + 1}: ${phrases[days.length % phrases.length] || 'Focus'}`, objectives: [
     `Review concept: ${phrases[days.length % phrases.length] || 'core idea'}`,
-    `Practice recall using quiz Q${(days.length % (rebuilt.quiz.length || 1)) + 1}`,
+    `Practice recall using quiz Q${(days.length % (normalized.length || 1)) + 1}`,
     `Flip flashcards 1–12`
   ]});
   rebuilt.plan = days.slice(0, 7);

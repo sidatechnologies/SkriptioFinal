@@ -402,11 +402,7 @@ export async function generateArtifacts(rawText, title = null) {
   // Try ML refinement within a short deadline to avoid blocking UX
   try {
     const enhanced = await tryEnhanceArtifacts(base, sentences, phrases, 120);
-    // Ensure constraints after enhancement too
-    if (enhanced && Array.isArray(enhanced.quiz)) {
-      const fixedQuiz = buildQuiz(sentences, phrases, 10); // rebuild constraints if needed
-      return { ...enhanced, quiz: fixedQuiz };
-    }
+    // Keep enhanced quiz (already normalized to 10 MCQs with 4 distinct options)
     return enhanced || base;
   } catch {
     return base;

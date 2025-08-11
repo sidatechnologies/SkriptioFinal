@@ -9,7 +9,7 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 ### Core Functionality
 - **Text Processing**: All NLP algorithms converted from Python to JavaScript
 - **PDF Upload**: PDF text extraction using PDF.js library
-- **Quiz Generation**: 10-question quizzes with fill-in-the-blank and T/F questions (ML-enhanced)
+- **Quiz Generation**: 10-question multiple-choice quizzes (MCQ-only), ML-enhanced
 - **Flashcard Creation**: Smart flashcards from key concepts (ML-enhanced)
 - **7-Day Study Plans**: Daily objectives and structured learning paths (topic grouping)
 - **PDF Downloads**: Generate and download study materials as PDFs
@@ -42,7 +42,7 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 4. Keyphrase Extraction
    - Unigrams + bigrams + trigrams frequencies (stopword-aware); prefer multi-word phrases.
 5. Baseline Generation (fast path)
-   - Quiz: fill-in-the-blank from non-heading sentences containing keyphrases; up to 2 True/False by safe numeric mutation; semantic distractors by co-occurrence.
+   - Quiz: MCQ-only; deterministic question stems from context; co-occurrence-based distractors with textual de-duplication; options always 4.
    - Flashcards: front = keyphrase; back = highest-quality supporting sentence; dedupe and minimum length checks.
    - Study Plan: group sentences by matching top phrases; 7 days with objectives from grouped sentences; backfill with “Review concept: …” when sparse.
 6. ML Refinement (non-blocking)
@@ -51,15 +51,16 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
      - Compute sentence embeddings
      - Rank by centrality (average cosine similarity)
      - Dedupe by cosine (> 0.86)
-     - Rebuild quiz from high-centrality sentences with phrase masking; cap True/False ≤ 2
-     - Rebuild flashcards from top sentences per phrase (ensure informative backs)
      - Cluster sentences (k-means, k=7) to produce topical day titles/objectives
+     - Rebuild quiz from high-centrality sentences with phrase masking
+     - NEW: Embedding-based distractors via MMR (semantic but mutually diverse)
+     - NEW: Topic coverage — select question seeds round‑robin across clusters to maximize spread across the 10 questions
    - If the model is not ready yet, we return the baseline immediately and keep loading in the background for subsequent generations.
 
 ### Key Files
 - /src/App.js — Main application and UI; triggers prewarm of ML on Landing and Studio.
 - /src/utils/textProcessor.js — Cleaning, segmentation, phrase extraction, heuristic generation; orchestrates optional ML refinement.
-- /src/utils/ml.js — Lazy-loading ML helpers (USE embeddings, centrality, dedupe, k-means clustering).
+- /src/utils/ml.js — Lazy-loading ML helpers (USE embeddings, centrality, dedupe, k-means clustering, MMR distractors).
 - /public/pdf.worker.min.mjs — pdf.js worker served statically.
 
 ### Performance Strategy (No Slowing Down)
@@ -83,7 +84,7 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 
 ### Vercel Deployment
 {
-  "buildCommand": "yarn install &amp;&amp; yarn build",
+  "buildCommand": "yarn install && yarn build",
   "outputDirectory": "build"
 }
 
@@ -113,4 +114,4 @@ This application has been successfully converted from a full-stack (FastAPI + Mo
 - Backend API endpoints
 - MongoDB storage
 
-All core study generation functionality remains identical in UX — now with higher quality content via local ML.
+All core study generation functionality remains identical in UX — now with higher quality content via local ML (MMR distractors + topic coverage across 10 MCQs).
