@@ -12,13 +12,14 @@ import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, 
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
+import { prewarmPDF, getJsPDF } from "./utils/pdf";
 
 function Landing() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
 
   // Prewarm ML model in background so first Studio use is fast
-  useEffect(() => { prewarmML(); }, []);
+  useEffect(() => { prewarmML(); prewarmPDF(); }, []);
   
   const heroBg = { background: 'radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)' };
 
@@ -75,14 +76,14 @@ function Landing() {
               <div className="inline-flex items-center gap-2 text-xs bg-card border rounded-full px-3 py-1 w-fit border-yellow-500 text-yellow-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
+              <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
               <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
               <div className="flex items-center gap-3">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try Skriptio Free</Button>
                 <a href="#how-it-works" className="text-foreground/80 hover:text-foreground text-sm flex items-center">How it works <ArrowRight size={16} className="ml-1"/></a>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-foreground/70 text-sm pt-2">
-                <span className="flex items-center gap-2"><Check size={16}/> Fast &amp; minimal</span>
+                <span className="flex items-center gap-2"><Check size={16}/> Fast & minimal</span>
                 <span className="flex items-center gap-2"><Shield size={16}/> Private (runs in your browser)</span>
                 <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
               </div>
@@ -300,7 +301,7 @@ function Studio() {
   const fileInputRef = useRef();
 
   // Prewarm ML model here as well, in case user lands directly on Studio
-  useEffect(() => { prewarmML(); }, []);
+  useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
   const pause = () => new Promise(res => setTimeout(res, 0));
 
@@ -363,6 +364,10 @@ function Studio() {
   // PDF Helpers
   const ensureJsPDF = async () => {
     try {
+      // Try prewarmed path first (non-blocking with deadline)
+      const jsPDF = await getJsPDF(1200);
+      if (jsPDF) return jsPDF;
+      // Fallback to dynamic import if not ready yet
       const mod = await import("jspdf");
       return mod.jsPDF;
     } catch (err) {
@@ -488,7 +493,7 @@ function Studio() {
             <CardContent className="space-y-4">
               <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
               <div>
-                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
+                <Textarea placeholder="Paste text here..." rows={8} value={text} onChange={e => setText(e.target.value)} className="bg.white/10 border.white/10 placeholder:text-foreground/60" />
                 <div className="mt-2 text-xs text-foreground/70">Tip: You can combine PDF + pasted notes.</div>
               </div>
               <div className="flex items-center gap-3">
@@ -614,7 +619,7 @@ function Flashcards({ cards }) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-foreground/80">Card {idx + 1} of {cards.length}</div>
-      <div onClick={() => setFlipped(!flipped)} className="cursor-pointer select-none">
+      <div className="cursor-pointer select-none" onClick={() => setFlipped(!flipped)}>
         <Card className="bg-card border-border hover:bg-white/10 transition-colors">
           <CardHeader>
             <CardTitle className="text-base">{flipped ? "Answer" : "Question"}</CardTitle>
