@@ -132,6 +132,9 @@
       - working: true
         agent: "main"
         comment: "Updated workerSrc to pdf.worker.min.mjs to match pdfjs-dist v5 ESM files. Removed PostHog analytics script to keep app 100% frontend-only and avoid external requests. Verified generation, tabs, and PDF downloads trigger without runtime errors."
+      - working: true
+        agent: "main"
+        comment: "Switched to legacy self-contained worker (pdfjs-dist/legacy/build/pdf.worker.min.mjs) to prevent nested ESM imports that returned text/html and caused 'Failed to load module script' and 'Setting up fake worker failed' errors. Verified end-to-end flow in Studio (paste text → generate → evaluate) with no console errors. Ready to verify with a sample PDF upload if needed."
   - task: "Fix WebSocket connection failure in preview by disabling HMR/WebSocket in dev server"
     implemented: true
     working: true
