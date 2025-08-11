@@ -269,7 +269,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
 
   // Plan: 7 clusters; each day = cluster title from top phrase present
   const days = [];
-  for (let c = 0; c &lt; k; c++) {
+  for (let c = 0; c < k; c++) {
     const items = clusters[c] || [];
     if (items.length === 0) continue;
     const titlePhrase = phrases.find(p =&gt; items.some(s =&gt; hasPhraseInSentence(p, s))) || phrases[c % phrases.length] || 'Focus';
