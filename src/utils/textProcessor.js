@@ -16,7 +16,7 @@ export function generateUUID() {
 // Extract text from PDF using pdf.js
 export async function extractTextFromPDF(file) {
   try {
-    const pdfjsLib = await import('pdfjs-dist');
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
     
     // Use legacy self-contained worker to avoid nested ESM imports that can 404 via proxies
     try {
