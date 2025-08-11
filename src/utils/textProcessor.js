@@ -233,15 +233,15 @@ export function buildFlashcards(sentences, phrases, total = 12) {
 // Build 7-day study plan using topical grouping
 export function buildStudyPlan(sentences, phrases) {
   const days = 7;
-  const groups = Array.from({ length: days }, () =&gt; []);
+  const groups = Array.from({ length: days }, () => []);
   // Assign sentences greedily to phrase buckets by first match
-  const buckets = phrases.slice(0, days).map(p =&gt; ({ phrase: p, items: [] }));
+  const buckets = phrases.slice(0, days).map(p => ({ phrase: p, items: [] }));
   for (const s of sentences) {
-    const idx = buckets.findIndex(b =&gt; new RegExp(`\\b${b.phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s));
+    const idx = buckets.findIndex(b => new RegExp(`\\b${b.phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s));
     if (idx !== -1) buckets[idx].items.push(s);
   }
   // Backfill remaining sentences round-robin
-  const remaining = sentences.filter(s =&gt; !buckets.some(b =&gt; b.items.includes(s)));
+  const remaining = sentences.filter(s => !buckets.some(b => b.items.includes(s)));
   let ri = 0;
   for (const s of remaining) { buckets[ri % buckets.length].items.push(s); ri++; }
 
