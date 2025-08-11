@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-import axios from "axios";
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
@@ -11,14 +10,12 @@ import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import { extractTextFromPDF, generateArtifacts } from "./utils/textProcessor";
 
 function Landing() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
-  useEffect(() => { axios.get(`${API}/`).catch(() => {}); }, []);
+  
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
@@ -80,7 +77,7 @@ function Landing() {
               </div>
               <div className="flex flex-wrap items-center gap-4 text-foreground/70 text-sm pt-2">
                 <span className="flex items-center gap-2"><Check size={16}/> Fast & minimal</span>
-                <span className="flex items-center gap-2"><Shield size={16}/> Private (no external AI required)</span>
+                <span className="flex items-center gap-2"><Shield size={16}/> Private (runs in your browser)</span>
                 <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
               </div>
             </div>
@@ -122,7 +119,7 @@ function Landing() {
         <section id="benefits" className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Benefit icon={<Zap size={18}/>} title="Instant study kits" desc="Turn raw content into a quiz, flashcards, and a 7‑day plan in one click." />
           <Benefit icon={<Sparkles size={18}/>} title="Better retention" desc="Active recall + spaced repetition baked in to help you remember more." />
-          <Benefit icon={<Shield size={18}/>} title="Own your data" desc="Process content locally on the server with no external AI dependency." />
+          <Benefit icon={<Shield size={18}/>} title="Own your data" desc="Process content locally in your browser with no server needed." />
         </section>
 
         {/* How it works */}
@@ -150,7 +147,7 @@ function Landing() {
             <Feature icon={<Calendar size={18}/>} title="7‑Day Plan" desc="Actionable objectives chunked to keep you moving each day."/>
             <Feature icon={<Layers size={18}/>} title="Combine sources" desc="Upload a PDF and paste notes together to create richer kits."/>
             <Feature icon={<GraduationCap size={18}/>} title="Learn anywhere" desc="Responsive design works on desktop and mobile so you can study on the go."/>
-            <Feature icon={<Shield size={18}/>} title="Private by default" desc="Your content is processed without sending it to external AI providers."/>
+            <Feature icon={<Shield size={18}/>} title="Private by default" desc="Your content is processed entirely in your browser - no data sent to servers."/>
           </div>
         </section>
 
@@ -190,10 +187,10 @@ function Landing() {
             <h2 className="text-2xl font-semibold">Frequently asked questions</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FAQ q="Do I need an AI API key?" a="No. Skriptio runs without external AI providers." />
+            <FAQ q="Do I need an internet connection?" a="No. Skriptio runs entirely in your browser after the initial page load." />
             <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
             <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and true/false questions derived from your content." />
-            <FAQ q="Do you save my content?" a="No. Skriptio does not save or retain your content or conversations." />
+            <FAQ q="Do you save my content?" a="No. Everything runs in your browser session - nothing is sent to servers or saved." />
           </div>
         </section>
 
@@ -295,28 +292,41 @@ function Studio() {
   const [score, setScore] = useState(null);
   const fileInputRef = useRef();
 
-  useEffect(() => {
-    axios.get(`${API}/`).catch(() => {});
-  }, []);
-
   const handleGenerate = async () => {
     if (!text && !file) {
       toast("Paste text or upload a PDF to generate your study kit.");
       return;
     }
+    
     setLoading(true);
     setScore(null);
+    setAnswers({});
+    
     try {
-      const form = new FormData();
-      if (file) form.append("file", file);
-      if (text) form.append("text", text);
-      if (title) form.append("title", title);
-      const { data } = await axios.post(`${API}/generate`, form, { headers: { "Content-Type": "multipart/form-data" } });
-      setResult(data);
+      let extractedText = "";
+      
+      // Process PDF if uploaded
+      if (file) {
+        if (!file.name.toLowerCase().endsWith(".pdf")) {
+          throw new Error("Only PDF files are supported");
+        }
+        extractedText = await extractTextFromPDF(file);
+      }
+      
+      // Combine PDF text with pasted text
+      if (text) {
+        extractedText = extractedText ? extractedText + "\n" + text : text;
+      }
+      
+      // Generate study artifacts
+      const studyData = generateArtifacts(extractedText, title);
+      setResult(studyData);
+      
       toast("Generated! Quiz, flashcards and 7-day plan are ready.");
-    } catch (e) {
-      const msg = e?.response?.data?.detail || "Failed to generate";
+    } catch (error) {
+      const msg = error.message || "Failed to generate study kit";
       toast(String(msg));
+      console.error("Generation error:", error);
     } finally {
       setLoading(false);
     }
@@ -455,7 +465,7 @@ function Studio() {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><FileText size={18}/> Add Content</CardTitle>
-              <CardDescription>Paste raw text or upload a PDF. Fully local generation on server.</CardDescription>
+              <CardDescription>Paste raw text or upload a PDF. Processing happens in your browser.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
@@ -475,17 +485,15 @@ function Studio() {
               </Button>
             </CardContent>
           </Card>
-
-
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          {/* Download toolbar
+          {/* Download toolbar */}
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" disabled={!result?.quiz?.length} onClick={downloadQuizPDF}>Download Quiz PDF</Button>
             <Button variant="outline" disabled={!result?.flashcards?.length} onClick={downloadCardsPDF}>Download Flashcards PDF</Button>
             <Button variant="outline" disabled={!result?.plan?.length} onClick={downloadPlanPDF}>Download Plan PDF</Button>
-          </div> */}
+          </div>
 
           <Tabs defaultValue="quiz" className="w-full">
             <TabsList className="bg-white/10">
