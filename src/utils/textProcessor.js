@@ -263,13 +263,13 @@ export async function generateArtifacts(rawText, title = null) {
   if (!text) {
     throw new Error('Empty content');
   }
-  const limitedText = text.length &gt; 150000 ? text.slice(0, 150000) : text;
+  const limitedText = text.length > 150000 ? text.slice(0, 150000) : text;
 
   let sentences = splitSentences(limitedText);
   if (sentences.length === 0) {
     // Create pseudo-sentences by chunking
     sentences = [];
-    for (let i = 0; i &lt; Math.min(limitedText.length, 2000); i += 160) {
+    for (let i = 0; i < Math.min(limitedText.length, 2000); i += 160) {
       sentences.push(limitedText.slice(i, i + 160));
     }
   }
