@@ -46,7 +46,7 @@ function isAllCaps(s) {
   const letters = s.replace(/[^A-Za-z]/g, '');
   if (!letters) return false;
   const caps = letters.replace(/[^A-Z]/g, '').length;
-  return caps / letters.length &gt; 0.7;
+  return caps / letters.length > 0.7;
 }
 function isTitleCaseLine(s) {
   const words = s.trim().split(/\s+/);
