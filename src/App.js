@@ -69,7 +69,7 @@ function Landing() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-50" style={{background: "radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)"}/>
+          <div className="absolute inset-0 pointer-events-none opacity-50" style={heroBg}/>
           <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 text-xs bg-card border rounded-full px-3 py-1 w-fit border-yellow-500 text-yellow-500">
