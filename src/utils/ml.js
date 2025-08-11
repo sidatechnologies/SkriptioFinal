@@ -258,7 +258,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   // Flashcards: pick top 12 distinct phrases; back = highest-centrality sentence containing phrase
   const cards = [];
   for (const p of phrases) {
-    if (cards.length &gt;= 12) break;
+    if (cards.length >= 12) break;
     const sIdx = dedup.sentences.findIndex(s =&gt; hasPhraseInSentence(p, s));
     if (sIdx === -1) continue;
     const back = dedup.sentences[sIdx];
