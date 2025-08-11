@@ -259,7 +259,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const cards = [];
   for (const p of phrases) {
     if (cards.length >= 12) break;
-    const sIdx = dedup.sentences.findIndex(s =&gt; hasPhraseInSentence(p, s));
+    const sIdx = dedup.sentences.findIndex(s => hasPhraseInSentence(p, s));
     if (sIdx === -1) continue;
     const back = dedup.sentences[sIdx];
     if (!back || back.length < 60) continue; // avoid heading-like backs
