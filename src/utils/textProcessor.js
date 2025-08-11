@@ -180,9 +180,9 @@ export function buildQuiz(sentences, phrases, total = 10) {
     if (!maskRegex.test(s)) continue;
     const qtext = s.replace(maskRegex, '_____');
     const pool = distractorsFor(phrase);
-    const choices = [phrase, ...pool.filter(d =&gt; d !== phrase)].slice(0, 4);
-    while (choices.length &lt; 4) {
-      const r = phrases.find(p =&gt; !choices.includes(p));
+    const choices = [phrase, ...pool.filter(d => d !== phrase)].slice(0, 4);
+    while (choices.length < 4) {
+      const r = phrases.find(p => !choices.includes(p));
       if (!r) break; choices.push(r);
     }
     const shuffled = [...choices];
