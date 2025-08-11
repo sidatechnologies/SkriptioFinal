@@ -616,7 +616,7 @@ function Plan({ days }) {
           </CardHeader>
           <CardContent>
             <ul className="list-disc pl-5 space-y-1 text-foreground/90">
-              {d.objectives.map((o, i) => <li key={i}>{o}</li>)}
+              {d.objectives.map((o, i) => <li key={i} className="plan-objective">{o}</li>)}
             </ul>
           </CardContent>
         </Card>
