@@ -57,13 +57,13 @@ function isTitleCaseLine(s) {
 }
 function looksLikeHeading(s) {
   const t = s.trim();
-  if (t.length &lt;= 2) return true;
+  if (t.length <= 2) return true;
   if (/^(table of contents|references|bibliography|index|appendix|chapter|section|contents)\b/i.test(t)) return true;
   if (/^page\s+\d+(\s+of\s+\d+)?$/i.test(t)) return true;
   if (/^fig(ure)?\s*\d+[:.]/i.test(t)) return true;
   if (isAllCaps(t)) return true;
   if (isTitleCaseLine(t)) return true;
-  if (!/[.!?]$/.test(t) &amp;&amp; t.split(/\s+/).length &lt;= 8) return true;
+  if (!/[.!?]$/.test(t) && t.split(/\s+/).length <= 8) return true;
   return false;
 }
 function normalizeText(raw) {
