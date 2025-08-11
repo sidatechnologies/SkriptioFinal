@@ -14,7 +14,19 @@ body { font-family: 'Figtree', sans-serif; }
 }
 
 /* Buttons and inputs micro-interactions */
-button, .btn { transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+button, .btn { transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease; }
+
+/* Quiz option selected styling (light and dark) */
+.quiz-option {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.1);
+}
+.quiz-option:hover { background: rgba(255,255,255,0.2); }
+.quiz-option--selected {
+  background: #000; color: #fff; border-color: transparent;
+}
+:root .light .quiz-option--selected { background: #000; color: #fff; }
+.dark .quiz-option--selected { background: #fff; color: #000; }
 input, textarea { transition: background-color .2s ease, border-color .2s ease; }
 
 /* Hide default file input */
