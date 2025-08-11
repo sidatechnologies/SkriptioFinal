@@ -189,7 +189,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const k = Math.min(7, dedup.sentences.length);
   const { labels } = kmeans(dedup.vectors, k, 12);
   const clusters = Array.from({ length: k }, () => []);
-  for (let i = 0; i &lt; dedup.sentences.length; i++) clusters[labels[i]].push(dedup.sentences[i]);
+  for (let i = 0; i < dedup.sentences.length; i++) clusters[labels[i]].push(dedup.sentences[i]);
 
   // Rebuild quiz: take top 8 MCQs from high-centrality sentences; cap TF to 2
   const rebuilt = { ...artifacts };
