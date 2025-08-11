@@ -139,7 +139,7 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
       for (const c of centroids) {
         dmin = Math.min(dmin, 1 - cosine(vectors[i], c));
       }
-      if (dmin &gt; bestDist) { bestDist = dmin; bestIdx = i; }
+      if (dmin > bestDist) { bestDist = dmin; bestIdx = i; }
     }
     chosen.add(bestIdx);
     centroids.push(vectors[bestIdx]);
