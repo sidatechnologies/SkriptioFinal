@@ -272,7 +272,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   for (let c = 0; c < k; c++) {
     const items = clusters[c] || [];
     if (items.length === 0) continue;
-    const titlePhrase = phrases.find(p =&gt; items.some(s =&gt; hasPhraseInSentence(p, s))) || phrases[c % phrases.length] || 'Focus';
+    const titlePhrase = phrases.find(p => items.some(s => hasPhraseInSentence(p, s))) || phrases[c % phrases.length] || 'Focus';
     const objectives = items.slice(0, 3).map(s =&gt; s.length &gt; 320 ? s.slice(0, 317) + '...' : s);
     while (objectives.length < 3 && objectives.length < items.length) objectives.push(items[objectives.length]);
     if (objectives.length < 3) {
