@@ -274,10 +274,10 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (items.length === 0) continue;
     const titlePhrase = phrases.find(p =&gt; items.some(s =&gt; hasPhraseInSentence(p, s))) || phrases[c % phrases.length] || 'Focus';
     const objectives = items.slice(0, 3).map(s =&gt; s.length &gt; 320 ? s.slice(0, 317) + '...' : s);
-    while (objectives.length &lt; 3 &amp;&amp; objectives.length &lt; items.length) objectives.push(items[objectives.length]);
-    if (objectives.length &lt; 3) {
+    while (objectives.length < 3 && objectives.length < items.length) objectives.push(items[objectives.length]);
+    if (objectives.length < 3) {
       const pad = 3 - objectives.length;
-      for (let i = 0; i &lt; pad; i++) objectives.push(`Review concept: ${phrases[(c + i) % phrases.length]}`);
+      for (let i = 0; i < pad; i++) objectives.push(`Review concept: ${phrases[(c + i) % phrases.length]}`);
     }
     days.push({ day: days.length + 1, title: `Day ${days.length + 1}: ${titlePhrase}`, objectives });
   }
