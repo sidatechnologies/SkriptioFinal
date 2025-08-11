@@ -96,7 +96,7 @@ export function dedupeByCosine(sentences, vectors, threshold = 0.85) {
   for (let i = 0; i < sentences.length; i++) {
     const v = vectors[i];
     let isDup = false;
-    for (let j = 0; j &lt; keptVecs.length; j++) {
+    for (let j = 0; j < keptVecs.length; j++) {
       if (cosine(v, keptVecs[j]) &gt;= threshold) { isDup = true; break; }
     }
     if (!isDup) {
