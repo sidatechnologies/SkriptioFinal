@@ -220,8 +220,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   for (const s of mcqTargets) {
     if (mcqs.length >= 8) break;
     // prefer multi-word phrase in sentence
-    const phrase = phrases.find(p => p.includes(' ') &amp;&amp; hasPhraseInSentence(p, s) &amp;&amp; !used.has(p))
-      || phrases.find(p => hasPhraseInSentence(p, s) &amp;&amp; !used.has(p));
+    const phrase = phrases.find(p => p.includes(' ') && hasPhraseInSentence(p, s) && !used.has(p))
+      || phrases.find(p => hasPhraseInSentence(p, s) && !used.has(p));
     if (!phrase) continue;
     used.add(phrase);
     // avoid masking first word
