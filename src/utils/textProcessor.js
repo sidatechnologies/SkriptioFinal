@@ -115,11 +115,11 @@ export function tokenize(text) {
 
 // Extract keyphrases: unigrams + bigrams + trigrams
 export function extractKeyPhrases(text, k = 14) {
-  const tokens = tokenize(text).filter(t =&gt; !STOPWORDS.has(t));
+  const tokens = tokenize(text).filter(t => !STOPWORDS.has(t));
   const counts = new Map();
   for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
-  const addNgrams = (n) =&gt; {
-    for (let i = 0; i + n &lt;= tokens.length; i++) {
+  const addNgrams = (n) => {
+    for (let i = 0; i + n <= tokens.length; i++) {
       const gram = tokens.slice(i, i + n);
       if (STOPWORDS.has(gram[0]) || STOPWORDS.has(gram[gram.length - 1])) continue;
       const phrase = gram.join(' ');
