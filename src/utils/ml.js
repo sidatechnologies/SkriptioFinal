@@ -145,11 +145,11 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
     centroids.push(vectors[bestIdx]);
   }
   let labels = new Array(n).fill(0);
-  for (let it = 0; it &lt; maxIter; it++) {
+  for (let it = 0; it < maxIter; it++) {
     // Assign
-    for (let i = 0; i &lt; n; i++) {
+    for (let i = 0; i < n; i++) {
       let best = 0; let bestSim = -1;
-      for (let c = 0; c &lt; centroids.length; c++) {
+      for (let c = 0; c < centroids.length; c++) {
         const sim = cosine(vectors[i], centroids[c]);
         if (sim &gt; bestSim) { bestSim = sim; best = c; }
       }
