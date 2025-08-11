@@ -194,7 +194,7 @@ export function buildQuiz(sentences, phrases, total = 10) {
   // Up to 2 True/False with light mutation
   let tfCount = 0;
   for (const s of sentences) {
-    if (quiz.length &gt;= total || tfCount &gt;= 2) break;
+    if (quiz.length >= total || tfCount >= 2) break;
     const m = s.match(/(\d+\.?\d*)/);
     if (m) {
       const num = m[1];
