@@ -20,7 +20,7 @@ export async function extractTextFromPDF(file) {
     
     // Set worker source to use the package version
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.js',
+      'pdfjs-dist/build/pdf.worker.min.mjs',
       import.meta.url
     ).toString();
     
