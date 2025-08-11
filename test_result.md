@@ -118,6 +118,20 @@
       - working: true
         agent: "main"
         comment: "Successfully converted all backend logic to frontend JavaScript. PDF processing using PDF.js, all NLP algorithms ported, localStorage for session data, removed all API dependencies. Quiz generation, flashcards, and 7-day plans working perfectly in browser."
+  - task: "Fix PDF.js worker compile error and remove external analytics"
+    implemented: true
+    working: true
+    file: "/app/src/utils/textProcessor.js, /app/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Compile banner: Can't resolve pdfjs-dist/build/pdf.worker.min.js in /src/utils (from UI)."
+      - working: true
+        agent: "main"
+        comment: "Updated workerSrc to pdf.worker.min.mjs to match pdfjs-dist v5 ESM files. Removed PostHog analytics script to keep app 100% frontend-only and avoid external requests. Verified generation, tabs, and PDF downloads trigger without runtime errors."
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
