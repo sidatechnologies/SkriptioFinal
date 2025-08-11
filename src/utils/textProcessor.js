@@ -128,13 +128,13 @@ export function extractKeyPhrases(text, k = 14) {
   };
   addNgrams(2); addNgrams(3);
   const scored = Array.from(counts.entries())
-    .filter(([w]) =&gt; /[a-z]/.test(w) &amp;&amp; w.length &gt;= 4)
-    .map(([w, c]) =&gt; [w, c * Math.log(1 + c)])
-    .sort((a, b) =&gt; b[1] - a[1])
-    .map(([w]) =&gt; w);
+    .filter(([w]) => /[a-z]/.test(w) && w.length >= 4)
+    .map(([w, c]) => [w, c * Math.log(1 + c)])
+    .sort((a, b) => b[1] - a[1])
+    .map(([w]) => w);
   // Prefer multi-word phrases first, then unigrams
-  const multi = scored.filter(w =&gt; w.includes(' '));
-  const uni = scored.filter(w =&gt; !w.includes(' '));
+  const multi = scored.filter(w => w.includes(' '));
+  const uni = scored.filter(w => !w.includes(' '));
   return [...multi.slice(0, Math.min(k - 4, multi.length)), ...uni].slice(0, k);
 }
 
