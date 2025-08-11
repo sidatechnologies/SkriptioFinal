@@ -21,7 +21,7 @@ export async function extractTextFromPDF(file) {
     // Use legacy self-contained worker to avoid nested ESM imports that can 404 via proxies
     try {
       pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+        'pdfjs-dist/legacy/build/pdf.worker.min.js',
         import.meta.url
       ).toString();
     } catch (e) {
