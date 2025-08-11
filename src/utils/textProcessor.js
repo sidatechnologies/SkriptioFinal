@@ -155,9 +155,9 @@ export function topKeywords(text, k = 12) {
 export function buildQuiz(sentences, phrases, total = 10) {
   const quiz = [];
   const used = new Set();
-  const cooccur = Object.fromEntries(phrases.map(p =&gt; [p, new Set()]));
-  sentences.forEach((s, idx) =&gt; {
-    phrases.forEach(p =&gt; { if (new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s)) cooccur[p].add(idx); });
+  const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
+  sentences.forEach((s, idx) => {
+    phrases.forEach(p => { if (new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(s)) cooccur[p].add(idx); });
   });
 
   function distractorsFor(p) {
