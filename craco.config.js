@@ -43,6 +43,12 @@ module.exports = {
     },
   },
   devServer: (devServerConfig) => {
+    // Server binding and routing for Kubernetes ingress
+    devServerConfig.host = '0.0.0.0';
+    devServerConfig.port = 3000;
+    devServerConfig.allowedHosts = 'all';
+    devServerConfig.historyApiFallback = true; // BrowserRouter support
+
     // Turn off hot reload & websockets to avoid cross-origin WSS failures in preview harness
     devServerConfig.hot = false;
     devServerConfig.liveReload = false;
