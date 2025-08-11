@@ -282,7 +282,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     days.push({ day: days.length + 1, title: `Day ${days.length + 1}: ${titlePhrase}`, objectives });
   }
   // Ensure 7 days
-  while (days.length &lt; 7) days.push({ day: days.length + 1, title: `Day ${days.length + 1}: ${phrases[days.length % phrases.length] || 'Focus'}`, objectives: [
+  while (days.length < 7) days.push({ day: days.length + 1, title: `Day ${days.length + 1}: ${phrases[days.length % phrases.length] || 'Focus'}`, objectives: [
     `Review concept: ${phrases[days.length % phrases.length] || 'core idea'}`,
     `Practice recall using quiz Q${(days.length % (rebuilt.quiz.length || 1)) + 1}`,
     `Flip flashcards 1–12`
