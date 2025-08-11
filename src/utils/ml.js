@@ -151,7 +151,7 @@ export function kmeans(vectors, k = 7, maxIter = 20) {
       let best = 0; let bestSim = -1;
       for (let c = 0; c < centroids.length; c++) {
         const sim = cosine(vectors[i], centroids[c]);
-        if (sim &gt; bestSim) { bestSim = sim; best = c; }
+        if (sim > bestSim) { bestSim = sim; best = c; }
       }
       labels[i] = best;
     }
