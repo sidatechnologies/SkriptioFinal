@@ -230,7 +230,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const qtext = s.replace(maskRegex, '_____');
     const pool = distractorsFor(phrase);
     const choices = [phrase, ...pool.filter(d =&gt; d !== phrase)].slice(0, 4);
-    while (choices.length &lt; 4) {
+    while (choices.length < 4) {
       const r = phrases.find(p =&gt; !choices.includes(p));
       if (!r) break; choices.push(r);
     }
