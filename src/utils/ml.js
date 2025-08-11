@@ -263,7 +263,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (sIdx === -1) continue;
     const back = dedup.sentences[sIdx];
     if (!back || back.length < 60) continue; // avoid heading-like backs
-    cards.push({ front: `Define: ${p}`, back: back.length &gt; 280 ? back.slice(0, 277) + '...' : back });
+    cards.push({ front: `Define: ${p}`, back: back.length > 280 ? back.slice(0, 277) + '...' : back });
   }
   rebuilt.flashcards = cards;
 
