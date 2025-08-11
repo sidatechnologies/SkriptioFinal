@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Deploy to Vercel from monorepo, ensure frontend builds correctly; fix UI issue where text appears black on black cards; add light/dark theme with a toggle."
+## user_problem_statement: "Convert the full-stack Skriptio app to frontend-only while keeping design, UI and all other functionalities working. Session-only storage, remove recent functionality, no backend/database/API needed."
 
 ## backend:
   - task: "Health endpoint and generation pipeline"
