@@ -474,7 +474,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     combined.push({ id: generateUUID(), ...q });
   }
   let pj = 0;
-  while (combined.length &lt; total &amp;&amp; pj &lt; phrases.length) {
+  while (combined.length < total && pj < phrases.length) {
     const p = phrases[pj++];
     const q = buildPropertyQ(p);
     combined.push({ id: generateUUID(), ...q });
