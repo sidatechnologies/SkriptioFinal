@@ -160,6 +160,51 @@
       - working: true
         agent: "main"
         comment: "Configured build scripts to copy pdf.worker.min.mjs into /public and set workerSrc='/pdf.worker.min.mjs' to avoid dynamic ESM imports and MIME type issues on Vercel."
+  - task: "Add difficulty selector (Balanced/Harder) affecting quiz construction"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js, /app/src/utils/textProcessor.js, /app/src/utils/ml.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added inline difficulty toggle in Studio; drives distractor diversity, context depth, and MMR params."
+  - task: "Preserve math formulas from content (text + PDF) and generate formula-aware questions"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Extract LaTeX ($...$, $$...$$, \\[...\\], \\(...\\)) and equation-like lines exactly. Do not drop formula lines in cleaning. Inject 1–3 formula MCQs (exact-match) based on difficulty."
+  - task: "Handle image/diagram PDFs via on-device OCR (tesseract.js)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js, /app/package.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "If a PDF page has sparse selectable text, render to canvas and OCR in-browser. Merges OCR with any extracted text."
+  - task: "Reduce repetition: de-duplicate questions and enforce option diversity globally"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js, /app/src/utils/ml.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Global guardrails: unique correct answers across quiz when possible, textual-similarity thresholds on options, and Jaccard-based question dedup."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
