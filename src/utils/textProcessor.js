@@ -467,7 +467,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
   // Fallback padding with remaining concept/property
   let ci = 0;
-  while (combined.length &lt; total &amp;&amp; ci &lt; conceptTargets.length) {
+  while (combined.length < total && ci < conceptTargets.length) {
     const { s, phrase } = conceptTargets[ci++];
     if (combined.some(q =&gt; q.qtype === 'concept' &amp;&amp; q.options[q.answer_index] === phrase)) continue;
     const q = buildConceptQ(s, phrase);
