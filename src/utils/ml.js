@@ -253,7 +253,8 @@ function mmrSelect(queryVec, candidateVecs, candidateLabels, k = 3, lambda = 0.7
   return selected;
 }
 
-export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, deadlineMs = 120) {
+export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, deadlineMs = 120, options = {}) {
+  const { difficulty = 'balanced', formulas = [] } = options;
   // Attempt to get embeddings quickly; if not ready, return artifacts unchanged
   const vecs = await embedSentences(sentences, deadlineMs);
   if (!vecs) return artifacts;
@@ -297,6 +298,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   dedup.sentences.forEach((s, idx) => { for (const p of phrases) if (hasPhraseInSentence(p, s)) cooccur[p].add(idx); });
 
   const distractorsFor = (pCorrect) => {
+    const lambda = difficulty === 'harder' ? 0.82 : 0.72;
+    const kSel = difficulty === 'harder' ? 8 : 6;
     // Prefer MMR if phrase embeddings available
     if (phraseVecs) {
       const correctIdx = phrases.findIndex(pp => pp === pCorrect);
@@ -312,7 +315,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
           cands.push(lab);
           candVecs.push(phraseVecs[i]);
         }
-        const mmr = mmrSelect(qv, candVecs, cands, 6, 0.72);
+        const mmr = mmrSelect(qv, candVecs, cands, kSel, lambda);
         return mmr;
       }
     }
@@ -346,7 +349,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const qtext = `Which concept is best described by: "${primary}"`;
     const pool = distractorsFor(phrase);
     const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase));
-    const opts = distinctFillOptions(phrase, pool.slice(0, 10), fallbackPool, phrases, 4);
+    const opts = distinctFillOptions(phrase, pool.slice(0, difficulty === 'harder' ? 12 : 10), fallbackPool, phrases, 4);
     const { arranged, idx } = placeDeterministically(opts, phrase);
     return { question: qtext, options: arranged, answer_index: idx };
   }
@@ -361,7 +364,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (!phrase) continue;
     usedPhrases.add(phrase);
     const { question, options, answer_index } = buildOne(s, phrase);
-    mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
+    mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
   }
 
   // Pad to 10 if needed using remaining sentences/phrases
@@ -372,21 +375,31 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (!usedPhrases.has(phrase)) {
       usedPhrases.add(phrase);
       const { question, options, answer_index } = buildOne(s, phrase);
-      mcqs.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
+      mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
     }
     si++; pi++;
   }
 
-  // Final normalization to guarantee constraints
-  const normalized = mcqs.slice(0, 10).map(q => {
+  // Final normalization to guarantee constraints + reduce repetition and enforce unique correct answers if possible
+  const normalized = [];
+  const seenQ = new Set();
+  const seenCorrect = new Set();
+  for (const q of mcqs) {
+    const key = q.question.toLowerCase();
+    const corr = q.options[q.answer_index].toLowerCase();
+    if (seenQ.has(key)) continue;
+    if (seenCorrect.has(corr)) continue;
     const correct = q.options[q.answer_index];
     const opts = distinctFillOptions(correct, q.options.filter((o, i) => i !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4);
     const placed = placeDeterministically(opts, correct);
-    return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' };
-  });
+    normalized.push({ ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' });
+    seenQ.add(key);
+    seenCorrect.add(corr);
+    if (normalized.length >= 10) break;
+  }
 
   const rebuilt = { ...artifacts };
-  rebuilt.quiz = normalized;
+  rebuilt.quiz = normalized.length === 10 ? normalized : normalized.slice(0, 10);
 
   // Flashcards: pick top 12 distinct phrases; back = highest-centrality sentence containing phrase
   const cards = [];
@@ -398,7 +411,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     if (!back || back.length < 60) continue; // avoid heading-like backs
     cards.push({ front: `Define: ${p}`, back: back.length > 280 ? back.slice(0, 277) + '...' : back });
   }
-  rebuilt.flashcards = cards;
+  rebuilt.flashcards = cards.length ? cards : artifacts.flashcards;
 
   // Plan: 7 clusters; each day = cluster title from top phrase present
   const days = [];
