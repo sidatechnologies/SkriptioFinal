@@ -174,6 +174,9 @@
   - task: "Preserve math formulas from content (text + PDF) and generate formula-aware questions"
     implemented: true
     working: "NA"
+  - agent: "main"
+    message: "Implemented difficulty toggle, math formula preservation with formula questions, OCR fallback for image PDFs, and global dedup/option diversity. Requesting UI retest: 1) Generate with Balanced and Harder; 2) Verify presence of exact formula options when formulas exist; 3) Try a scanned PDF page and confirm text extraction improves."
+
     file: "/app/src/utils/textProcessor.js"
     stuck_count: 0
     priority: "high"
