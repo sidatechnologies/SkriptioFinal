@@ -276,7 +276,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const phrases = keyphrases;
   const phraseVecs = await embedSentences(phrases, 80); // quick try; may be null
 
-  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s); }
+  function hasPhraseInSentence(p, s) { return new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\\\$&')}\\b`, 'i').test(s); }
 
   // Build candidate order for questions to maximize topic coverage (round-robin clusters, central sentence first)
   const perClusterIdx = new Array(k).fill(0);
@@ -338,7 +338,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const mcqs = [];
 
   function buildOne(s, phrase) {
-    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\/g, '\\\\$&')}\\b`, 'i');
     const primary = (() => {
       const ctx = s.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
       let t = ctx.length < 30 ? s : ctx;
@@ -351,7 +351,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase));
     const opts = distinctFillOptions(phrase, pool.slice(0, difficulty === 'harder' ? 12 : 10), fallbackPool, phrases, 4);
     const { arranged, idx } = placeDeterministically(opts, phrase);
-    return { question: qtext, options: arranged, answer_index: idx };
+    const explanation = `Context: ${primary}`;
+    return { question: qtext, options: arranged, answer_index: idx, qtype: 'mcq', explanation };
   }
 
   // Walk cluster-balanced order to maximize topic coverage
@@ -363,8 +364,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
       || phrases.find(p => hasPhraseInSentence(p, s) && !usedPhrases.has(p));
     if (!phrase) continue;
     usedPhrases.add(phrase);
-    const { question, options, answer_index } = buildOne(s, phrase);
-    mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
+    const { question, options, answer_index, qtype, explanation } = buildOne(s, phrase);
+    mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq', explanation });
   }
 
   // Pad to 10 if needed using remaining sentences/phrases
@@ -374,8 +375,8 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const phrase = phrases[pi % Math.max(1, phrases.length)] || 'core concept';
     if (!usedPhrases.has(phrase)) {
       usedPhrases.add(phrase);
-      const { question, options, answer_index } = buildOne(s, phrase);
-      mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq' });
+      const { question, options, answer_index, qtype, explanation } = buildOne(s, phrase);
+      mcqs.push({ id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()), question, options, answer_index, qtype: 'mcq', explanation });
     }
     si++; pi++;
   }
@@ -392,7 +393,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const correct = q.options[q.answer_index];
     const opts = distinctFillOptions(correct, q.options.filter((o, i) => i !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4);
     const placed = placeDeterministically(opts, correct);
-    normalized.push({ ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq' });
+    normalized.push({ ...q, options: placed.arranged, answer_index: placed.idx, qtype: 'mcq', explanation: q.explanation });
     seenQ.add(key);
     seenCorrect.add(corr);
     if (normalized.length >= 10) break;
