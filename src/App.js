@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import "./App.css";
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Input } from "./components/ui/input";
 import { Textarea } from "./components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { toast, Toaster } from "sonner";
+import { Toaster } from "./components/ui/sonner";
+import { toast } from "sonner";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts } from "./utils/textProcessor";
@@ -15,106 +17,238 @@ import { prewarmPDF, getJsPDF } from "./utils/pdf";
 function Landing() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
+
   // Prewarm ML model in background so first Studio use is fast
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
+
+  const heroBg = { background: 'radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)' };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="font-semibold tracking-tight">Skriptio</div>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#how-it-works" className="text-sm">How it works</a>
-            <a href="#features" className="text-sm">Features</a>
-            <a href="#faq" className="text-sm">FAQ</a>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="font-semibold tracking-tight text-lg">Skriptio</div>
+          </Link>
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-2">
+            <a href="#how-it-works" className="text-sm text-foreground/80 hover:text-foreground">How it works</a>
+            <a href="#features" className="text-sm text-foreground/80 hover:text-foreground">Features</a>
+            <a href="#use-cases" className="text-sm text-foreground/80 hover:text-foreground">Use cases</a>
+            <a href="#faq" className="text-sm text-foreground/80 hover:text-foreground">FAQ</a>
             <span className="text-xs px-2 py-1 border rounded-full border-yellow-500 text-yellow-500">A product by Aceel AI</span>
             <ThemeToggle />
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Open Studio <ArrowRight size={16} className="ml-1"/></Button>
-          </nav>
-          <button className="md:hidden" onClick={() => setNavOpen(!navOpen)}>
-            {navOpen ? <X/> : <Menu/>}
-          </button>
-        </div>
-        {navOpen && (
-          <div className="md:hidden px-6 pb-4 space-y-2">
-            <a href="#how-it-works" className="text-sm" onClick={() => setNavOpen(false)}>How it works</a>
-            <a href="#features" className="text-sm" onClick={() => setNavOpen(false)}>Features</a>
-            <a href="#faq" className="text-sm" onClick={() => setNavOpen(false)}>FAQ</a>
-            <div className="text-xs text-foreground/70">A product by Aceel AI</div>
-            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setNavOpen(false); navigate("/studio"); }}>
-              Open Studio
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>
+              Open Studio <ArrowRight size={16} className="ml-1"/>
             </Button>
+          </nav>
+          {/* Mobile nav toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button aria-label="Toggle menu" className="p-2 border rounded-md border-border" onClick={() => setNavOpen(o => !o)}>
+              {navOpen ? <X size={18}/> : <Menu size={18}/>}
+            </button>
+          </div>
+        </div>
+        {/* Mobile menu */}
+        {navOpen && (
+          <div className="md:hidden border-t border-border bg-background">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3">
+              <a href="#how-it-works" className="text-sm" onClick={() => setNavOpen(false)}>How it works</a>
+              <a href="#features" className="text-sm" onClick={() => setNavOpen(false)}>Features</a>
+              <a href="#use-cases" className="text-sm" onClick={() => setNavOpen(false)}>Use cases</a>
+              <a href="#faq" className="text-sm" onClick={() => setNavOpen(false)}>FAQ</a>
+              <div className="text-xs text-foreground/70">A product by Aceel AI</div>
+              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setNavOpen(false); navigate("/studio"); }}>
+                Open Studio
+              </Button>
+            </div>
           </div>
         )}
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm px-3 py-1 rounded-full border border-yellow-500 text-yellow-500 bg-yellow-500/10">
-              <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
+      <main>
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none opacity-50" style={heroBg}/>
+          <div className="max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 text-xs bg-card border rounded-full px-3 py-1 w-fit border-yellow-500 text-yellow-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
+              <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
+              <div className="flex items-center gap-3">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try Skriptio Free</Button>
+                <a href="#how-it-works" className="text-foreground/80 hover:text-foreground text-sm flex items-center">How it works <ArrowRight size={16} className="ml-1"/></a>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-foreground/70 text-sm pt-2">
+                <span className="flex items-center gap-2"><Check size={16}/> Fast & minimal</span>
+                <span className="flex items-center gap-2"><Shield size={16}/> Private (runs in your browser)</span>
+                <span className="flex items-center gap-2"><Clock size={16}/> Saves hours of prep</span>
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
-            <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
-            <div className="flex items-center gap-3">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Try Skriptio Free</Button>
-              <a href="#how-it-works" className="text-foreground/80 hover:text-foreground text-sm flex items-center">How it works <ArrowRight size={16} className="ml-1"/></a>
+            {/* Animated hero cards */}
+            <div className="lg:block hidden">
+              <div className="relative h-[320px]">
+                <div className="absolute -top-6 -right-6 h-48 w-48 rounded-full bg-primary/10 blur-2xl" />
+                <div className="absolute bottom-0 -left-10 h-40 w-40 rounded-full bg-foreground/10 blur-2xl" />
+                <div className="absolute right-0 top-8 w-[320px] animate-fade-in-up">
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow">
+                    <CardHeader>
+                      <CardTitle className="text;base">Auto Quiz</CardTitle>
+                      <CardDescription>10 questions generated from your content for quick recall.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+                <div className="absolute right-24 top-40 w-[280px] animate-fade-in-up" style={{animationDelay: '150ms'}}>
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow" style={{animationDelay: '300ms'}}>
+                    <CardHeader>
+                      <CardTitle className="text-base">Flashcards</CardTitle>
+                      <CardDescription>Key concepts organized for spaced repetition.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+                <div className="absolute right-10 top-64 w-[300px] animate-fade-in-up" style={{animationDelay: '300ms'}}>
+                  <Card className="bg-card/90 border-border shadow-xl animate-float-slow" style={{animationDelay: '600ms'}}>
+                    <CardHeader>
+                      <CardTitle className="text-base">7‑Day Plan</CardTitle>
+                      <CardDescription>Daily objectives to keep you moving.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="relative">
-            <div className="absolute right-0 top-8 w-[320px] animate-fade-in-up">
-              <Card className="bg-card/90 border-border shadow-xl animate-float-slow">
-                <CardHeader>
-                  <CardTitle className="text-base">Auto Quiz</CardTitle>
-                  <CardDescription>10 questions generated from your content for quick recall.</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-            <div className="absolute right-24 top-40 w-[280px] animate-fade-in-up" style={{animationDelay: '150ms'}}>
-              <Card className="bg-card/90 border-border shadow-xl animate-float-slow" style={{animationDelay: '300ms'}}>
-                <CardHeader>
-                  <CardTitle className="text-base">Flashcards</CardTitle>
-                  <CardDescription>Key concepts organized for spaced repetition.</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        <section id="features" className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Feature icon={<Zap size={20}/>} title="Fast in-browser" desc="Everything runs on your device. No uploads or servers."/>
-          <Feature icon={<Shield size={20}/>} title="Private by design" desc="Your content never leaves the browser."/>
-          <Feature icon={<Clock size={20}/>} title="Ready in seconds" desc="Generate a study kit without setup."/>
-          <Feature icon={<Layers size={20}/>} title="Rich quiz" desc="10 MCQs with strict option diversity and no duplicates."/>
-          <Feature icon={<Users size={20}/>} title="Helpful flashcards" desc="Concise definitions and contexts."/>
-          <Feature icon={<GraduationCap size={20}/>} title="7-day plan" desc="Structured review across topics."/>
         </section>
 
+        {/* Social proof / value props */}
+        <section id="benefits" className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Benefit icon={<Zap size={18}/>} title="Instant study kits" desc="Turn raw content into a quiz, flashcards, and a 7‑day plan in one click." />
+          <Benefit icon={<Sparkles size={18}/>} title="Better retention" desc="Active recall + spaced repetition baked in to help you remember more." />
+          <Benefit icon={<Shield size={18}/>} title="Own your data" desc="Process content locally in your browser with no server needed." />
+        </section>
 
-        <div className="mt-14">
+        {/* How it works */}
+        <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold">How Skriptio works</h2>
+            <p className="text-foreground/80 mt-2">Three simple steps to go from information overload to structured learning.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Step no="1" title="Add your material" desc="Paste your notes or upload a PDF. You can combine both in a single session." />
+            <Step no="2" title="Generate your kit" desc="Skriptio builds a 10‑question quiz, a set of flashcards, and a focused 7‑day plan." />
+            <Step no="3" title="Study efficiently" desc="Use quizzes for active recall, flip through flashcards, and follow the daily objectives." />
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="max-w-6xl mx-auto px-6 py-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold">What you get</h2>
+            <p className="text-foreground/80 mt-2">Everything you need to understand and retain material, without distractions.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Feature icon={<ListChecks size={18}/>} title="Auto Quiz" desc="10 focused questions generated from your content for quick recall."/>
+            <Feature icon={<BookOpen size={18}/>} title="Flashcards" desc="Concept cards built from key sentences and keywords for spaced repetition."/>
+            <Feature icon={<Calendar size={18}/>} title="7‑Day Plan" desc="Actionable objectives chunked to keep you moving each day."/>
+            <Feature icon={<Layers size={18}/>} title="Combine sources" desc="Upload a PDF and paste notes together to create richer kits."/>
+            <Feature icon={<GraduationCap size={18}/>} title="Learn anywhere" desc="Responsive design works on desktop and mobile so you can study on the go."/>
+            <Feature icon={<Shield size={18}/>} title="Private by default" desc="Your content is processed entirely in your browser - no data sent to servers."/>
+          </div>
+        </section>
+
+        {/* Use cases */}
+        <section id="use-cases" className="max-w-6xl mx-auto px-6 py-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold">Who is Skriptio for?</h2>
+            <p className="text-foreground/80 mt-2">Created for learners who want results fast.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <UseCase title="Students" points={["Prepare for exams with auto‑generated quizzes", "Memorize key concepts using flashcards", "Stay on track with daily objectives"]} />
+            <UseCase title="Professionals" points={["Digest PDFs and reports quickly", "Build recall on critical topics", "Structure learning across busy weeks"]} />
+            <UseCase title="Lifelong learners" points={["Turn articles and notes into study kits", "Revisit concepts over time", "Make learning a repeatable habit"]} />
+          </div>
+        </section>
+
+        {/* SEO text block */}
+        <section id="about" className="max-w-4xl mx-auto px-6 py-12">
+          <h2 className="text-2xl font-semibold">What is Skriptio?</h2>
+          <p className="text-foreground/80 mt-3 leading-7">
+            Skriptio by Aceel AI is a minimal study companion that converts your documents and notes into
+            a structured plan for learning. Instead of passively re‑reading, Skriptio helps you practice
+            active recall, organize key ideas as flashcards, and focus on achievable daily objectives.
+            Upload a PDF or paste text, click generate, and start studying immediately.
+          </p>
+          <p className="text-foreground/80 mt-4 leading-7">
+            The result is a self‑contained study kit: a 10‑question quiz to test understanding, a stack of
+            flashcards to reinforce memory, and a 7‑day plan that breaks content into manageable steps.
+            Whether you are preparing for exams, onboarding at work, or learning a new topic, Skriptio keeps
+            you consistent and reduces overwhelm.
+          </p>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="max-w-6xl mx-auto px-6 py-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold">Frequently asked questions</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FAQ q="Do I need an internet connection?" a="No. Skriptio runs entirely in your browser after the initial page load." />
+            <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
+            <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks and True/False derived from your content. We use a lightweight ML model locally to improve relevance and avoid headings." />
+            <FAQ q="Do you save my content?" a="No. Everything runs in your browser session - nothing is sent to servers or saved." />
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="max-w-6xl mx-auto px-6 pb-6">
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Sparkles size={18}/> Get Started</CardTitle>
-              <CardDescription>Generate your first study kit with Skriptio in under a minute.</CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div>
+                <h3 className="text-xl font-semibold">Ready to turn notes into progress?</h3>
+                <p className="text-foreground/80 mt-2">Generate your first study kit with Skriptio in under a minute.</p>
+              </div>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/studio")}>Open Skriptio Studio <ChevronRight className="ml-1" size={16}/></Button>
             </CardContent>
           </Card>
-        </div>
+        </section>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 py-8 text-sm text-foreground/70 flex items-center justify-between">
-          <div>© {new Date().getFullYear()} Skriptio • by Aceel AI</div>
-          <div className="flex items-center gap-4">
-            <a href="#features">Features</a>
-            <a href="#faq">FAQ</a>
-          </div>
+      <footer className="border-t border-border py-8 text-center text-foreground/70 text-sm">
+        © {new Date().getFullYear()} Skriptio · A product by <span className="font-medium">Aceel AI</span>
+        <div className="mt-2 space-x-4">
+          <a className="underline hover:no-underline" href="mailto:skriptio@sidahq.com">Email</a>
+          <a className="underline hover:no-underline" href="https://instagram.com/skriptio" target="_blank" rel="noreferrer">Instagram</a>
+          <a className="underline hover:no-underline" href="https://linkedin.com/company/Skriptio" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a className="underline hover:no-underline" href="https://x.com/Skriptio" target="_blank" rel="noreferrer">X</a>
+          <a className="underline hover:no-underline" href="https://facebook.com/Skriptio" target="_blank" rel="noreferrer">Facebook</a>
         </div>
       </footer>
+      <Toaster />
     </div>
+  );
+}
+
+function Benefit({ icon, title, desc }) {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">{icon} {title}</CardTitle>
+        <CardDescription>{desc}</CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function Step({ no, title, desc }) {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-base">Step {no}: {title}</CardTitle>
+        <CardDescription>{desc}</CardDescription>
+      </CardHeader>
+    </Card>
   );
 }
 
@@ -122,8 +256,23 @@ function Feature({ icon, title, desc }) {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">{icon} {title}</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">{icon} {title}</CardTitle>
         <CardDescription>{desc}</CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function UseCase({ title, points }) {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription>
+          <ul className="list-disc pl-5 space-y-1 text-foreground/80">
+            {points.map((p, i) => <li key={i}>{p}</li>)}
+          </ul>
+        </CardDescription>
       </CardHeader>
     </Card>
   );
@@ -340,7 +489,7 @@ function Studio() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx_auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
@@ -407,7 +556,7 @@ function Studio() {
             </Button>
           </div>
 
-          <Tabs defaultValue="quiz" className="w-full">
+          <Tabs defaultValue="quiz" className="w_full">
             <TabsList className="bg.white/10">
               {/* ensure theme awareness */}
               <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
