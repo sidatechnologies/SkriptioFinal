@@ -519,7 +519,7 @@ export function buildFlashcards(sentences, phrases, total = 12) {
   // Add generic concept questions if needed
   while (cards.length < total && sentences.length > 0) {
     const s = sentences[cards.length % sentences.length];
-    const back = s.length &lt;= 280 ? s : s.slice(0, 277) + '...';
+    const back = s.length <= 280 ? s : s.slice(0, 277) + '...';
     cards.push({ front: 'Key idea?', back });
   }
   return cards.slice(0, total);
