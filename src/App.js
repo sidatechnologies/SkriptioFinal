@@ -66,7 +66,7 @@ function Landing() {
             <div className="absolute right-0 top-8 w-[320px] animate-fade-in-up">
               <Card className="bg-card/90 border-border shadow-xl animate-float-slow">
                 <CardHeader>
-                  <CardTitle className="text-base">Auto Quiz</CardTitle>
+                  <CardTitle className="text;base">Auto Quiz</CardTitle>
                   <CardDescription>10 questions generated from your content for quick recall.</CardDescription>
                 </CardHeader>
               </Card>
