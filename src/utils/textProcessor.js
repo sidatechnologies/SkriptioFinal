@@ -510,7 +510,7 @@ export function buildFlashcards(sentences, phrases, total = 12) {
   for (const p of phrases) {
     if (cards.length &gt;= total) break;
     const s = sentences.find(sen =&gt; hasPhrase(p, sen));
-    if (!s || used.has(p) || s.length &lt; 60) continue;
+    if (!s || used.has(p) || s.length < 60) continue;
     used.add(p);
     const front = `Define: ${p}`;
     const back = s.length &lt;= 280 ? s : s.slice(0, 277) + '...';
