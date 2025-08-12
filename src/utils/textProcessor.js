@@ -542,7 +542,7 @@ export function buildStudyPlan(sentences, phrases) {
   for (const s of remaining) { buckets[ri % buckets.length].items.push(s); ri++; }
 
   const plan = [];
-  for (let d = 0; d &lt; days; d++) {
+  for (let d = 0; d < days; d++) {
     const bucket = buckets[d % buckets.length];
     const chunk = bucket.items.slice(0, 3);
     const objectives = chunk.length ? chunk : [`Review concept: ${bucket.phrase}`];
