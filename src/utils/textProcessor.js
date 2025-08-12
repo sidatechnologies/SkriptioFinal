@@ -290,7 +290,7 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
       addIf(c);
     }
   }
-  if (selected.length &lt; needed) {
+  if (selected.length < needed) {
     for (const c of (allPhrases || [])) {
       if (selected.length &gt;= needed) break;
       if (c === correct) continue;
