@@ -437,7 +437,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   // Build property questions
   const propPhrases = phrases.filter(p =&gt; !used.has(p));
   let pi = 0;
-  while (quiz.length &lt; wantConcept + wantProperty &amp;&amp; pi &lt; propPhrases.length) {
+  while (quiz.length < wantConcept + wantProperty && pi < propPhrases.length) {
     const p = propPhrases[pi++];
     used.add(p);
     const q = buildPropertyQ(p);
