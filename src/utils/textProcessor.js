@@ -307,44 +307,79 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
   return selected.slice(0, needed);
 }
 
-// Build quiz questions from sentences and phrases (deterministic, tough, non-cloze) – always return exactly `total` MCQs with 4 options each
+// Build quiz questions from sentences and phrases (deterministic, tougher, varied) – always return exactly `total` MCQs with 4 options each
 export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const { difficulty = 'balanced', formulas = [] } = opts;
   const quiz = [];
   const used = new Set();
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
   const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
+  const looksVisualRef = (s) => /\b(figure|fig\.?\s?\d+|diagram|chart|graph|table|image|see\s+(fig|diagram|table)|as\s+shown|following\s+(figure|diagram)|in\s+the\s+(figure|diagram))\b/i.test(s);
   sentences.forEach((s, idx) => {
     phrases.forEach(p => { if (hasPhrase(p, s)) cooccur[p].add(idx); });
   });
 
-  function distractorsFor(p) {
+  function distractorsForConcept(p) {
     const base = cooccur[p] || new Set();
     const sims = phrases.filter(q => q !== p).map(q => {
       const inter = new Set([...base].filter(x => cooccur[q]?.has(x))).size;
       const uni = new Set([...base, ...(cooccur[q] || [])]).size || 1;
       return { q, jacc: inter / uni };
     }).sort((a, b) => b.jacc - a.jacc).map(o => o.q);
-    // filter out items too similar textually to the correct
     return sims.filter(opt => !tooSimilar(opt, p));
   }
 
-  function buildOne(s, phrase) {
+  function sentenceFor(p) {
+    // Prefer non-visual references
+    let s = sentences.find(ss => hasPhrase(p, ss) && !looksVisualRef(ss) && ss.length >= 50);
+    if (!s) s = sentences.find(ss => hasPhrase(p, ss));
+    return s || sentences[0] || '';
+  }
+
+  function propertyText(p, maxLen = 180) {
+    const s = sentenceFor(p);
+    const ctx = contextFromSentence(s, p, maxLen);
+    // Normalize into a property-type clause
+    let t = ctx.replace(/^\s*(:|-|–)\s*/, '').replace(/^it\s+is\s+/i, '').trim();
+    if (!/[.!?]$/.test(t)) t += '.';
+    return t;
+  }
+
+  function buildConceptQ(s, phrase) {
+    // Avoid visual references; fall back to better sentence
+    if (looksVisualRef(s)) s = sentenceFor(phrase);
     let primary = contextFromSentence(s, phrase);
     let secondary = '';
     if (difficulty === 'harder') {
-      const supIdx = sentences.findIndex((t, ti) => ti !== sentences.indexOf(s) && hasPhrase(phrase, t) && t.length >= 50);
+      const supIdx = sentences.findIndex((t, ti) => ti !== sentences.indexOf(s) && hasPhrase(phrase, t) && t.length >= 50 && !looksVisualRef(t));
       if (supIdx !== -1) secondary = contextFromSentence(sentences[supIdx], phrase, 160);
     }
     const qtext = secondary
-      ? `Which concept is best described by: "${primary}" Additional detail: "${secondary}"`
-      : `Which concept is best described by: "${primary}"`;
-
-    const pool = distractorsFor(phrase);
-    const fallbackPool = phrases.filter(p => p !== phrase && !tooSimilar(p, phrase));
+      ? `You observe: "${primary}" Additional detail: "${secondary}" Which concept best explains this?`
+      : `You observe: "${primary}" Which concept best explains this?`;
+    const pool = distractorsForConcept(phrase);
+    const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase));
     const optsArr = distinctFillOptions(phrase, pool.slice(0, difficulty === 'harder' ? 12 : 8), fallbackPool, phrases, 4);
     const { arranged, idx } = placeDeterministically(optsArr, phrase);
-    return { question: qtext, options: arranged, answer_index: idx, qtype: 'mcq' };
+    return { question: qtext, options: arranged, answer_index: idx, qtype: 'concept' };
+  }
+
+  function buildPropertyQ(phrase) {
+    const stem = `Which statement about "${phrase}" is most accurate?`;
+    const correct = propertyText(phrase, difficulty === 'harder' ? 160 : 140);
+    // choose distractor phrases; for harder make them topically close to increase difficulty
+    const related = distractorsForConcept(phrase);
+    const poolPhrases = (difficulty === 'harder' ? related : phrases.filter(p => p !== phrase));
+    const props = [];
+    for (const pp of poolPhrases) {
+      if (props.length >= 8) break;
+      if (pp === phrase) continue;
+      const pt = propertyText(pp, 140);
+      if (!tooSimilar(pt, correct)) props.push(pt);
+    }
+    const optsArr = distinctFillOptions(correct, props, [], [], 4);
+    const { arranged, idx } = placeDeterministically(optsArr, correct);
+    return { question: stem, options: arranged, answer_index: idx, qtype: 'property' };
   }
 
   // Optionally inject formula-based questions using exact formulas from content
@@ -358,37 +393,59 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     return { question: qtext, options: placed.arranged, answer_index: placed.idx, qtype: 'formula' };
   }
 
-  // Gather candidate sentences for phrases and formulas
-  const phraseToSentence = new Map();
+  // Build pool of candidates for concept/property questions
+  const conceptTargets = [];
   for (const s of sentences) {
-    for (const p of phrases) {
-      if (!phraseToSentence.has(p) && hasPhrase(p, s)) phraseToSentence.set(p, s);
-    }
+    if (looksVisualRef(s)) continue;
+    const phrase = phrases.find(p => p.includes(' ') && hasPhrase(p, s) && !used.has(p))
+      || phrases.find(p => hasPhrase(p, s) && !used.has(p));
+    if (!phrase) continue;
+    conceptTargets.push({ s, phrase });
   }
+
+  // Choose composition based on difficulty
+  const wantFormula = Math.min(formulaPool.length, difficulty === 'harder' ? 2 : 1);
+  const wantProperty = difficulty === 'harder' ? 4 : 2;
+  const wantConcept = total - wantFormula - wantProperty;
+
+  // Build concept questions (prioritize rarer/less frequent phrases for harder)
+  const rarity = new Map(phrases.map(p => [p, 0]));
+  sentences.forEach(s => phrases.forEach(p => { if (hasPhrase(p, s)) rarity.set(p, (rarity.get(p) || 0) + 1); }));
+  const sortedConcepts = conceptTargets.sort((a, b) => {
+    const ra = rarity.get(a.phrase) || 0;
+    const rb = rarity.get(b.phrase) || 0;
+    return difficulty === 'harder' ? ra - rb : rb - ra;
+  });
+  for (const item of sortedConcepts) {
+    if (quiz.length >= wantConcept) break;
+    const { s, phrase } = item;
+    if (used.has(phrase)) continue;
+    used.add(phrase);
+    const q = buildConceptQ(s, phrase);
+    quiz.push({ id: generateUUID(), ...q });
+  }
+
+  // Build property questions
+  const propPhrases = phrases.filter(p => !used.has(p));
+  let pi = 0;
+  while (quiz.length < wantConcept + wantProperty && pi < propPhrases.length) {
+    const p = propPhrases[pi++];
+    used.add(p);
+    const q = buildPropertyQ(p);
+    quiz.push({ id: generateUUID(), ...q });
+  }
+
+  // Inject formula questions
   const formulaToSentence = new Map();
   for (const s of sentences) {
     for (const f of formulaPool) {
-      if (!formulaToSentence.has(f) && s.includes(f.replace(/[$]/g, ''))) {
+      if (!looksVisualRef(s) && !formulaToSentence.has(f) && s.includes(f.replace(/[$]/g, ''))) {
         formulaToSentence.set(f, s);
       }
     }
   }
-
-  // Build concept questions first
-  for (const s of sentences) {
-    if (quiz.length >= total) break;
-    const phrase = phrases.find(p => p.includes(' ') && hasPhrase(p, s) && !used.has(p))
-      || phrases.find(p => hasPhrase(p, s) && !used.has(p));
-    if (!phrase) continue;
-    used.add(phrase);
-    const q = buildOne(s, phrase);
-    quiz.push({ id: generateUUID(), ...q });
-  }
-
-  // Inject formula questions depending on difficulty
-  const formulaTarget = Math.min(formulaPool.length, difficulty === 'harder' ? 3 : 1);
   let fi = 0;
-  while (formulaQs.length < formulaTarget && fi < formulaPool.length) {
+  while (formulaQs.length < wantFormula && fi < formulaPool.length) {
     const f = formulaPool[fi++];
     const s = formulaToSentence.get(f) || sentences.find(ss => ss.includes(f.replace(/[$]/g, '')));
     if (!s) continue;
@@ -396,48 +453,36 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     formulaQs.push({ id: generateUUID(), ...fq });
   }
 
-  // Merge and pad to ensure exactly total
-  let combined = [...formulaQs, ...quiz];
+  // Merge and pad
+  let combined = [...quiz, ...formulaQs];
 
-  // Fallback padding to ensure exactly `total` MCQs
-  let si = 0;
-  let pi = 0;
-  while (combined.length < total && (si < sentences.length || pi < phrases.length)) {
-    const s = sentences[si % Math.max(1, sentences.length)] || (sentences[0] || 'This passage discusses key ideas and definitions.');
-    const phrase = phrases[pi % Math.max(1, phrases.length)] || 'core concept';
-    if (!used.has(phrase)) {
-      used.add(phrase);
-      const q = buildOne(s, phrase);
-      combined.push({ id: generateUUID(), ...q });
-    }
-    si++; pi++;
+  // Fallback padding with remaining concept/property
+  let ci = 0;
+  while (combined.length < total && ci < conceptTargets.length) {
+    const { s, phrase } = conceptTargets[ci++];
+    if (combined.some(q => q.qtype === 'concept' && q.options[q.answer_index] === phrase)) continue;
+    const q = buildConceptQ(s, phrase);
+    combined.push({ id: generateUUID(), ...q });
+  }
+  let pj = 0;
+  while (combined.length < total && pj < phrases.length) {
+    const p = phrases[pj++];
+    const q = buildPropertyQ(p);
+    combined.push({ id: generateUUID(), ...q });
   }
 
-  // Final safeguards: deduplicate questions by text, enforce distinct correct answers when possible
+  // Final safeguards: deduplicate questions by stem and enforce distinctness where possible
   const seenQ = new Set();
-  const seenCorrect = new Set();
   const final = [];
   for (const q of combined) {
     const key = q.question.toLowerCase();
-    const correct = String(q.options[q.answer_index]).toLowerCase();
     if (seenQ.has(key)) continue;
-    if (seenCorrect.has(correct)) continue;
     seenQ.add(key);
-    seenCorrect.add(correct);
     final.push(q);
     if (final.length >= total) break;
   }
 
-  // If still short, relax correct uniqueness
-  let idx = 0;
-  while (final.length < total && idx < combined.length) {
-    const q = combined[idx++];
-    const key = q.question.toLowerCase();
-    if (final.some(qq => jaccard(qq.question, q.question) > 0.6)) continue;
-    if (!final.find(qq => qq.question.toLowerCase() === key)) final.push(q);
-  }
-
-  // Ensure each question has 4 distinct options
+  // Ensure each question has 4 distinct options and trim to total
   const fixed = final.slice(0, total).map(q => {
     const correct = q.options[q.answer_index];
     const optsArr = distinctFillOptions(correct, q.options.filter((o, i) => i !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4);
