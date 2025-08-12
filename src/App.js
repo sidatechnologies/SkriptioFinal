@@ -91,39 +91,6 @@ function Landing() {
           <Feature icon={<GraduationCap size={20}/>} title="7-day plan" desc="Structured review across topics."/>
         </section>
 
-        <section id="how-it-works" className="mt-16">
-          <h2 className="text-2xl font-semibold mb-4">How it works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">1. Add content</CardTitle>
-                <CardDescription>Paste notes or upload a PDF (math formulas preserved).</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">2. Choose difficulty</CardTitle>
-                <CardDescription>Balanced or Harder to control question style.</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base">3. Study</CardTitle>
-                <CardDescription>Get a 10‑question quiz, flashcards, and a 7‑day plan.</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </section>
-
-        <section id="faq" className="mt-16">
-          <h2 className="text-2xl font-semibold mb-4">FAQ</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FAQ q="Does it work offline?" a="Yes. Everything runs in your browser after the page loads." />
-            <FAQ q="Are my files uploaded?" a="No. Content stays on your device; processing is local." />
-            <FAQ q="Can it read scanned PDFs?" a="We use on-device OCR as a fallback for image-only pages (beta)." />
-            <FAQ q="Is math preserved?" a="Yes. We preserve exact LaTeX and equation lines and may ask formula MCQs." />
-          </div>
-        </section>
 
         <div className="mt-14">
           <Card className="bg-card border-border">
