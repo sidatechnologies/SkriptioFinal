@@ -239,7 +239,7 @@ function removePhraseOnce(sentence, phrase) {
 
 function contextFromSentence(sentence, phrase, maxLen = 220) {
   let ctx = removePhraseOnce(sentence, phrase);
-  if (!ctx || ctx.length &lt; 30) ctx = sentence;
+  if (!ctx || ctx.length < 30) ctx = sentence;
   // de-emphasize raw numbers to avoid giveaways
   ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
   if (!/[.!?]$/.test(ctx)) ctx += '.';
