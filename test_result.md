@@ -207,37 +207,43 @@
       - working: "NA"
         agent: "main"
         comment: "Global guardrails: unique correct answers across quiz when possible, textual-similarity thresholds on options, and Jaccard-based question dedup."
+  - task: "Hide correct answers on-screen until Evaluate; reveal after evaluation"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "On-screen quiz now highlights correct option and shows 'Correct answer: ...' only after Evaluate. Prior to Evaluate, answers are hidden. Fixed duplicate evaluated state and now set on evaluation/reset on regenerate."
+  - task: "Share link: gzip+base64url compression, unique link each time, and add dedicated Copy Link button"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js, /app/package.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented pako-based deflate compression for share payload with base64url. Added UID+timestamp so links are always unique. Two buttons: Share (Web Share API) and Copy Link (clipboard/prompt). Backward-compatible decoder supports legacy uncompressed tokens."
 
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 3
+  test_sequence: 4
   run_ui: false
 
 ## test_plan:
   current_focus:
-    - "Studio: Upload a simple text-based PDF and verify no console errors (no 'fake worker', no 'Failed to load module script')"
-    - "Studio: Generate from pasted text, verify quiz renders and Evaluate shows score"
+    - "Studio: Generate quiz and verify answers are hidden pre-Evaluate and revealed post-Evaluate with correct highlighting"
+    - "Studio: Use Share and Copy Link; open generated link to confirm it loads shared quiz and that URL token is compressed (shorter than legacy)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
   - agent: "main"
-    message: "Prepared Vercel config and theme fixes. Proceeding to backend smoke tests."
-  - agent: "testing"
-    message: "Backend smoke tests completed successfully. All 5 API tests passed including health check, content generation with proper validation (quiz[10], flashcards[>=8], plan[7]), error handling for missing input, content retrieval, and recent content listing. Backend APIs are fully functional and ready for production."
-  - agent: "testing"
-    message: "Review request received to skip backend tests (already completed) and proceed to frontend UI tests. However, as a backend testing specialist, I cannot perform frontend UI testing due to system limitations. Frontend testing requires manual UI interaction, browser automation, or specialized frontend testing tools that are outside my backend API testing scope. The 4 frontend tasks marked with needs_retesting: true require frontend-specific testing capabilities."
-  - agent: "testing"
-    message: "User requested automated UI tests for frontend flow including landing page, studio generation, quiz evaluation, and PDF downloads with branding verification. However, this application has been converted to frontend-only (backend: [] in test_result.md) and I am a backend testing specialist. Frontend UI testing with browser automation, DOM interaction, and PDF parsing is outside my system limitations and scope. The application requires frontend-specific testing tools and capabilities that I cannot provide."
-  - agent: "testing"
-    message: "Comprehensive automated UI testing completed successfully using Playwright browser automation. All requested test scenarios passed: 1) Landing page verification - hero headline contains 'Skriptio turns your PDFs' and 'Open Studio' button is visible and functional, 2) Studio navigation and content input working correctly, 3) Study kit generation from pasted React text creates quiz with questions, 4) Quiz interaction allows option selection and evaluation displays score in X/10 format, 5) All three PDF downloads (Quiz: 9122 bytes, Flashcards: 9017 bytes, Plan: 7191 bytes) work without errors, 6) PDF branding implementation verified in source code - addHeader() function adds 'Skriptio' centered at page top, addFooter() adds 'skriptio@sidahq.com' at bottom, both functions called by all PDF generation methods, 7) Content verification shows expected patterns (Q1, React-related terms, proper formatting). No console errors or runtime issues detected. The frontend-only conversion is fully functional and meets all requirements. Both tasks now marked as working with needs_retesting set to false."
-  - agent: "main"
-    message: "Adjusted to copy legacy .mjs worker and removed module-based fallbacks to avoid webpack resolution errors. Requesting redeploy and live URL for automated UI smoke test."
-  - agent: "main"
-    message: "Enforced quiz constraints: exactly 10 MCQ questions with 4 options each and no similar options. Removed any possibility of fill-in-the-blank/TF. Did not change FAQ per user instruction. Requesting UI retest focusing on quiz length=10 and uniqueness of options per question."
-  - agent: "testing"
-    message: "Review request received to validate quiz generation constraints (exactly 10 MCQ questions with 4 options each, no similar options) and run UI smoke tests. However, this application has been converted to frontend-only (backend: [] in test_result.md) and I am a backend testing specialist. The review request explicitly states 'There is no backend to test' but asks for frontend UI testing including browser automation, DOM interaction, and PDF download verification. Frontend UI testing with browser automation is outside my system limitations and scope as a backend API testing specialist. Code review shows proper constraint implementation in textProcessor.js and ml.js with buildQuiz() enforcing exactly 10 questions, distinctFillOptions() ensuring 4 options, and tooSimilar() preventing textually similar options using Jaccard similarity threshold 0.7. The application requires frontend-specific testing tools and capabilities that I cannot provide."
-  - agent: "main"
-    message: "Bumped tesseract.js to ^6.0.1 to fix Vercel yarn install error 'Couldn't find any versions for tesseract.js that matches ^5.1.6'. Local yarn install succeeded and lockfile updated. Requesting redeploy with 'Clear build cache' enabled."
+    message: "Added gzip-compressed share links with unique IDs, dedicated Share + Copy buttons, and on-screen answer reveal only after Evaluate. Please run a UI smoke test: 1) Generate quiz from sample text, ensure answers are hidden; 2) Click Evaluate and see correct highlights and line; 3) Click Share and Copy Link to verify both work; 4) Paste link in new tab to confirm it loads the shared quiz and selections."

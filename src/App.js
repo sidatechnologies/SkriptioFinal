@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
-import { extractTextFromPDF, generateArtifacts } from "./utils/textProcessor";
+import { extractTextFromPDF, generateArtifacts, generateUUID } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
 import { prewarmPDF, getJsPDF } from "./utils/pdf";
 import { Button } from "./components/ui/button";
@@ -11,6 +11,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Input } from "./components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import { toast } from "./components/ui/use-toast";
+import pako from "pako";
 
 function Landing() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ function Studio() {
   const [loadingStep, setLoadingStep] = useState("");
   const [result, setResult] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [score, setScore] = useState(null); const [evaluated, setEvaluated] = useState(false);
+  const [score, setScore] = useState(null);
   const [evaluated, setEvaluated] = useState(false);
   const fileInputRef = useRef();
   const [pdfBusy, setPdfBusy] = useState({ quiz: false, cards: false, plan: false });
@@ -127,24 +128,57 @@ function Studio() {
           setResult({ title: json.title || 'Shared Quiz', quiz: json.quiz, flashcards: [], plan: [] });
           setAnswers(json.answers || {});
           if (json.score) setScore(json.score);
+          setEvaluated(Boolean(json.score));
           toast({ title: 'Loaded shared answers', description: 'You are viewing a shared quiz.' });
         }
       }
     } catch {}
   }, []);
 
+  const toB64Url = (bytes) => {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const b64 = btoa(binary);
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  };
+  const fromB64Url = (b64u) => {
+    const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+    const binary = atob(b64 + pad);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  };
+
   const b64uEncode = (obj) => {
-    const s = JSON.stringify(obj);
-    const b64 = btoa(unescape(encodeURIComponent(s)));
-    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    try {
+      const json = JSON.stringify(obj);
+      const input = new TextEncoder().encode(json);
+      const deflated = pako.deflate(input);
+      return toB64Url(deflated);
+    } catch (e) {
+      // Fallback to legacy uncompressed
+      const s = JSON.stringify(obj);
+      const b64 = btoa(unescape(encodeURIComponent(s)));
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
   };
   const decodeShare = (b64u) => {
     try {
-      const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
-      const pad = '='.repeat((4 - (b64.length % 4)) % 4);
-      const s = decodeURIComponent(escape(atob(b64 + pad)));
-      return JSON.parse(s);
-    } catch { return null; }
+      // Try gzip first
+      const bytes = fromB64Url(b64u);
+      const inflated = pako.inflate(bytes);
+      const jsonStr = new TextDecoder().decode(inflated);
+      return JSON.parse(jsonStr);
+    } catch {
+      // Legacy path (plain JSON base64u)
+      try {
+        const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+        const s = decodeURIComponent(escape(atob(b64 + pad)));
+        return JSON.parse(s);
+      } catch { return null; }
+    }
   };
 
   const pause = () => new Promise(res => setTimeout(res, 15));
@@ -165,6 +199,7 @@ function Studio() {
       setResult(studyData);
       setAnswers({});
       setScore(null);
+      setEvaluated(false);
     } finally {
       setLoading(false);
       setLoadingStep('');
@@ -182,6 +217,7 @@ function Studio() {
       if (selected === q.answer_index) sc += 1;
     });
     setScore(`${sc}/${result.quiz.length}`);
+    setEvaluated(true);
   };
 
   // PDF Helpers
@@ -314,24 +350,47 @@ function Studio() {
     }
   };
 
+  const buildSharePayload = () => ({
+    uid: generateUUID(),
+    ts: Date.now(),
+    title: result.title,
+    quiz: result.quiz.map(q => ({ question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation })),
+    answers,
+    score
+  });
+
+  const buildShareURL = () => {
+    const payload = buildSharePayload();
+    const token = b64uEncode(payload);
+    return `${window.location.origin}${window.location.pathname}#share=${token}`;
+  };
+
   const shareAnswers = async () => {
     if (!result?.quiz?.length) return;
-    const payload = {
-      title: result.title,
-      quiz: result.quiz.map(q => ({ question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation })),
-      answers,
-      score
-    };
-    const token = b64uEncode(payload);
-    const url = `${window.location.origin}${window.location.pathname}#share=${token}`;
+    const url = buildShareURL();
     try {
       if (navigator.share) {
         await navigator.share({ title: result.title || 'Skriptio Quiz', text: 'Review my quiz answers', url });
-      } else if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(url);
-        toast({ title: 'Share link copied', description: 'Paste it in chat or email.' });
       } else {
-        // fallback: prompt
+        // If share not supported, fallback to copy
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url);
+          toast({ title: 'Share link copied', description: 'Paste it in chat or email.' });
+        } else {
+          window.prompt('Copy this link', url);
+        }
+      }
+    } catch {}
+  };
+
+  const copyShareURL = async () => {
+    if (!result?.quiz?.length) return;
+    const url = buildShareURL();
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+        toast({ title: 'Share link copied', description: 'Paste it anywhere.' });
+      } else {
         window.prompt('Copy this link', url);
       }
     } catch {}
@@ -423,7 +482,10 @@ function Studio() {
               {pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Plan PDF'}
             </Button>
             <Button variant="outline" disabled={!result?.quiz?.length} onClick={shareAnswers}>
-              Share Answers
+              Share
+            </Button>
+            <Button variant="outline" disabled={!result?.quiz?.length} onClick={copyShareURL}>
+              Copy Link
             </Button>
           </div>
 
@@ -450,12 +512,26 @@ function Studio() {
                           <CardContent className="p-5 space-y-3">
                             <div className="font-medium">Q{idx + 1}. {q.question}</div>
                             <div className="grid gap-2">
-                              {q.options.map((opt, oi) => (
-                                <button key={oi} onClick={() => selectOption(idx, oi)} className={`text-left rounded-md border px-3 py-2 quiz-option ${answers[idx] === oi ? 'quiz-option--selected' : ''}`}>
-                                  <span className="mr-2 text-foreground/70">{String.fromCharCode(65 + oi)})</span> {opt}
-                                </button>
-                              ))}
+                              {q.options.map((opt, oi) => {
+                                const isSelected = answers[idx] === oi;
+                                const isCorrect = evaluated && q.answer_index === oi;
+                                const showAsWrong = evaluated && isSelected && !isCorrect;
+                                return (
+                                  <button
+                                    key={oi}
+                                    onClick={() => selectOption(idx, oi)}
+                                    className={`text-left rounded-md border px-3 py-2 quiz-option ${isSelected ? 'quiz-option--selected' : ''} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
+                                  >
+                                    <span className="mr-2 text-foreground/70">{String.fromCharCode(65 + oi)})</span> {opt}
+                                  </button>
+                                );
+                              })}
                             </div>
+                            {evaluated && (
+                              <div className="text-xs text-foreground/80">
+                                Correct answer: {String.fromCharCode(65 + (q.answer_index ?? 0))}) {q.options[q.answer_index]}
+                              </div>
+                            )}
                             {showExplanations && q.explanation && (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
