@@ -300,7 +300,7 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
   // Final hard fallbacks
   const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
   let gi = 0;
-  while (selected.length &lt; needed &amp;&amp; gi &lt; generics.length) {
+  while (selected.length < needed && gi < generics.length) {
     addIf(generics[gi++]);
   }
   // Ensure exactly needed count
