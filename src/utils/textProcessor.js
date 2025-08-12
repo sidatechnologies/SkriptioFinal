@@ -286,7 +286,7 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
   }
   if (selected.length < needed) {
     for (const c of (fallbackPool || [])) {
-      if (selected.length &gt;= needed) break;
+      if (selected.length >= needed) break;
       addIf(c);
     }
   }
