@@ -194,7 +194,7 @@ export function extractKeyPhrases(text, k = 14) {
   const counts = new Map();
   for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
   const addNgrams = (n) =&gt; {
-    for (let i = 0; i + n &lt;= tokens.length; i++) {
+    for (let i = 0; i + n <= tokens.length; i++) {
       const gram = tokens.slice(i, i + n);
       if (STOPWORDS.has(gram[0]) || STOPWORDS.has(gram[gram.length - 1])) continue;
       const phrase = gram.join(' ');
