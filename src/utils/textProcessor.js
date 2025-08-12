@@ -260,7 +260,7 @@ function placeDeterministically(choices, correct) {
   const arranged = new Array(n);
   arranged[idx] = correct;
   let oi = 0;
-  for (let i = 0; i &lt; n; i++) {
+  for (let i = 0; i < n; i++) {
     if (arranged[i]) continue;
     arranged[i] = others[oi++] || '';
   }
