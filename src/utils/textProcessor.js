@@ -249,7 +249,7 @@ function contextFromSentence(sentence, phrase, maxLen = 220) {
 
 function detIndex(str, n) {
   let h = 0;
-  for (let i = 0; i &lt; str.length; i++) h = (h * 31 + str.charCodeAt(i)) &gt;&gt;&gt; 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return n ? h % n : h;
 }
 
