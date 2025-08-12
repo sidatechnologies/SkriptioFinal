@@ -454,7 +454,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     }
   }
   let fi = 0;
-  while (formulaQs.length &lt; wantFormula &amp;&amp; fi &lt; formulaPool.length) {
+  while (formulaQs.length < wantFormula && fi < formulaPool.length) {
     const f = formulaPool[fi++];
     const s = formulaToSentence.get(f) || sentences.find(ss =&gt; ss.includes(f.replace(/[$]/g, '')));
     if (!s) continue;
