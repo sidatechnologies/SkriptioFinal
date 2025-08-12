@@ -104,7 +104,7 @@ function Studio() {
   const [loadingStep, setLoadingStep] = useState("");
   const [result, setResult] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [score, setScore] = useState(null);
+  const [score, setScore] = useState(null); const [evaluated, setEvaluated] = useState(false);
   const [evaluated, setEvaluated] = useState(false);
   const fileInputRef = useRef();
   const [pdfBusy, setPdfBusy] = useState({ quiz: false, cards: false, plan: false });
