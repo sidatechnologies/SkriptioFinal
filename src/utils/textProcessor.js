@@ -513,7 +513,7 @@ export function buildFlashcards(sentences, phrases, total = 12) {
     if (!s || used.has(p) || s.length < 60) continue;
     used.add(p);
     const front = `Define: ${p}`;
-    const back = s.length &lt;= 280 ? s : s.slice(0, 277) + '...';
+    const back = s.length <= 280 ? s : s.slice(0, 277) + '...';
     cards.push({ front, back });
   }
   // Add generic concept questions if needed
