@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, X, ChevronDown } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
-import { extractTextFromPDF, generateArtifacts, generateUUID } from "./utils/textProcessor";
+import { extractTextFromPDF, generateArtifacts, generateUUID, buildTheoryQuestions } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
 import { prewarmPDF, getJsPDF } from "./utils/pdf";
 import { Button } from "./components/ui/button";
