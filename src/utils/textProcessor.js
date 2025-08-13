@@ -1002,7 +1002,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const correct = (q.options[q.answer_index] || '').trim();
     const minLen = q.qtype === 'property' ? 30 : 3;
     // Within-question normalized dedupe to avoid same option twice
-    const normOpt = (s) => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const normOpt = (s) => normalizeEquivalents(String(s || '')).replace(/\s+/g, ' ').trim();
     const seenLocal = new Set();
     const cleanedOpts = q.options
       .map(o => (o || '').trim())
