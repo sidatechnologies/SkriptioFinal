@@ -400,10 +400,11 @@ function cutToWordBoundary(text, maxLen) {
   // Avoid over-ellipsizing very short strings
   if (maxLen < 20) maxLen = 20;
   if (text.length <= maxLen) return text;
-  const cut = text.slice(0, maxLen - 3);
+  const cut = text.slice(0, Math.max(0, maxLen - 1));
   const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'), cut.lastIndexOf(':'));
-  const base = idx > 40 ? cut.slice(0, idx).trim() : cut.trim();
-  return base + '...';
+  const base = idx > 20 ? cut.slice(0, idx).trim() : cut.trim();
+  // Prefer a clean period instead of ellipsis
+  return base.replace(/[,.\-:;]+$/, '') + '.';
 }
 function contextFromSentence(sentence, phrase, maxLen = 220) {
   let ctx = removePhraseOnce(sentence, phrase);
