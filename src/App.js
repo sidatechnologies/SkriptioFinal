@@ -71,7 +71,7 @@ function Landing() {
                 <span>A product by <span className="font-medium">Aceel AI</span></span>
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title gold-outline">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
             <p className="text-foreground/80 text-lg">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
             <div className="flex items-center gap-3">
               <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">
