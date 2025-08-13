@@ -437,13 +437,14 @@ function Studio() {
   };
 
   // PDF assets: logo and Poppins font
-  const LOGO_URL = "https://customer-assets.emergentagent.com/job_nav-hero-blend/artifacts/8tbjc2bq_Aceel%20AI%20Logo%20%284%29.png";
+  const LOGO_URL = "/assets/aceel-logo.png";
+  const POPPINS_URL = "/fonts/Poppins-Regular.ttf";
   const logoDataRef = useRef(null);
   const poppinsBase64Ref = useRef(null);
 
   const fetchAsDataURL = async (url) => {
     try {
-      const res = await fetch(url, { mode: 'cors' });
+      const res = await fetch(url);
       const blob = await res.blob();
       return await new Promise((resolve) => {
         const reader = new FileReader();
@@ -455,26 +456,21 @@ function Studio() {
     }
   };
 
+  const fetchAsBase64 = async (url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const ab = await res.arrayBuffer();
+      return btoa(String.fromCharCode(...new Uint8Array(ab)));
+    } catch { return null; }
+  };
+
   const ensureAssetsLoaded = async () => {
     if (!logoDataRef.current) {
       logoDataRef.current = await fetchAsDataURL(LOGO_URL);
     }
-    // Try a couple of Poppins Regular URLs from fonts.gstatic; if all fail, we continue without custom font
     if (!poppinsBase64Ref.current) {
-      const fontUrls = [
-        'https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrJJnecw.ttf', // Regular 400
-        'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJnecg.ttf'
-      ];
-      for (const u of fontUrls) {
-        try {
-          const res = await fetch(u, { mode: 'cors' });
-          if (!res.ok) continue;
-          const ab = await res.arrayBuffer();
-          const b64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
-          poppinsBase64Ref.current = b64;
-          break;
-        } catch {}
-      }
+      poppinsBase64Ref.current = await fetchAsBase64(POPPINS_URL);
     }
   };
 
