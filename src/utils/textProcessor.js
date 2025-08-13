@@ -972,7 +972,8 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       return v;
     });
 
-    return { ...q, options: arranged, answer_index: arranged.indexOf(correct) >= 0 ? arranged.indexOf(correct) : placed.idx, qtype: q.qtype || 'mcq', explanation: q.explanation };
+    const ansIdx = arranged.indexOf(correct);
+    return { ...q, options: arranged, answer_index: ansIdx >= 0 ? ansIdx : 0, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
 
   // If still fewer than total (edge-case), synthesize filler concept items
