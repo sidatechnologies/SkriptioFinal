@@ -621,7 +621,11 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       if (!notPhrase(optsArr[i])) optsArr[i] = GENERIC[i % GENERIC.length];
     }
 
-    const { arranged, idx } = placeDeterministically(optsArr, correct, modeIdx);
+    // Normalize all options (including correct) to match capitalization and punctuation of the correct answer
+    const normalized = optsArr.map(o => ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, o, 0.85, 1.15)));
+    const normCorrect = ensureCaseAndPeriod(correct, correct);
+
+    const { arranged, idx } = placeDeterministically(normalized, normCorrect, modeIdx);
     const explanation = wantExplanations ? `Derived from text around "${phrase}".` : undefined;
     return { question: stem, options: arranged, answer_index: idx, qtype: 'property', explanation };
   }
