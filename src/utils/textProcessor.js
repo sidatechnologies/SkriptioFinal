@@ -975,7 +975,8 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
           .filter(t => t && t !== correct)
           .filter(t => validatePropSentence(t, docTitle))
           .filter(t => !tooSimilar(t, correct));
-        const inBand = candidates.filter(t => t.length >= len * 0.65 && t.length <= len * 1.35);
+        // Tighter length band to avoid one-liners among long statements
+        const inBand = candidates.filter(t => t.length >= Math.floor(len * 0.8) && t.length <= Math.ceil(len * 1.25));
         const pool = inBand.length >= 3 ? inBand : candidates;
         for (let ci = 0; arranged.length < 4 && ci < pool.length; ci++) {
           const cand = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, pool[ci], 0.85, 1.15));
