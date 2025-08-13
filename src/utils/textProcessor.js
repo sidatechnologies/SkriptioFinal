@@ -748,14 +748,26 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const key = q.question.toLowerCase();
     if (seenQ.has(key)) continue;
 
-    // reject any option that equals the asked phrase (for concept/property)
-    const asked = q.qtype !== 'formula' ? String(q.options[q.answer_index] || '').toLowerCase() : null;
+    // Clean options; keep the correct answer intact
     const filteredOptions = (q.options || [])
       .map(o => (o ?? '').toString().trim())
       .map(fixSpacing)
-      .filter(o => o && (!asked || o.toLowerCase() !== asked));
-    if (filteredOptions.length < 4) continue;
-    const correctedIndex = Math.min(q.answer_index, filteredOptions.length - 1);
+      .filter(o => o);
+    // If less than 4, pad deterministically using phrases and safe generics
+    let padded = filteredOptions.slice();
+    if (padded.length < 4) {
+      const correct = (q.options[q.answer_index] || '').toString();
+      const fallbackPool = phrases.filter(p => p && p !== correct);
+      const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+      const need = 4 - padded.length;
+      for (let i = 0, gi = 0; padded.length < 4 && i < fallbackPool.length; i++) {
+        const cand = fallbackPool[i];
+        if (!padded.includes(cand)) padded.push(cand);
+        if (i === fallbackPool.length - 1 && padded.length < 4 && gi < generics.length) padded.push(generics[gi++]);
+      }
+      while (padded.length < 4 && generics.length) padded.push(generics[padded.length % generics.length]);
+    }
+    const correctedIndex = Math.min(q.answer_index, padded.length - 1);
 
     seenQ.add(key);
     final.push({ ...q, options: filteredOptions, answer_index: correctedIndex });
