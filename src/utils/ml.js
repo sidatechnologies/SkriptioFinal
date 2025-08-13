@@ -231,7 +231,7 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
 
 // Enhance artifacts without flattening question types. Keep stems, improve distractors, enforce per-mode uniqueness further.
 export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, deadlineMs = 120, options = {}) {
-  const { difficulty = 'balanced', formulas = [], preserveTypes = true } = options;
+  const { difficulty = 'balanced' } = options;
   const mode = difficulty;
   const modeIdx = mode === 'balanced' ? 0 : (mode === 'harder' ? 1 : 2);
 
