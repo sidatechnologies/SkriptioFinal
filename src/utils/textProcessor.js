@@ -197,6 +197,40 @@ function repairDanglingEnd(s) {
   return t;
 }
 
+function isIncompleteTail(s) {
+  const t = (s || '').trim();
+  if (!t) return true;
+  const bads = [
+    /(of|to|into|onto|under|over|for|with|from)\s*(a|an|the)?\s*[\.]?$/i,
+    /(such as|including|like)\s*(\.|,|;)?\s*$/i,
+    /\b(is|are|was|were)\s+(a|an|the)\s*(\.|,|;)?\s*$/i,
+    /:\s*$/,
+    /\be\.g\.|\bi\.e\.$/i,
+    /\bof\s*\.$/i
+  ];
+  return bads.some(rx => rx.test(t));
+}
+
+function summarizeSentence(s, targetLen = 140) {
+  if (!s) return s;
+  let t = s.replace(/\([^)]*\)/g, ''); // drop parentheticals
+  t = t.replace(/\[[^\]]*\]/g, '');    // drop bracketed
+  // remove tails after "such as/including/like ..."
+  t = t.replace(/\b(such as|including|like)\b.*?([\.!?]|$)/i, '.');
+  // if colon creates long clause, keep before colon
+  if (t.length > targetLen * 0.9 && t.includes(':')) {
+    const before = t.split(':')[0];
+    if (before.length > 40) t = before + '.';
+  }
+  // if still too long, keep up to first two clauses
+  if (t.length > targetLen * 1.1) {
+    const parts = t.split(/[,;](?=\s)/);
+    if (parts[0].length > 40) t = parts.slice(0, 2).join(',');
+  }
+  if (t.length > targetLen) t = cutToWordBoundary(t, targetLen);
+  return repairDanglingEnd(t);
+}
+
 // Split text into sentences
 export function splitSentences(text) {
   const clean = normalizeText(text);
