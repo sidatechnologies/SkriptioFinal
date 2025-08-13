@@ -722,7 +722,13 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     if (correct.length > 160) correct = summarizeSentence(correct, 150);
     if (isIncompleteTail(correct)) return null; // skip bad property items entirely
 
-    const distractors = pickDistractorsProperty(correct, phrase);
+    let distractors = pickDistractorsProperty(correct, phrase);
+    // If we couldn't find enough statement-like distractors, synthesize by substituting the phrase
+    if (distractors.length < 3) {
+      const synth = synthesizePropertyDistractors(correct, phrase);
+      const merged = Array.from(new Set([...distractors, ...synth]));
+      distractors = merged.slice(0, 3);
+    }
 
     // avoid tautology: don't allow the phrase itself to appear as any option
     const notPhrase = (s) => s && s.trim().toLowerCase() !== phrase.trim().toLowerCase();
