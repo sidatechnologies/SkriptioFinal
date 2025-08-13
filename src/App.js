@@ -117,59 +117,33 @@ function Landing() {
             </div>
           </div>
           <div className="relative">
-            <div className="bg-card/80 border border-border rounded-xl p-3 md:p-4 card-glow">
-              <div className="flex items-center gap-2 text-xs mb-3">
-                <button onClick={() => setHeroTab('quiz')} className={`px-2.5 py-1 rounded-md ${heroTab==='quiz' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>Quiz</button>
-                <button onClick={() => setHeroTab('cards')} className={`px-2.5 py-1 rounded-md ${heroTab==='cards' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>Flashcards</button>
-                <button onClick={() => setHeroTab('plan')} className={`px-2.5 py-1 rounded-md ${heroTab==='plan' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>7‑Day Plan</button>
+            {/* Marketable hero visual: rotating value props */}
+            <div className="bg-card/80 border border-border rounded-xl p-5 card-glow overflow-hidden">
+              <div className="text-sm uppercase tracking-wide text-foreground/70">Why Skriptio</div>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-start gap-2 fade-slide-in">
+                  <Check size={16} className="text-green-500 mt-0.5"/>
+                  <div>
+                    <div className="font-medium">From notes to outcomes</div>
+                    <div className="text-sm text-foreground/80">Turn PDFs & notes into a study kit you can use today.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 fade-slide-in" style={{ animationDelay: '.12s' }}>
+                  <Check size={16} className="text-green-500 mt-0.5"/>
+                  <div>
+                    <div className="font-medium">Focus on what matters</div>
+                    <div className="text-sm text-foreground/80">A simple workflow that saves hours every week.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 fade-slide-in" style={{ animationDelay: '.24s' }}>
+                  <Check size={16} className="text-green-500 mt-0.5"/>
+                  <div>
+                    <div className="font-medium">Private by design</div>
+                    <div className="text-sm text-foreground/80">Runs in your browser after load — your content stays with you.</div>
+                  </div>
+                </div>
               </div>
-              {heroTab==='quiz' && (
-                <div className="space-y-2 fade-slide-in">
-                  <div className="text-sm font-medium">Q1. What is active recall?</div>
-                  <div className="grid gap-1">
-                    <div className="rounded-md border border-border px-3 py-2 text-sm">A) Reviewing notes passively</div>
-                    <div className="rounded-md border border-border px-3 py-2 text-sm">B) Retrieving info from memory</div>
-                    <div className="rounded-md border border-border px-3 py-2 text-sm">C) Highlighting important parts</div>
-                    <div className="rounded-md border border-border px-3 py-2 text-sm">D) Re-listening lectures</div>
-                  </div>
-                </div>
-              )}
-              {heroTab==='cards' && (
-                <div className="grid gap-2 fade-slide-in">
-                  <div className="rounded-lg border border-border p-3">
-                    <div className="text-xs text-foreground/70">Front</div>
-                    <div className="text-sm font-medium">Define spaced repetition</div>
-                    <div className="mt-2 text-xs text-foreground/70">Back</div>
-                    <div className="text-sm">Reviewing information at increasing intervals to boost retention.</div>
-                  </div>
-                  <div className="rounded-lg border border-border p-3">
-                    <div className="text-xs text-foreground/70">Front</div>
-                    <div className="text-sm font-medium">What is a key benefit of flashcards?</div>
-                    <div className="mt-2 text-xs text-foreground/70">Back</div>
-                    <div className="text-sm">They encourage retrieval practice and active recall.</div>
-                  </div>
-                </div>
-              )}
-              {heroTab==='plan' && (
-                <div className="grid gap-2 fade-slide-in">
-                  <div className="rounded-lg border border-border p-3">
-                    <div className="text-sm font-medium">Day 1</div>
-                    <ul className="list-disc pl-5 text-sm">
-                      <li>Skim content, note key topics</li>
-                      <li>Generate 10-question quiz</li>
-                      <li>Attempt quiz once</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border border-border p-3">
-                    <div className="text-sm font-medium">Day 2</div>
-                    <ul className="list-disc pl-5 text-sm">
-                      <li>Study flashcards</li>
-                      <li>Reattempt missed questions</li>
-                      <li>Refine notes</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
+              <div className="mt-4 text-xs text-foreground/70">No signups. No noise. Just progress.</div>
             </div>
           </div>
         </div>
