@@ -780,7 +780,7 @@ function Studio() {
                                 )}
                               </div>
                             )}
-                            {showExplanations && q.explanation && (
+                            {evaluated && showExplanations && q.explanation && (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
                           </CardContent>
