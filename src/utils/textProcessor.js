@@ -803,7 +803,13 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   // Ensure each question has 4 distinct options, remove broken fragments, and trim to total
-  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.|and\s*\.|by\s+[a-z ]{0,12}\.)$/i;
+  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.|\b(a|an|the|multiple|several|various)\s*\.)$/i;
+  const globalSeen = new Set();
+  const normKey = (s) => normalizeEquivalents(String(s || ''))
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   const fixed = final.slice(0, total).map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
     const cleanedOpts = q.options
@@ -811,11 +817,48 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       .filter(o => o.length >= 3 && !BAD_TAIL.test(o))
       .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''));
 
-    const optsArr = distinctFillOptions(correct, cleanedOpts.filter((o, idx) => idx !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4)
+    const baseOpts = distinctFillOptions(correct, cleanedOpts.filter((o, idx) => idx !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4)
       .map(fixSpacing);
-    const placed = placeDeterministically(optsArr, correct, (i + modeIdx) % 4);
-    return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: q.qtype || 'mcq', explanation: q.explanation };
+    const placed = placeDeterministically(baseOpts, correct, (i + modeIdx) % 4);
+
+    // Enforce cross-question option diversity
+    let arranged = placed.arranged.slice();
+    for (let k = 0; k < arranged.length; k++) {
+      const key = normKey(arranged[k]);
+      if (globalSeen.has(key)) {
+        // find replacement not used globally and not too similar to correct
+        const candidates = [...phrases, 'General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+        let repl = null;
+        for (const cand of candidates) {
+          const ck = normKey(cand);
+          if (!ck) continue;
+          if (globalSeen.has(ck)) continue;
+          if (arranged.includes(cand)) continue;
+          if (tooSimilar(cand, correct)) continue;
+          repl = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, cand, 0.85, 1.15));
+          break;
+        }
+        if (repl) arranged[k] = repl;
+      }
+      globalSeen.add(normKey(arranged[k]));
+    }
+
+    return { ...q, options: arranged, answer_index: arranged.indexOf(correct) >= 0 ? arranged.indexOf(correct) : placed.idx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
+
+  // If still fewer than total (edge-case), synthesize filler concept items
+  if (fixed.length < total) {
+    const fillerNeeded = total - fixed.length;
+    for (let i = 0; i < fillerNeeded; i++) {
+      const phrase = phrases[(i + modeIdx) % Math.max(1, phrases.length)] || 'Concept';
+      const stem = `Which concept best matches: "${(sentences[i % sentences.length] || phrase).slice(0, 180)}"`;
+      const correct = phrase;
+      const basePool = phrases.filter(p => p !== correct);
+      const optsArr = distinctFillOptions(correct, basePool, [], phrases, 4).map(o => ensureCaseAndPeriod(correct, o));
+      const placed = placeDeterministically(optsArr, correct, (i + modeIdx) % 4);
+      fixed.push({ id: generateUUID(), question: stem, options: placed.arranged, answer_index: placed.idx, qtype: 'concept' });
+    }
+  }
 
   return fixed;
 }
