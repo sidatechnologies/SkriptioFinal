@@ -66,6 +66,19 @@ function Landing() {
         </div>
       </header>
 
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="md:hidden border-b border-border bg-background/95">
+          <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
+            <a href="#how" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>How it works</a>
+            <a href="#features" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Features</a>
+            <a href="#usecases" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Use cases</a>
+            <a href="#faq" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>FAQ</a>
+            <Button size="sm" onClick={() => { setMobileOpen(false); navigate('/studio'); }} className="bg-primary text-primary-foreground hover:bg-primary/90 w-fit">Open Studio <ArrowRight className="ml-1" size={14}/></Button>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="hero-gradient">
         <div className="max-w-6xl mx-auto px-6 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
