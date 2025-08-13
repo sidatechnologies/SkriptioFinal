@@ -54,7 +54,14 @@ function Landing() {
             <a href="#faq" className="hover:text-foreground">FAQ</a>
             <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex">A product by Aceel AI</span>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80 mr-4">
+              <a href="#how" className="hover:text-foreground">How it works</a>
+              <a href="#features" className="hover:text-foreground">Features</a>
+              <a href="#usecases" className="hover:text-foreground">Use cases</a>
+              <a href="#faq" className="hover:text-foreground">FAQ</a>
+              <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex">A product by Aceel AI</span>
+            </nav>
             <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:inline-flex">Open Studio <ArrowRight className="ml-1" size={14}/></Button>
             <ThemeToggle />
           </div>
