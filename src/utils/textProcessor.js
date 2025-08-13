@@ -645,15 +645,29 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   for (const q of combined) {
     const key = q.question.toLowerCase();
     if (seenQ.has(key)) continue;
+
+    // reject any option that equals the asked phrase (for concept/property)
+    const asked = q.qtype !== 'formula' ? (q.options[q.answer_index] || '').toLowerCase() : null;
+    const filteredOptions = q.options.map(o => (o || '').trim()).map(fixSpacing).filter(o => !asked || o.toLowerCase() !== asked);
+    if (filteredOptions.length < 4) continue;
+    const correctedIndex = Math.min(q.answer_index, filteredOptions.length - 1);
+
     seenQ.add(key);
-    final.push(q);
+    final.push({ ...q, options: filteredOptions, answer_index: correctedIndex });
     if (final.length >= total) break;
   }
 
-  // Ensure each question has 4 distinct options and trim to total
+  // Ensure each question has 4 distinct options, remove broken fragments, and trim to total
+  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.)$/i;
   const fixed = final.slice(0, total).map((q, i) => {
-    const correct = q.options[q.answer_index];
-    const optsArr = distinctFillOptions(correct, q.options.filter((o, idx) => idx !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4);
+    const correct = (q.options[q.answer_index] || '').trim();
+    const cleanedOpts = q.options
+      .map(o => (o || '').trim())
+      .filter(o => o.length >= 3 && !BAD_TAIL.test(o))
+      .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''));
+
+    const optsArr = distinctFillOptions(correct, cleanedOpts.filter((o, idx) => idx !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4)
+      .map(fixSpacing);
     const placed = placeDeterministically(optsArr, correct, (i + modeIdx) % 4);
     return { ...q, options: placed.arranged, answer_index: placed.idx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
