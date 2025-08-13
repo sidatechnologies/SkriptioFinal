@@ -573,7 +573,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
   function propertyText(p, maxLen = 180) {
     let s = sentenceFor(p);
-    let ctx = contextFromSentence(s, p, maxLen);
+    let ctx = contextFromSentence(s, p, maxLen, false);
     let t = validatePropSentence(ctx, docTitle);
     if (!t) {
       // try alternative sentence containing p
