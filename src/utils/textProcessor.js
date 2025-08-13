@@ -316,7 +316,7 @@ function refineKeyPhrases(candidates, sentences, docTitle) {
     if (key.includes(' like')) continue; // skip patterns like "models like"
     if (key.startsWith('used')) continue; // skip weird "used" stems
     // must appear in at least one good sentence
-    const s = sentences.find(sen => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(sen));
+    const s = sentences.find(sen => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(sen));
     if (!s) continue;
     if (looksLikeHeadingStrong(s, docTitle)) continue;
     // prefer longer phrase over its substring
