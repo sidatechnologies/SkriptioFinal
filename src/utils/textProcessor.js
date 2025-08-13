@@ -1107,19 +1107,19 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     return { ...q, options: placedArr, answer_index: resolvedIdx >= 0 ? resolvedIdx : placedIdx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
 
-  // Standardize punctuation for concept label options: avoid trailing periods on short labels
+  // Standardize punctuation on short label-like options across all questions
   const isLabel = (s) => (s || '').split(/\s+/).filter(Boolean).length <= 3 && !/[,:;]/.test(s || '');
   for (let i = 0; i < fixed.length; i++) {
     const q = fixed[i];
-    if (q.qtype === 'concept') {
-      const correct = q.options[q.answer_index] || '';
-      const correctIsLabel = isLabel(correct);
-      if (correctIsLabel) {
-        const cleaned = q.options.map((o) => (o || '').replace(/[\.;:,]+$/,'').trim());
-        const { arranged, idx } = placeDeterministically(cleaned, cleaned[q.answer_index], (i + modeIdx) % 4);
-        fixed[i] = { ...q, options: arranged, answer_index: idx };
-      }
-    }
+    const prevCorrect = q.options[q.answer_index] || '';
+    const cleaned = q.options.map((o) => {
+      const v = (o || '').toString();
+      return isLabel(v) ? v.replace(/[\.;:,]+$/,'').trim() : v.trim();
+    });
+    const correctCleaned = cleaned[q.answer_index] || prevCorrect;
+    // Re-place deterministically to keep bias-free ordering after cleaning
+    const { arranged, idx } = placeDeterministically(cleaned, correctCleaned, (i + modeIdx) % 4);
+    fixed[i] = { ...q, options: arranged, answer_index: idx };
   }
 
   // If still fewer than total (edge-case), synthesize filler concept items
