@@ -16,6 +16,8 @@ import "./App.css";
 
 function Landing() {
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [heroTab, setHeroTab] = useState('quiz');
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
   const HeroCard = ({ icon, title, desc, className = "" }) => (
