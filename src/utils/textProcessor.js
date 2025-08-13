@@ -823,17 +823,19 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
     // Enforce cross-question option diversity
     let arranged = placed.arranged.slice();
+    const correctKey = normKey(correct);
     for (let k = 0; k < arranged.length; k++) {
       const key = normKey(arranged[k]);
-      if (globalSeen.has(key)) {
-        // find replacement not used globally and not too similar to correct
+      const isCorrectOpt = key === correctKey;
+      if (!isCorrectOpt && globalSeen.has(key)) {
+        // find replacement not used globally and not too similar to the correct answer
         const candidates = [...phrases, 'General concepts', 'Background theory', 'Implementation details', 'Best practices'];
         let repl = null;
         for (const cand of candidates) {
           const ck = normKey(cand);
           if (!ck) continue;
           if (globalSeen.has(ck)) continue;
-          if (arranged.includes(cand)) continue;
+          if (arranged.some(x => normKey(x) === ck)) continue;
           if (tooSimilar(cand, correct)) continue;
           repl = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, cand, 0.85, 1.15));
           break;
