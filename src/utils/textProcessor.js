@@ -919,23 +919,50 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const ordered = reorderForProgression(final).slice(0, total);
   const fixed = ordered.map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
+    const minLen = q.qtype === 'property' ? 30 : 3;
     const cleanedOpts = q.options
       .map(o => (o || '').trim())
-      .filter(o => o.length >= 3 && !BAD_TAIL.test(o))
+      .filter(o => (q.qtype === 'formula' ? true : (o.length >= minLen && !BAD_TAIL.test(o))))
       .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''));
 
-    // Start from cleaned options produced earlier; preserve their order
+    // Start from cleaned options; ensure the correct answer is present
     let arranged = cleanedOpts.slice();
-    // Ensure the correct answer is present; if not, append it
     if (!arranged.some(o => o === correct)) arranged.push(correct);
-    // Pad up to 4 options deterministically while avoiding near-duplicates
-    const candPool = [...phrases, 'General concepts', 'Background theory', 'Implementation details', 'Best practices'];
-    for (let ci = 0; arranged.length < 4 && ci < candPool.length; ci++) {
-      const cand = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, candPool[ci], 0.85, 1.15));
-      if (!cand) continue;
-      if (arranged.includes(cand)) continue;
-      if (tooSimilar(cand, correct)) continue;
-      arranged.push(cand);
+
+    // Type-specific padding to 4 options
+    if (arranged.length < 4) {
+      if (q.qtype === 'property') {
+        const len = correct.length || 100;
+        const candidates = Array.from(new Set(propertyPool.map(x => x.text)))
+          .filter(t => t && t !== correct)
+          .filter(t => validatePropSentence(t, docTitle))
+          .filter(t => !tooSimilar(t, correct));
+        const inBand = candidates.filter(t => t.length >= len * 0.65 && t.length <= len * 1.35);
+        const pool = inBand.length >= 3 ? inBand : candidates;
+        for (let ci = 0; arranged.length < 4 && ci < pool.length; ci++) {
+          const cand = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, pool[ci], 0.85, 1.15));
+          if (!cand) continue;
+          if (arranged.includes(cand)) continue;
+          arranged.push(cand);
+        }
+      } else if (q.qtype === 'concept') {
+        const candPool = [...phrases, 'General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+        for (let ci = 0; arranged.length < 4 && ci < candPool.length; ci++) {
+          const cand = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, candPool[ci], 0.85, 1.15));
+          if (!cand) continue;
+          if (arranged.includes(cand)) continue;
+          if (tooSimilar(cand, correct)) continue;
+          arranged.push(cand);
+        }
+      } else if (q.qtype === 'formula') {
+        const pool = formulaPool.filter(f => f && f !== correct);
+        for (let ci = 0; arranged.length < 4 && ci < pool.length; ci++) {
+          const cand = pool[ci];
+          if (!cand) continue;
+          if (arranged.includes(cand)) continue;
+          arranged.push(cand);
+        }
+      }
     }
 
     // Enforce cross-question option diversity
