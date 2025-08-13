@@ -997,7 +997,23 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     .replace(/[^a-z0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  const ordered = reorderForProgression(final).slice(0, total);
+  // Stricter global de-dup for stems across questions (concept and property):
+  const stemSeen = new Set();
+  const orderedRaw = reorderForProgression(final);
+  const ordered = [];
+  for (const q of orderedRaw) {
+    const stem = normalizeEquivalents((q.question || '').replace(/".*?"/g, '').replace(/[^a-z0-9 ]/gi, ' ')).trim();
+    if (stem && stemSeen.has(stem)) continue;
+    stemSeen.add(stem);
+    ordered.push(q);
+    if (ordered.length >= total) break;
+  }
+  // If we filtered too aggressively, backfill from remaining
+  let oi = 0;
+  while (ordered.length < total && oi < orderedRaw.length) {
+    const q = orderedRaw[oi++];
+    if (!ordered.includes(q)) ordered.push(q);
+  }
   const fixed = ordered.map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
     const minLen = q.qtype === 'property' ? 30 : 3;
