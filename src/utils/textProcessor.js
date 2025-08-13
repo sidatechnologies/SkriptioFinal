@@ -399,6 +399,9 @@ function validatePropSentence(s, docTitle) {
   if (t.length < 50 || t.length > 220) return null;
   if (!hasVerb(t)) return null;
   if (looksLikeHeadingStrong(t, docTitle)) return null;
+  // reject obviously incomplete tails like "... of a ." / "... such as ." / "... including ."
+  if (/\b(of\s+(a|an|the)\s*\.)$/i.test(t)) return null;
+  if (/(such as|including|like)\s*\.$/i.test(t)) return null;
   return t;
 }
 
