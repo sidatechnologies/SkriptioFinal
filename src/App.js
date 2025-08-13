@@ -59,14 +59,14 @@ function Landing() {
               <a href="#faq" className="hover:text-foreground">FAQ</a>
               <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full gold-dot"/>A product by Aceel AI</span>
             </nav>
-            <div className="hidden md:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio <ArrowRight className="ml-1" size={14}/></Button></div>
-            {/* Mobile: theme toggle then menu button */}
-            <ThemeToggle className="md:hidden" />
-            <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border md:hidden" onClick={() => setMobileOpen(prev => !prev)}>
+            <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio <ArrowRight className="ml-1" size={14}/></Button></div>
+            {/* Mobile/Tablet: theme toggle then menu button */}
+            <ThemeToggle className="lg:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border lg:hidden" onClick={() => setMobileOpen(prev => !prev)}>
               {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
             </button>
             {/* Desktop: theme toggle at far right */}
-            <ThemeToggle className="hidden md:inline-flex" />
+            <ThemeToggle className="hidden lg:inline-flex" />
           </div>
         </div>
       </header>
