@@ -86,7 +86,7 @@ input[type=file] { display: none; }
 /* Atom animation */
 .hero-atom { position: relative; width: 320px; height: 320px; margin: 0; transform: translateX(0); }
 .hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 30px rgba(245,197,66,0.4); }
-.hero-atom .orbit { position: absolute; top: 50%; left: 50%; border: 1px dashed rgba(0,0,0,0.15); border-radius: 9999px; transform: translate(-50%, -50%) rotate(0deg); }
+.hero-atom .orbit { position: absolute; inset: 0; margin: auto; border: 1px dashed rgba(0,0,0,0.18); border-radius: 9999px; transform: rotate(0deg); }
 .dark .hero-atom .orbit { border-color: rgba(255,255,255,0.15); }
 .hero-atom .electron { position: absolute; width: 8px; height: 8px; background: #111; border-radius: 9999px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
 .dark .hero-atom .electron { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.7); }
