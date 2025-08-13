@@ -988,8 +988,8 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       const correct = phrase;
       const basePool = phrases.filter(p => p !== correct);
       const optsArr = distinctFillOptions(correct, basePool, [], phrases, 4).map(o => ensureCaseAndPeriod(correct, o));
-      const placed = placeDeterministically(optsArr, correct, (i + modeIdx) % 4);
-      fixed.push({ id: generateUUID(), question: stem, options: placed.arranged, answer_index: placed.idx, qtype: 'concept' });
+      const placedC = placeDeterministically(optsArr, correct, (i + modeIdx) % 4);
+      fixed.push({ id: generateUUID(), question: stem, options: placedC.arranged, answer_index: placedC.idx, qtype: 'concept' });
     }
   }
 
