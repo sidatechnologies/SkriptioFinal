@@ -58,10 +58,13 @@ function Landing() {
               <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full gold-dot"/>A product by Aceel AI</span>
             </nav>
             <div className="hidden md:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio <ArrowRight className="ml-1" size={14}/></Button></div>
-            <button aria-label="Open menu" className="p-2 rounded-md border border-border md:hidden" onClick={() => setMobileOpen(true)}>
+            {/* Mobile: theme toggle then menu button */}
+            <ThemeToggle className="md:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border md:hidden" onClick={() => setMobileOpen(prev => !prev)}>
               <Menu size={18} />
             </button>
-            <ThemeToggle />
+            {/* Desktop: theme toggle at far right */}
+            <ThemeToggle className="hidden md:inline-flex" />
           </div>
         </div>
       </header>
