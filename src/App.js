@@ -271,8 +271,17 @@ function Studio() {
   const [difficulty, setDifficulty] = useState('balanced');
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
 
+  // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
+
+  // Track viewport to switch between segmented control and dropdown reliably
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     try {
