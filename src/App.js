@@ -20,13 +20,7 @@ function Landing() {
   const [heroTab, setHeroTab] = useState('quiz');
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
-  // Auto-rotate hero preview tabs
-  useEffect(() => {
-    const id = setInterval(() => {
-      setHeroTab(prev => prev === 'quiz' ? 'cards' : prev === 'cards' ? 'plan' : 'quiz');
-    }, 3500);
-    return () => clearInterval(id);
-  }, []);
+
 
   const HeroCard = ({ icon, title, desc, className = "" }) => (
     <div className={`rounded-xl border bg-card/90 p-4 card-glow hero-card hover:shadow-xl transition-shadow ${className}`}>
