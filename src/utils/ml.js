@@ -287,7 +287,7 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
       candVecs.push(phraseVecs[i]);
     }
     let mmr = [];
-    if (phraseVecs && candidates.length) {
+    if (candidates.length) {
       const qv = idxCorrect >= 0 ? phraseVecs[idxCorrect] : phraseVecs[(qi + modeIdx) % phraseVecs.length];
       const lambda = mode === 'expert' ? 0.8 : (mode === 'harder' ? 0.76 : 0.7);
       mmr = mmrSelect(qv, candVecs, candidates, 6, lambda);
