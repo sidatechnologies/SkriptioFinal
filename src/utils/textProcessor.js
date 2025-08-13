@@ -304,7 +304,7 @@ export function tokenize(text) {
 }
 
 function refineKeyPhrases(candidates, sentences, docTitle) {
-  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like', 'models like', 'used reduce']);
+  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like', 'models like', 'used reduce', 'work', 'process', 'one process', 'ongoing process']);
   const ok = [];
   const seen = new Set();
   for (const p of candidates) {
