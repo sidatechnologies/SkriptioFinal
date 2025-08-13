@@ -487,9 +487,16 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     }
     const tpl = pickTemplate(CONCEPT_TEMPLATES, mode, seed);
     const qtext = tpl(primary, secondary);
-    const pool = distractorsForConcept(phrase);
-    const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase));
-    const optsArr = distinctFillOptions(phrase, pool.slice(0, mode !== 'balanced' ? 12 : 8), fallbackPool, phrases, 4);
+
+    // Avoid tautology: remove any options that equal the phrase itself
+    const notPhrase = (x) => x && x.trim().toLowerCase() !== phrase.trim().toLowerCase();
+
+    const pool = distractorsForConcept(phrase).filter(notPhrase);
+    const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase) && notPhrase(pp));
+    const optsArr = distinctFillOptions(phrase, pool.slice(0, mode !== 'balanced' ? 12 : 8), fallbackPool, phrases, 4)
+      .filter(notPhrase)
+      .map(fixSpacing);
+
     const { arranged, idx } = placeDeterministically(optsArr, phrase, modeIdx);
     const explanation = wantExplanations ? `Context: ${primary}${secondary ? ' | ' + secondary : ''}` : undefined;
     return { question: qtext, options: arranged, answer_index: idx, qtype: 'concept', explanation };
