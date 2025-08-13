@@ -395,6 +395,9 @@ function removePhraseOnce(sentence, phrase) {
 }
 
 function cutToWordBoundary(text, maxLen) {
+  if (!text) return text;
+  // Avoid over-ellipsizing very short strings
+  if (maxLen < 20) maxLen = 20;
   if (text.length <= maxLen) return text;
   const cut = text.slice(0, maxLen - 3);
   const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'), cut.lastIndexOf(':'));
