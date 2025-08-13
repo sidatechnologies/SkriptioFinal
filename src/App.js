@@ -25,11 +25,11 @@ function Landing() {
     </div>
   );
 
-  const Section = ({ id, title, subtitle, children }) => (
+  const Section = ({ id, title, subtitle, children, centerTitle = false }) => (
     <section id={id} className="py-14">
       <div className="max-w-6xl mx-auto px-6">
         {title && (
-          <div className="mb-6">
+          <div className={`mb-6 ${centerTitle ? 'text-center' : ''}`}>
             <h2 className="section-title text-2xl md:text-3xl font-semibold">{title}</h2>
             {subtitle && <p className="text-foreground/80 mt-1">{subtitle}</p>}
           </div>
