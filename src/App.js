@@ -531,8 +531,10 @@ function Studio() {
     lines.forEach((ln) => {
       const ph = doc.internal.pageSize.getHeight();
       if (y > ph - 20) {
+        // add footer before moving to next page, then start a new page with header
+        addFooter(doc);
         newPage(doc);
-        y = 25;
+        y = 32;
       }
       doc.text(ln, x, y);
       y += 7;
