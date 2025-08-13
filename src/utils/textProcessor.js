@@ -675,9 +675,14 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   for (let i = 0; i < sortedConcepts.length && quiz.length < wantConcept; i++) {
     const { s, phrase } = sortedConcepts[i];
     if (used.has(phrase)) continue;
-    used.add(phrase);
     const q = buildConceptQ(s, phrase, i + modeIdx);
-    quiz.push({ id: generateUUID(), ...q });
+    if (!q) continue;
+    // Length-balance options against the correct answer for concept items too
+    const corr = q.options[q.answer_index] || '';
+    const banded = q.options.map(o => adjustToLengthBand(corr.length, o, 0.85, 1.15));
+    const punct = banded.map(o => ensureCaseAndPeriod(corr, o));
+    used.add(phrase);
+    quiz.push({ id: generateUUID(), ...q, options: punct });
   }
 
   // Build property questions
