@@ -583,7 +583,7 @@ function Studio() {
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
                   {/* Desktop/tablet segmented control */}
-                  <div className="hidden sm:inline-flex rounded-md overflow-hidden border border-border">
+                  <div className="hidden md:inline-flex rounded-md overflow-hidden border border-border">
                     <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
