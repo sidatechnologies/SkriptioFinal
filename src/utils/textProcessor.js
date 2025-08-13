@@ -370,10 +370,22 @@ function jaccard(a, b) {
   const uni = A.size + B.size - inter;
   return uni === 0 ? 0 : inter / uni;
 }
+function normalizeEquivalents(s) {
+  if (!s) return '';
+  return s
+    .toLowerCase()
+    .replace(/\bnumerical\s*v\b/g, 'numerical variable')
+    .replace(/\bnumerical\s*var(iable)?s?\b/g, 'numerical variable')
+    .replace(/\bclass\s*lbl\b/g, 'class label')
+    .replace(/\bpca\b/g, 'principal component analysis')
+    .trim();
+}
 function tooSimilar(a, b) {
   if (!a || !b) return false;
-  if (a.trim().toLowerCase() === b.trim().toLowerCase()) return true;
-  return jaccard(a, b) >= 0.65; // stricter threshold
+  const A = normalizeEquivalents(a);
+  const B = normalizeEquivalents(b);
+  if (A === B) return true;
+  return jaccard(A, B) >= 0.7;
 }
 
 function removePhraseOnce(sentence, phrase) {
