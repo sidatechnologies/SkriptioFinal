@@ -1201,7 +1201,7 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
 export function buildFlashcards(sentences, phrases, total = 12) {
   const cards = [];
   const used = new Set();
-  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
   for (const p of phrases) {
     if (cards.length >= total) break;
     const s = sentences.find(sen => hasPhrase(p, sen));
