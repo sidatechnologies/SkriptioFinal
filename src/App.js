@@ -289,8 +289,11 @@ function Studio() {
       const token = q.get('s');
       if (token) {
         const json = decodeShare(token);
-        if (json && json.quiz) {
-          setResult({ title: json.title || 'Shared Quiz', quiz: json.quiz, flashcards: [], plan: [] });
+        let quiz = null; let title = 'Shared Quiz';
+        if (json?.compact) { quiz = expandQuiz(json.compact); title = json.compact.t || json.title || title; }
+        else if (json?.quiz) { quiz = json.quiz; title = json.title || title; }
+        if (quiz) {
+          setResult({ title, quiz, flashcards: [], plan: [] });
           // Do not auto-load answers/score from shared links
           setAnswers({});
           setScore(null);
