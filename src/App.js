@@ -492,9 +492,6 @@ function Studio() {
     if (!logoDataRef.current) {
       logoDataRef.current = await fetchAsDataURL(LOGO_URL);
     }
-    if (!wordmarkDataRef.current) {
-      await loadPoppinsAndWordmark();
-    }
   };
 
   const addHeader = (doc) => {
