@@ -486,7 +486,7 @@ function placeDeterministically(choices, correct, seed = 0) {
 
 function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
   const selected = [correct];
-  const seen = new Set([String(correct).toLowerCase()]);
+  const seen = new Set([normalizeEquivalents(String(correct))]);
   const addIf = (opt) => {
     if (opt === undefined || opt === null) return false;
     const norm = String(opt).trim();
