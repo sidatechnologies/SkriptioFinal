@@ -62,7 +62,7 @@ input[type=file] { display: none; }
 /* Hover gold utility */
 .hover-gold:hover { color: var(--gold-hex); }
 
-/* Floating animated cards */
+/* Floating animated cards (legacy) */
 @keyframes floaty {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -73,6 +73,24 @@ input[type=file] { display: none; }
 .float-fast { animation: floaty 5.5s ease-in-out infinite; }
 .float-delay-1 { animation-delay: .6s; }
 .float-delay-2 { animation-delay: 1.2s; }
+
+/* Hero preview animations */
+@keyframes fadeSlideUp {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.fade-slide-in {
+  animation: fadeSlideUp .5s ease both;
+}
+.tab-underline {
+  position: relative;
+}
+.tab-underline::after {
+  content: "";
+  position: absolute; left: 0; bottom: -2px; height: 2px; width: 100%;
+  background: rgba(245,197,66,0.6);
+}
+
 
 .card-glow {
   box-shadow: 0 8px 30px rgba(0,0,0,0.08);
