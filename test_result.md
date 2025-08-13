@@ -267,3 +267,7 @@
     message: "Rebuilt the landing page into multiple sections and imported App.css for styling. Please run a UI check: hero cards animate, navigation anchors scroll, sections look clean on both themes, and Studio flow unaffected."
   - agent: "testing"
     message: "Completed comprehensive landing page validation. Landing page is working well with minor content discrepancies: navigation shows 'About' instead of 'Use cases', and 'Saves' keyword missing from bullet points. All core UI elements, animations, theme toggle, and Studio functionality are working perfectly. Hero structure, animated cards, CTAs, and gradient visibility all validated successfully."
+  - agent: "user"
+    message: "Studio shows 0 questions for pasted text and PDFs. WebGL context lost errors. Generate causes screen to go black/hang; spinner persists. Very bad UX."
+  - agent: "main"
+    message: "Applied fixes: 1) Disabled TFJS WebGL and forced CPU; 2) Removed ML prewarm on landing/studio to avoid blocking; 3) Timeboxed/downsized ML refinement to phrases only and skip if not ready; 4) Option padding: never drop a question if <4 options, pad deterministically; 5) OCR limited to max 2 pages and 6s budget to prevent hangs. Requesting retest: paste text and small/large PDFs across all difficulties; verify quiz shows 10 questions with responsive UI."
