@@ -847,7 +847,7 @@ function Studio() {
                                     className={`text-left rounded-md border px-3 py-2 flex items-start gap-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
                                   >
                                     <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
-                                    <span className="flex-1 whitespace-normal break-words break-all min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
+                                    <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
                                     {evaluated && isSelected && (
                                       <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
                                     )}
