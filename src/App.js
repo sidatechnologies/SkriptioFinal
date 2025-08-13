@@ -274,7 +274,7 @@ function Studio() {
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
 
   // Prewarm ML model here as well, in case user lands directly on Studio
-  useEffect(() => { prewarmML(); prewarmPDF(); }, []);
+  useEffect(() => { prewarmPDF(); }, []);
 
   // Track viewport to switch between segmented control and dropdown reliably
   useEffect(() => {
