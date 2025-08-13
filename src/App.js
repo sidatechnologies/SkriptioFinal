@@ -197,6 +197,17 @@ function Landing() {
         </div>
       </Section>
 
+      {/* CTA above footer */}
+      <section className="py-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="bg-card border border-border rounded-xl p-8 text-center">
+            <h3 className="text-2xl md:text-3xl font-semibold">Ready to study faster?</h3>
+            <p className="text-foreground/80 mt-1">Open Skriptio Studio and generate your study kit in seconds.</p>
+            <Button onClick={() => navigate('/studio')} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer: email left, copyright center, socials right */}
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
