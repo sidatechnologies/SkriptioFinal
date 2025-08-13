@@ -597,8 +597,9 @@ function Studio() {
     try {
       const jsPDF = await ensureJsPDF();
       const doc = new jsPDF();
+      await ensureAssetsLoaded();
       addHeader(doc);
-      let y = 25;
+      let y = 32;
       doc.setFontSize(13);
       y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
       doc.setFontSize(12);
