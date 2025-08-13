@@ -299,13 +299,20 @@ function removePhraseOnce(sentence, phrase) {
   return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
 }
 
+function cutToWordBoundary(text, maxLen) {
+  if (text.length <= maxLen) return text;
+  const cut = text.slice(0, maxLen - 3);
+  const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'), cut.lastIndexOf(':'));
+  const base = idx > 40 ? cut.slice(0, idx).trim() : cut.trim();
+  return base + '...';
+}
 function contextFromSentence(sentence, phrase, maxLen = 220) {
   let ctx = removePhraseOnce(sentence, phrase);
   if (!ctx || ctx.length < 30) ctx = sentence;
   // de-emphasize raw numbers to avoid giveaways
   ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
   if (!/[.!?]$/.test(ctx)) ctx += '.';
-  if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
+  if (ctx.length > maxLen) ctx = cutToWordBoundary(ctx, maxLen);
   return repairDanglingEnd(ctx);
 }
 
