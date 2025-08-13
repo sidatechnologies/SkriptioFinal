@@ -352,7 +352,14 @@ export function extractKeyPhrases(text, k = 18) {
 
 // Option similarity helpers
 function optionTokens(str) {
-  return (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  const raw = (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  const map = {
+    v: 'variable', var: 'variable', vars: 'variables',
+    feat: 'feature', feats: 'features',
+    cls: 'class', prob: 'probability', pred: 'prediction',
+    reg: 'regression', rnd: 'random'
+  };
+  return raw.map(w => map[w] || w);
 }
 function jaccard(a, b) {
   const A = new Set(optionTokens(a));
