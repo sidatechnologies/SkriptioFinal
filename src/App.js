@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import { toast } from "./components/ui/use-toast";
 import pako from "pako";
 import "./App.css";
+import { friendlySlugFromString } from "./utils/shortener";
 
 function Landing() {
   const navigate = useNavigate();
@@ -285,8 +286,9 @@ function Studio() {
 
   useEffect(() => {
     try {
-      const q = new URLSearchParams(window.location.search);
-      const token = q.get('s');
+      const search = new URLSearchParams(window.location.search);
+      const hashParams = window.location.hash ? new URLSearchParams(window.location.hash.replace(/^#/, '')) : null;
+      const token = search.get('s') || (hashParams ? hashParams.get('s') : null);
       if (token) {
         const json = decodeShare(token);
         let quiz = null; let title = 'Shared Quiz';
@@ -646,10 +648,11 @@ function Studio() {
   const buildShareURL = () => {
     const payload = buildSharePayload();
     const token = b64uEncode(payload);
-    const base = `${window.location.origin}${window.location.pathname}`;
+    const base = `${window.location.origin}/studio`;
     const name = slugify(inferTitle());
-    // Human-friendly path with minimal visual noise
-    return `${base}/${name}?s=${token}`;
+    const code = friendlySlugFromString(token, 5);
+    // Short path + token in hash to keep URL visually short; no backend required
+    return `${base}/${name}/${code}#s=${token}`;
   };
 
   const shareAnswers = async () => {
@@ -935,7 +938,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/studio" element={<Studio />} />
+      <Route path="/studio/*" element={<Studio />} />
     </Routes>
   );
 }
