@@ -791,7 +791,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   // Ensure each question has 4 distinct options, remove broken fragments, and trim to total
-  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.)$/i;
+  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.|and\s*\.|by\s+[a-z ]{0,12}\.)$/i;
   const fixed = final.slice(0, total).map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
     const cleanedOpts = q.options
