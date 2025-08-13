@@ -188,35 +188,8 @@ function Landing() {
         </div>
       </Section>
 
-      {/* Features */}
-      <Section id="features" title="Features" subtitle="Everything you need to turn notes into learning outcomes.">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><ListChecks size={16}/> Tough quizzes</div>
-            <p className="text-sm text-foreground/80 mt-1">10 MCQs per kit: concept, property, and formula items tuned by difficulty.</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><BookOpen size={16}/> Smart flashcards</div>
-            <p className="text-sm text-foreground/80 mt-1">Concise fronts; context-rich backs derived from the text you provide.</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><Calendar size={16}/> 7‑Day plans</div>
-            <p className="text-sm text-foreground/80 mt-1">Clustered topics with 3 daily objectives for steady, guided progress.</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><Layers size={16}/> Combine sources</div>
-            <p className="text-sm text-foreground/80 mt-1">Upload PDFs and paste notes together for richer, more varied quizzes.</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><Shield size={16}/> Private by design</div>
-            <p className="text-sm text-foreground/80 mt-1">Runs 100% in your browser after load. No servers, no data sharing.</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-5">
-            <div className="flex items-center gap-2 text-sm font-medium"><Clock size={16}/> Fast &amp; responsive</div>
-            <p className="text-sm text-foreground/80 mt-1">Optimized, incremental processing keeps the UI smooth even on large notes.</p>
-          </div>
-        </div>
-      </Section>
+      {/* Features removed as requested */}
+
 
       {/* About (minimal, centered) */}
       <Section id="about" title="About Skriptio" centerTitle>
