@@ -221,6 +221,7 @@ function isIncompleteTail(s) {
 }
 
 function summarizeSentence(s, targetLen = 180) {
+
   if (!s) return s;
   let t = s.replace(/\([^)]*\)/g, ''); // drop parentheticals
   t = t.replace(/\[[^\]]*\]/g, '');    // drop bracketed
