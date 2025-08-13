@@ -84,7 +84,7 @@ input[type=file] { display: none; }
 .fade-slide-in { animation: fadeSlideUp .5s ease both; }
 
 /* Atom animation */
-.hero-atom { position: relative; width: 320px; height: 320px; margin-left: auto; margin-right: 0; transform: translateX(-30px); }
+.hero-atom { position: relative; width: 320px; height: 320px; margin: 0; transform: translateX(0); }
 .hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 30px rgba(245,197,66,0.4); }
 .hero-atom .orbit { position: absolute; top: 50%; left: 50%; border: 1px dashed rgba(0,0,0,0.15); border-radius: 9999px; transform: translate(-50%, -50%) rotate(0deg); }
 .dark .hero-atom .orbit { border-color: rgba(255,255,255,0.15); }
