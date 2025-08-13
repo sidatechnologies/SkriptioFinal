@@ -73,31 +73,40 @@ export async function extractTextFromPDF(file) {
     // Lazy-load OCR only if needed
     let Tesseract = null;
 
+    const startTs = Date.now();
+    let ocrCount = 0;
+    const OCR_MAX_PAGES = 2;
+    const OCR_TIME_BUDGET_MS = 6000;
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
       const pageText = textContent.items.map(item => item.str).join(' ');
       let collected = pageText.trim();
 
-      // Heuristic: if page has too little selectable text or looks like images/formula-heavy, try OCR
-      if (collected.length < 80 || /Figure|Diagram|Table/i.test(collected)) {
+      // Heuristic: if page has too little selectable text or looks like images/formula-heavy, try limited OCR
+      const shouldTryOCR = (collected.length < 80 || /Figure|Diagram|Table/i.test(collected)) && ocrCount < OCR_MAX_PAGES && (Date.now() - startTs) < OCR_TIME_BUDGET_MS;
+      if (shouldTryOCR) {
         try {
-          const viewport = page.getViewport({ scale: 1.8 });
+          const viewport = page.getViewport({ scale: 1.3 });
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          canvas.width = Math.ceil(viewport.width);
-          canvas.height = Math.ceil(viewport.height);
-          await page.render({ canvasContext: ctx, viewport }).promise;
-          if (!Tesseract) {
-            const mod = await import('tesseract.js');
-            Tesseract = mod.default || mod;
-          }
-          const ocr = await Tesseract.recognize(canvas, 'eng', { logger: () => {} });
-          if (ocr?.data?.text) {
-            const otext = ocr.data.text.replace(/\s+\n/g, '\n').trim();
-            if (otext.length > collected.length) {
-              collected = collected + '\n' + otext; // merge to preserve any selectable text
+          if (ctx) {
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            if (!Tesseract) {
+              const mod = await import('tesseract.js');
+              Tesseract = mod.default || mod;
             }
+            const ocr = await Tesseract.recognize(canvas, 'eng', { logger: () => {} });
+            if (ocr?.data?.text) {
+              const otext = ocr.data.text.replace(/\s+\n/g, '\n').trim();
+              if (otext.length > collected.length) {
+                collected = collected + '\n' + otext; // merge to preserve any selectable text
+              }
+            }
+            ocrCount++;
           }
         } catch (e) {
           // OCR is best-effort; continue without failing
