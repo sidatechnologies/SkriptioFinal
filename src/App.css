@@ -48,8 +48,8 @@ input[type=file] { display: none; }
 }
 
 /* Gold accents */
-.gold-pill { background: rgba(245,197,66,0.18); color: #fff; border: 1px solid rgba(245,197,66,0.3); box-shadow: 0 0 0 1px rgba(245,197,66,0.08) inset; }
-.dark .gold-pill { background: rgba(245,197,66,0.14); color: #fff; border-color: rgba(245,197,66,0.35); }
+.gold-pill { background: rgba(245,197,66,0.08); color: #F5C542; border: 1px solid rgba(245,197,66,0.6); box-shadow: 0 0 0 1px rgba(245,197,66,0.08) inset; }
+.dark .gold-pill { background: rgba(245,197,66,0.10); color: #F5C542; border-color: rgba(245,197,66,0.7); }
 .gold-dot { background: var(--gold-hex); }
 .gold-link { color: var(--gold-hex); }
 .gold-link:hover { opacity: .9; }
