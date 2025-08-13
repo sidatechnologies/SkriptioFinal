@@ -117,33 +117,14 @@ function Landing() {
             </div>
           </div>
           <div className="relative">
-            {/* Marketable hero visual: rotating value props */}
-            <div className="bg-card/80 border border-border rounded-xl p-5 card-glow overflow-hidden">
-              <div className="text-sm uppercase tracking-wide text-foreground/70">Why Skriptio</div>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-start gap-2 fade-slide-in">
-                  <Check size={16} className="text-green-500 mt-0.5"/>
-                  <div>
-                    <div className="font-medium">From notes to outcomes</div>
-                    <div className="text-sm text-foreground/80">Turn PDFs & notes into a study kit you can use today.</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 fade-slide-in" style={{ animationDelay: '.12s' }}>
-                  <Check size={16} className="text-green-500 mt-0.5"/>
-                  <div>
-                    <div className="font-medium">Focus on what matters</div>
-                    <div className="text-sm text-foreground/80">A simple workflow that saves hours every week.</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 fade-slide-in" style={{ animationDelay: '.24s' }}>
-                  <Check size={16} className="text-green-500 mt-0.5"/>
-                  <div>
-                    <div className="font-medium">Private by design</div>
-                    <div className="text-sm text-foreground/80">Runs in your browser after load — your content stays with you.</div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-xs text-foreground/70">No signups. No noise. Just progress.</div>
+            {/* Marketable hero visual: abstract atom animation */}
+            <div className="hero-atom">
+              <div className="nucleus" />
+              <div className="orbit orbit-1"><span className="electron" /></div>
+              <div className="orbit orbit-2"><span className="electron" /></div>
+              <div className="orbit orbit-3"><span className="electron" /></div>
+              <div className="orbit orbit-4"><span className="electron" /></div>
+              <div className="orbit orbit-5"><span className="electron" /></div>
             </div>
           </div>
         </div>
