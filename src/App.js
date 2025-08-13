@@ -477,30 +477,53 @@ function Studio() {
   const addHeader = (doc) => {
     const pw = doc.internal.pageSize.getWidth();
     const topY = 12;
-    // Draw logo if available
+
+    // Draw logo if available (never fail the PDF if image is missing)
     try {
       if (logoDataRef.current) {
         const imgW = 18; // mm
         const imgH = 18;
         doc.addImage(logoDataRef.current, 'PNG', (pw - imgW) / 2, topY - 6, imgW, imgH, undefined, 'FAST');
       }
-    } catch {}
-    // Register and use Poppins for the brand word if loaded
+    } catch (e) {
+      // ignore logo errors, continue
+    }
+
+    // Try to use Poppins; hard fallback to Helvetica if anything goes wrong
+    let fontOk = false;
     try {
       if (poppinsBase64Ref.current) {
-        if (!doc.getFontList().Poppins) {
+        // Register only once per document
+        const list = doc.getFontList ? doc.getFontList() : {};
+        const hasPoppins = !!(list && list.Poppins);
+        if (!hasPoppins) {
           doc.addFileToVFS('Poppins-Regular.ttf', poppinsBase64Ref.current);
           doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
         }
         doc.setFont('Poppins', 'normal');
-      } else {
-        doc.setFont('helvetica', 'normal');
+        fontOk = true;
       }
-    } catch { doc.setFont('helvetica', 'normal'); }
-    doc.setFontSize(14);
-    doc.text("Skriptio", pw / 2, topY + 14, { align: "center" });
-    // Body font size will be set by caller
-    doc.setFont('helvetica', 'normal');
+    } catch (e) {
+      fontOk = false;
+    }
+    if (!fontOk) {
+      try { doc.setFont('helvetica', 'normal'); } catch {}
+    }
+
+    try {
+      doc.setFontSize(14);
+      doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
+    } catch (e) {
+      // If text fails under Poppins, re-fallback to Helvetica and retry once
+      try {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(14);
+        doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
+      } catch {}
+    }
+
+    // Reset to body font (Helvetica) for downstream content
+    try { doc.setFont('helvetica', 'normal'); } catch {}
   };
 
   const addFooter = (doc) => {
