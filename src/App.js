@@ -273,6 +273,7 @@ function Studio() {
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
+  const [theory, setTheory] = useState([]);
 
   // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmPDF(); }, []);
