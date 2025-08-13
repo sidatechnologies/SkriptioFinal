@@ -954,14 +954,18 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const fixed = ordered.map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
     const minLen = q.qtype === 'property' ? 30 : 3;
+    // Within-question normalized dedupe to avoid same option twice
+    const normOpt = (s) => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const seenLocal = new Set();
     const cleanedOpts = q.options
       .map(o => (o || '').trim())
       .filter(o => (q.qtype === 'formula' ? true : (o.length >= minLen && !BAD_TAIL.test(o))))
-      .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''));
+      .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''))
+      .filter(o => { const k = normOpt(o); if (!k || seenLocal.has(k)) return false; seenLocal.add(k); return true; });
 
     // Start from cleaned options; ensure the correct answer is present
     let arranged = cleanedOpts.slice();
-    if (!arranged.some(o => o === correct)) arranged.push(correct);
+    if (!arranged.some(o => normOpt(o) === normOpt(correct))) arranged.push(correct);
 
     // Type-specific padding to 4 options
     if (arranged.length < 4) {
