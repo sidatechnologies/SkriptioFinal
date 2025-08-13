@@ -13,8 +13,11 @@ export function prewarmML() {
         import('@tensorflow/tfjs'),
         import('@tensorflow-models/universal-sentence-encoder')
       ]);
-      // Force CPU backend to avoid WebGL context loss on some hosts (e.g., Vercel preview)
+      // Hard-disable WebGL and force CPU backend to avoid GPU context issues
       try {
+        if (tf?.env) {
+          try { tf.env().set('WEBGL_FORCE_DISABLED', true); } catch {}
+        }
         await tf.setBackend('cpu');
         await tf.ready();
       } catch {}
