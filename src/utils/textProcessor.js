@@ -101,7 +101,6 @@ export async function extractTextFromPDF(file) {
           }
         } catch (e) {
           // OCR is best-effort; continue without failing
-          // console.warn('OCR failed', e);
         }
       }
 
@@ -129,6 +128,9 @@ function isTitleCaseLine(s) {
   for (const w of words) if (w[0] && w[0] === w[0].toUpperCase()) caps++;
   return caps / Math.max(1, words.length) > 0.6;
 }
+function hasVerb(s) {
+  return /\b(is|are|was|were|has|have|represents|means|refers|consists|contains|denotes|uses|used|measures|shows|indicates|describes|defines|computes|estimates)\b/i.test(s);
+}
 function looksLikeHeading(s) {
   const t = s.trim();
   if (t.length <= 2) return true;
@@ -141,6 +143,27 @@ function looksLikeHeading(s) {
   if (!/[.!?]$/.test(t) && t.split(/\s+/).length <= 8) return true;
   return false;
 }
+function looksLikeHeadingStrong(s, docTitle = '') {
+  const t = s.trim();
+  if (!t) return true;
+  if (looksLikeHeading(t)) return true;
+  if (docTitle && jaccardText(t, docTitle) >= 0.6) return true;
+  if (/\b(introduction|overview|summary|conclusion|acknowledg(e)?ments?)\b/i.test(t)) return true;
+  if (t.includes(' - ') && !/[.!?]$/.test(t)) return true;
+  if (!hasVerb(t) && t.split(/\s+/).length > 4) return true;
+  return false;
+}
+
+function jaccardText(a, b) {
+  const A = new Set((a || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean));
+  const B = new Set((b || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean));
+  if (A.size === 0 && B.size === 0) return 1;
+  let inter = 0;
+  for (const x of A) if (B.has(x)) inter++;
+  const uni = A.size + B.size - inter;
+  return uni === 0 ? 0 : inter / uni;
+}
+
 function normalizeText(raw) {
   // Remove excessive whitespace and join hyphenated line breaks
   const lines = raw.replace(/\r/g, '').split(/\n+/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -157,6 +180,13 @@ function normalizeText(raw) {
     if (!looksLikeHeading(l) || containsFormula(l)) kept.push(l);
   }
   return kept.join('\n');
+}
+
+function repairDanglingEnd(s) {
+  let t = s.replace(/\s{2,}/g, ' ').trim();
+  if (/(\b(a|an|the)\s*[\.:])$/i.test(t)) t = t.replace(/\b(a|an|the)\s*[\.:]$/i, '.');
+  if (!/[.!?]$/.test(t)) t += '.';
+  return t;
 }
 
 // Split text into sentences
@@ -186,6 +216,28 @@ export function tokenize(text) {
   const tokenRegex = /[A-Za-z][A-Za-z\-']+/g;
   const matches = text.match(tokenRegex) || [];
   return matches.map(token => token.toLowerCase());
+}
+
+function refineKeyPhrases(candidates, sentences, docTitle) {
+  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like']);
+  const ok = [];
+  const seen = new Set();
+  for (const p of candidates) {
+    const tokens = p.split(' ');
+    if (tokens.some(t => t.length < 3)) continue;
+    if (BAN.has(p)) continue;
+    if (p === 'data') continue; // too generic
+    // must appear in at least one good sentence
+    const s = sentences.find(sen => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(sen));
+    if (!s) continue;
+    if (looksLikeHeadingStrong(s, docTitle)) continue;
+    // prefer longer phrase over its substring
+    const key = p.toLowerCase();
+    if ([...seen].some(k => k.includes(key) || key.includes(k))) continue;
+    ok.push(p);
+    seen.add(key);
+  }
+  return ok;
 }
 
 // Extract keyPhrases: unigrams + bigrams + trigrams
@@ -244,7 +296,7 @@ function contextFromSentence(sentence, phrase, maxLen = 220) {
   ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
   if (!/[.!?]$/.test(ctx)) ctx += '.';
   if (ctx.length > maxLen) ctx = ctx.slice(0, maxLen - 3) + '...';
-  return ctx;
+  return repairDanglingEnd(ctx);
 }
 
 function detIndex(str, n) {
@@ -255,7 +307,6 @@ function detIndex(str, n) {
 
 function placeDeterministically(choices, correct, seed = 0) {
   const n = choices.length;
-  // Slightly alter placement by seed to avoid mode collisions
   const idx = Math.min(n - 1, (detIndex(correct, n) + seed) % n);
   const others = choices.filter(c => c !== correct);
   const arranged = new Array(n);
@@ -343,9 +394,17 @@ function pickTemplate(templates, mode, seed = 0) {
   return list[idx];
 }
 
+function validatePropSentence(s, docTitle) {
+  const t = repairDanglingEnd(s);
+  if (t.length < 50 || t.length > 220) return null;
+  if (!hasVerb(t)) return null;
+  if (looksLikeHeadingStrong(t, docTitle)) return null;
+  return t;
+}
+
 // Build quiz questions from sentences and phrases (deterministic, tougher, varied) – always return exactly `total` MCQs with 4 options each
 export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
-  const { difficulty = 'balanced', formulas = [] } = opts;
+  const { difficulty = 'balanced', formulas = [], docTitle = '' } = opts;
   const includeFormulas = opts.includeFormulas !== false; // default true
   const wantExplanations = !!opts.explain;
 
@@ -372,30 +431,47 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   function sentenceFor(p) {
-    // Prefer non-visual references
-    let s = sentences.find(ss => hasPhrase(p, ss) && !looksVisualRef(ss) && ss.length >= 50);
-    if (!s) s = sentences.find(ss => hasPhrase(p, ss));
-    return s || sentences[0] || '';
+    // Prefer non-visual references and avoid headings
+    let s = sentences.find(ss => hasPhrase(p, ss) && !looksVisualRef(ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
+    if (!s) s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle));
+    return s || sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle)) || sentences[0] || '';
   }
 
   function propertyText(p, maxLen = 180) {
-    const s = sentenceFor(p);
-    const ctx = contextFromSentence(s, p, maxLen);
-    // Normalize into a property-type clause
-    let t = ctx.replace(/^\s*(:|-|–)\s*/, '').replace(/^it\s+is\s+/i, '').trim();
-    if (!/[.!?]$/.test(t)) t += '.';
+    let s = sentenceFor(p);
+    let ctx = contextFromSentence(s, p, maxLen);
+    let t = validatePropSentence(ctx, docTitle);
+    if (!t) {
+      // try alternative sentence containing p
+      const alt = sentences.find(ss => ss !== s && hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
+      if (alt) {
+        ctx = contextFromSentence(alt, p, maxLen);
+        t = validatePropSentence(ctx, docTitle);
+      }
+    }
+    if (!t) {
+      // use a nearby sentence in the same co-occur cluster
+      const idxs = [...(cooccur[p] || [])];
+      for (const i of idxs) {
+        const ss = sentences[i];
+        if (!ss) continue;
+        const ctx2 = contextFromSentence(ss, p, maxLen);
+        const cand = validatePropSentence(ctx2, docTitle);
+        if (cand) { t = cand; break; }
+      }
+    }
+    if (!t) t = repairDanglingEnd(ctx);
     return t;
   }
 
   function buildConceptQ(s, phrase, seed = 0) {
-    // Avoid visual references; fall back to better sentence
-    if (looksVisualRef(s)) s = sentenceFor(phrase);
+    // Avoid visual references & headings; fall back to better sentence
+    if (looksVisualRef(s) || looksLikeHeadingStrong(s, docTitle)) s = sentenceFor(phrase);
     let primary = contextFromSentence(s, phrase);
     let secondary = '';
     if (mode !== 'balanced') {
-      // For harder/expert, allow multi-hop by picking a second sentence from a related concept
       const related = distractorsForConcept(phrase);
-      const alt = sentences.find(t => t !== s && (hasPhrase(phrase, t) || related.slice(0, 3).some(rp => hasPhrase(rp, t))) && t.length >= 50 && !looksVisualRef(t));
+      const alt = sentences.find(t => t !== s && (hasPhrase(phrase, t) || related.slice(0, 3).some(rp => hasPhrase(rp, t))) && t.length >= 50 && !looksVisualRef(t) && !looksLikeHeadingStrong(t, docTitle));
       if (alt) secondary = contextFromSentence(alt, phrase, 160);
     }
     const tpl = pickTemplate(CONCEPT_TEMPLATES, mode, seed);
@@ -411,15 +487,16 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   function buildPropertyQ(phrase, seed = 0) {
     const stem = pickTemplate(PROPERTY_TEMPLATES, mode, seed)(phrase);
     const correct = propertyText(phrase, (mode !== 'balanced') ? 160 : 140);
-    // choose distractor phrases
     const related = distractorsForConcept(phrase);
     const poolPhrases = (mode !== 'balanced') ? related : phrases.filter(p => p !== phrase);
     const props = [];
     for (const pp of poolPhrases) {
-      if (props.length >= 8) break;
+      if (props.length >= 12) break;
       if (pp === phrase) continue;
       const pt = propertyText(pp, 140);
-      if (!tooSimilar(pt, correct)) props.push(pt);
+      const v = validatePropSentence(pt, docTitle);
+      if (!v) continue;
+      if (!tooSimilar(v, correct)) props.push(v);
     }
     const optsArr = distinctFillOptions(correct, props, [], [], 4);
     const { arranged, idx } = placeDeterministically(optsArr, correct, modeIdx);
@@ -443,19 +520,17 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   // Build pool of candidates for concept/property questions
   const conceptTargets = [];
   for (const s of sentences) {
-    if (looksVisualRef(s)) continue;
+    if (looksVisualRef(s) || looksLikeHeadingStrong(s, docTitle)) continue;
     const phrase = phrases.find(p => p.includes(' ') && hasPhrase(p, s) && !used.has(p))
       || phrases.find(p => hasPhrase(p, s) && !used.has(p));
     if (!phrase) continue;
-    // mode-based disjointing: prefer phrases hashing to this mode bucket
     if (detIndex(phrase, 3) !== modeIdx) continue;
     conceptTargets.push({ s, phrase });
   }
-  // Fallback: if too few due to disjointing, allow any remaining
   if (conceptTargets.length < Math.ceil(total * 0.6)) {
     for (const s of sentences) {
       if (conceptTargets.length >= Math.ceil(total * 0.6)) break;
-      if (looksVisualRef(s)) continue;
+      if (looksVisualRef(s) || looksLikeHeadingStrong(s, docTitle)) continue;
       const phrase = phrases.find(p => hasPhrase(p, s) && !used.has(p));
       if (!phrase) continue;
       if (!conceptTargets.some(ct => ct.phrase === phrase)) conceptTargets.push({ s, phrase });
@@ -488,7 +563,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   let pi = 0;
   while (quiz.length < wantConcept + wantProperty && pi < propPhrases.length) {
     const p = propPhrases[pi++];
-    if (detIndex(p, 3) !== modeIdx && quiz.length < wantConcept) continue; // keep modes disjoint early
+    if (detIndex(p, 3) !== modeIdx && quiz.length < wantConcept) continue;
     used.add(p);
     const q = buildPropertyQ(p, pi + modeIdx);
     quiz.push({ id: generateUUID(), ...q });
@@ -498,7 +573,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const formulaToSentence = new Map();
   for (const s of sentences) {
     for (const f of formulaPool) {
-      if (!looksVisualRef(s) && !formulaToSentence.has(f) && s.includes(f.replace(/[$]/g, ''))) {
+      if (!looksVisualRef(s) && !looksLikeHeadingStrong(s, docTitle) && !formulaToSentence.has(f) && s.includes(f.replace(/[$]/g, ''))) {
         formulaToSentence.set(f, s);
       }
     }
@@ -613,6 +688,8 @@ export async function generateArtifacts(rawText, title = null, options = {}) {
   const limitedText = text.length > 150000 ? text.slice(0, 150000) : text;
 
   await tick();
+  const normalized = normalizeText(limitedText);
+  const firstLine = (limitedText.split(/\n+/).map(l => l.trim()).find(l => l.length > 0)) || '';
   let sentences = splitSentences(limitedText);
   await tick();
   if (sentences.length === 0) {
@@ -624,15 +701,21 @@ export async function generateArtifacts(rawText, title = null, options = {}) {
   }
 
   await tick();
-  // Prefer keyphrases (multi-word) with unigram fallback
-  const phrases = extractKeyPhrases(limitedText, 18);
+  // Prefer keyphrases (multi-word) with unigram fallback, then refine
+  let phrases = extractKeyPhrases(limitedText, 18);
+  phrases = refineKeyPhrases(phrases, sentences, firstLine);
+  if (phrases.length < 8) {
+    // fallback to add more tokens ignoring refine, but skip banned
+    const extra = extractKeyPhrases(limitedText, 24).filter(p => !phrases.includes(p));
+    phrases.push(...refineKeyPhrases(extra, sentences, firstLine));
+  }
 
   // Extract exact formulas from content and keep them intact
   const formulas = extractFormulasFromText(limitedText);
 
   await tick();
   // Heuristic build first (fast) – all MCQ; enforce 10
-  let quiz = buildQuiz(sentences, phrases, 10, { difficulty, formulas, includeFormulas, explain });
+  let quiz = buildQuiz(sentences, phrases, 10, { difficulty, formulas, includeFormulas, explain, docTitle: firstLine });
   await tick();
   let flashcards = buildFlashcards(sentences, phrases, 12);
   await tick();

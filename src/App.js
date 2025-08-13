@@ -20,8 +20,6 @@ function Landing() {
   const [heroTab, setHeroTab] = useState('quiz');
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
-
-
   const HeroCard = ({ icon, title, desc, className = "" }) => (
     <div className={`rounded-xl border bg-card/90 p-4 card-glow hero-card hover:shadow-xl transition-shadow ${className}`}>
       <div className="flex items-center gap-2 text-sm font-medium mb-1">{icon}{title}</div>
@@ -164,7 +162,6 @@ function Landing() {
         </div>
       </Section>
 
-
       {/* Features (restored) */}
       <Section id="features" title="Features" subtitle="Everything you need to turn notes into learning outcomes.">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -275,10 +272,8 @@ function Studio() {
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
 
-  // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
-  // Handle shared answers from URL hash
   useEffect(() => {
     try {
       const h = window.location.hash || '';
@@ -379,7 +374,6 @@ function Studio() {
     setEvaluated(true);
   };
 
-  // PDF Helpers
   const ensureJsPDF = async () => {
     try {
       const jsPDF = await getJsPDF(1200);
@@ -596,12 +590,12 @@ function Studio() {
                   </div>
                   {/* Mobile dropdown */}
                   <div className="select-wrap sm:hidden">
-                    <select className="select-control text-sm border border-border rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                       <option value="balanced">Balanced</option>
                       <option value="harder">Harder</option>
                       <option value="expert">Expert</option>
                     </select>
-                    <span className="select-arrow text-foreground/70"><ChevronDown size={16} /></span>
+                    <span className="select-arrow"><ChevronDown size={16} /></span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -635,7 +629,6 @@ function Studio() {
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          {/* Download toolbar */}
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" disabled={!result?.quiz?.length || pdfBusy.quiz} onClick={downloadQuizPDF} aria-busy={pdfBusy.quiz}>
               {pdfBusy.quiz ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Quiz PDF'}
@@ -697,8 +690,13 @@ function Studio() {
                               })}
                             </div>
                             {evaluated && (
-                              <div className="text-xs text-foreground/80">
-                                Correct answer: {String.fromCharCode(65 + (q.answer_index ?? 0))}) {q.options[q.answer_index]}
+                              <div className="text-xs text-foreground/80 space-y-1">
+                                <div>Correct answer: {String.fromCharCode(65 + (q.answer_index ?? 0))}) {q.options[q.answer_index]}</div>
+                                {Number.isInteger(answers[idx]) && (
+                                  <div className={`${answers[idx] === q.answer_index ? 'text-green-600' : 'text-red-600'}`}>
+                                    Your answer: {String.fromCharCode(65 + answers[idx])}) {q.options[answers[idx]]}
+                                  </div>
+                                )}
                               </div>
                             )}
                             {showExplanations && q.explanation && (
