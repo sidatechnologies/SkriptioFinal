@@ -440,7 +440,7 @@ function Studio() {
   const LOGO_URL = "/assets/aceel-logo.png";
   const POPPINS_URL = "/fonts/Poppins-Regular.ttf";
   const logoDataRef = useRef(null);
-  const poppinsBase64Ref = useRef(null);
+  const wordmarkDataRef = useRef(null);
 
   const fetchAsDataURL = async (url) => {
     try {
