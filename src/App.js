@@ -558,12 +558,22 @@ function Studio() {
     compact: compactQuiz(result.quiz, result.title)
   });
 
+  const slugify = (s) => {
+    const t = (s || '').toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    return t.slice(0, 60) || 'study-kit';
+  };
+  const inferTitle = () => {
+    if (title && title.trim()) return title.trim();
+    const firstNonEmpty = (text || '').split(/\n+/).map(l => l.trim()).find(Boolean) || '';
+    return firstNonEmpty.slice(0, 80) || 'Study Kit';
+  };
   const buildShareURL = () => {
     const payload = buildSharePayload();
     const token = b64uEncode(payload);
-    // Shorten visually by using a share-specific path and ?s param (still same page)
     const base = `${window.location.origin}${window.location.pathname}`;
-    return `${base}?s=${token}`;
+    const name = slugify(inferTitle());
+    // Human-friendly path with minimal visual noise
+    return `${base}/${name}?s=${token}`;
   };
 
   const shareAnswers = async () => {
