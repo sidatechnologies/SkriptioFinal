@@ -415,7 +415,7 @@ function tooSimilar(a, b) {
 }
 
 function removePhraseOnce(sentence, phrase) {
-  const rx = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i');
+  const rx = new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'i');
   return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
 }
 
