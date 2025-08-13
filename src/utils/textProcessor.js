@@ -442,6 +442,13 @@ function fixMidwordSpaces(s) {
   t = t.replace(/\b([A-Z])\s+([a-z]{5,})\b/g, '$1$2');
   // Fix intra-word hyphenation artifacts that became spaces, e.g., "require ments" -> "requirements"
   t = t.replace(/\b([A-Za-z]{3,})\s+(ment|ments|tion|tions|sion|sions|ness|ship|hood|able|ible|ally|ically)\b/gi, '$1$2');
+  // Insert missing spaces for common glued terms from OCR/PDF
+  t = t.replace(/\bthebottleneck\b/gi, 'the bottleneck');
+  t = t.replace(/\bprocessbottleneck\b/gi, 'process bottleneck');
+  t = t.replace(/\bcontinuousbottleneck\b/gi, 'continuous bottleneck');
+  t = t.replace(/\bworkin\s+progress\b/gi, 'work in progress');
+  // Generic: split longword+bottleneck -> longword bottleneck
+  t = t.replace(/\b([a-z]{5,})(bottleneck)\b/gi, '$1 $2');
   return t;
 }
 
