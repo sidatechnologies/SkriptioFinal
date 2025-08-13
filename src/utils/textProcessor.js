@@ -805,7 +805,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
     const { arranged, idx } = placeDeterministically(normalized, normCorrect, modeIdx);
     markUsed(arranged, normCorrect);
-    const explanation = wantExplanations ? `Derived from text around "${phrase}".` : undefined;
+    const explanation = wantExplanations ? `From text: ${normCorrect}` : undefined;
     return { question: stem, options: arranged, answer_index: idx, qtype: 'property', explanation };
   }
 
