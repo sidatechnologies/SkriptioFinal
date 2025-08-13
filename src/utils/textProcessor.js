@@ -1140,7 +1140,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 }
 
 // Build theory questions (descriptive, open-ended) from sentences and phrases
-export function buildTheoryQuestions(sentences, phrases, total = 10, opts = {}) {
+function escapeRegExp(s) {
+  return String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
   const { difficulty = 'balanced', docTitle = '' } = opts;
   // Prefer multi-word phrases and de-genericize
   const BAN = new Set(['work','process','one process','ongoing process','analysis tools']);
