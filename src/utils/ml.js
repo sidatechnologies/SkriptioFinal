@@ -277,17 +277,14 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
     const idxCorrect = phrases.findIndex(p => p.toLowerCase() === String(correct).toLowerCase());
     const candidates = [];
     const candVecs = [];
-    if (phraseVecs) {
-      for (let i = 0; i < phrases.length; i++) {
-        const lab = phrases[i];
-        if (!phraseVecs[i]) continue;
-        if (String(lab).toLowerCase() === String(correct).toLowerCase()) continue;
-        if (tooSimilar(lab, correct)) continue;
-        // enforce mode disjointness to reduce overlap across modes
-        if (detIndex(lab, 3) === modeIdx) continue;
-        candidates.push(lab);
-        candVecs.push(phraseVecs[i]);
-      }
+    for (let i = 0; i < phrases.length; i++) {
+      const lab = phrases[i];
+      if (!phraseVecs[i]) continue;
+      if (String(lab).toLowerCase() === String(correct).toLowerCase()) continue;
+      if (tooSimilar(lab, correct)) continue;
+      if (detIndex(lab, 3) === modeIdx) continue;
+      candidates.push(lab);
+      candVecs.push(phraseVecs[i]);
     }
     let mmr = [];
     if (phraseVecs && candidates.length) {
