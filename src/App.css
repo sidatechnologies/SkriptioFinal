@@ -41,19 +41,19 @@ input[type=file] { display: none; }
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: #fff; /* force white for visibility across themes */
-  color: #111;
-  border: 1px solid rgba(0,0,0,0.25);
+  background-color: #000; /* black bg */
+  color: #fff;            /* white text */
+  border: 1px solid #fff; /* white outline */
   padding-right: 2rem;
 }
 .dark .select-control {
-  background-color: #fff; /* keep white in dark as well */
-  color: #111;
-  border-color: rgba(0,0,0,0.35);
+  background-color: #000; /* black stays in dark */
+  color: #fff;
+  border-color: #fff;
 }
 .select-arrow {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  pointer-events: none; opacity: 0.8; color: #111;
+  pointer-events: none; opacity: 0.9; color: #fff;
 }
 
 /* Hero gradient wrapper with warm gold accent */
