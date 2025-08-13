@@ -167,7 +167,7 @@ function Landing() {
       </Section>
 
       {/* About (minimal, centered) */}
-      <Section id="about" title="About Skriptio">
+      <Section id="about" title="About Skriptio" centerTitle>
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-foreground/80">
             Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.
