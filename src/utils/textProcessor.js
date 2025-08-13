@@ -547,7 +547,11 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
   function buildPropertyQ(phrase, seed = 0) {
     const stem = pickTemplate(PROPERTY_TEMPLATES, mode, seed)(phrase);
-    const correct = propertyText(phrase, (mode !== 'balanced') ? 160 : 140);
+    let correct = propertyText(phrase, (mode !== 'balanced') ? 160 : 140);
+
+    // Summarize overly long correct sentence
+    if (correct.length > 160) correct = summarizeSentence(correct, 150);
+    if (isIncompleteTail(correct)) return null; // skip bad property items entirely
 
     // avoid tautology: don't allow the phrase itself to appear as any option
     const notPhrase = (s) => s && s.trim().toLowerCase() !== phrase.trim().toLowerCase();
@@ -556,18 +560,27 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const poolPhrases = (mode !== 'balanced') ? related : phrases.filter(p => p !== phrase);
     const props = [];
     for (const pp of poolPhrases) {
-      if (props.length >= 18) break;
+      if (props.length >= 24) break;
       if (pp === phrase) continue;
-      // avoid distractor identical to the asked phrase
       if (!notPhrase(pp)) continue;
-      const pt = propertyText(pp, 140);
+      let pt = propertyText(pp, 160);
+      if (!pt) continue;
+      // summarize and validate distractors too
+      if (pt.length > 160) pt = summarizeSentence(pt, 140);
       const v = validatePropSentence(pt, docTitle);
-      if (!v) continue;
+      if (!v || isIncompleteTail(v)) continue;
       if (!notPhrase(v)) continue;
       if (!tooSimilar(v, correct)) props.push(v);
     }
-    const optsArr = distinctFillOptions(correct, props, [], [], 4)
-      .filter(notPhrase) // prune any leftover phrase echoes
+
+    // Length-balance: prefer distractors around the same length
+    const len = correct.length;
+    const inBand = props.filter(p => p.length >= len * 0.65 && p.length <= len * 1.35);
+    const nearBand = props.filter(p => p.length >= len * 0.5 && p.length <= len * 1.6);
+    const poolBalanced = inBand.length >= 3 ? inBand : (nearBand.length >= 3 ? nearBand : props);
+
+    const optsArr = distinctFillOptions(correct, poolBalanced, [], [], 4)
+      .filter(notPhrase)
       .map(fixSpacing);
 
     // As a final guard, if any option equals the phrase, replace it with a safe generic
