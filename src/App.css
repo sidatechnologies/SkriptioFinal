@@ -97,7 +97,7 @@ input[type=file] { display: none; }
 .orbit-4 { width: 300px; height: 300px; animation: spinOrbit 15s linear infinite; }
 .orbit-5 { width: 320px; height: 320px; animation: spinOrbit 18s linear infinite; }
 .hero-atom .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
-@media (max-width: 1024px) { .hero-atom { width: 280px; height: 280px; } .orbit-5 { width: 280px; height: 280px; } }
+@media (max-width: 1024px) { .hero-atom { width: 260px; height: 260px; transform: translateX(0); } .orbit-5 { width: 260px; height: 260px; } }
 
 
 .card-glow {
