@@ -84,3 +84,11 @@ input[type=file] { display: none; }
 .section-title {
   letter-spacing: -0.02em;
 }
+
+/* Golden outline text for hero heading and nav brand */
+.gold-outline {
+  color: #F5C542;
+  text-shadow:
+    0 0 12px rgba(245,197,66,0.25),
+    0 0 2px rgba(245,197,66,0.65);
+}
