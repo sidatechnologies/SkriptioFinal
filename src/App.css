@@ -58,6 +58,9 @@ input[type=file] { display: none; }
 .hero-card { border-color: rgba(245,197,66,0.18) !important; }
 .hero-card:hover { box-shadow: 0 10px 40px rgba(245,197,66,0.15), 0 8px 30px rgba(0,0,0,0.25); }
 
+/* Hover gold utility */
+.hover-gold:hover { color: var(--gold-hex); }
+
 /* Floating animated cards */
 @keyframes floaty {
   0% { transform: translateY(0px); }
