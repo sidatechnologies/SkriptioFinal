@@ -584,6 +584,114 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     return t;
   }
 
+  // Global option usage tracker for this quiz to reduce repetition across questions
+  const optionUseCount = new Map();
+  const normOption = (s) => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const markUsed = (arr, correct) => {
+    for (const o of arr) {
+      const k = normOption(o);
+      if (!k) continue;
+      // Do not count the correct answer toward repetition penalty
+      if (normOption(o) === normOption(correct)) continue;
+      optionUseCount.set(k, (optionUseCount.get(k) || 0) + 1);
+    }
+  };
+
+  function pickDistractorsConcept(correctPhrase) {
+    // Prefer multi-word and semantically related; avoid over-used options
+    const isMulti = (p) => (p || '').trim().includes(' ');
+    const related = distractorsForConcept(correctPhrase).filter(p => p && p !== correctPhrase);
+    const candidatePool = [
+      ...related,
+      ...phrases.filter(p => p !== correctPhrase)
+    ].filter(p => p && p.trim().length >= 4);
+
+    const uniq = Array.from(new Set(candidatePool));
+    const score = (cand) => {
+      // lexical similarity between phrases (want mid-high for harder/expert, mid for balanced)
+      const sim = lexicalJaccard(correctPhrase, cand);
+      const used = optionUseCount.get(normOption(cand)) || 0;
+      const multi = isMulti(cand) ? 1 : 0;
+      let targetLow = 0.25, targetHigh = 0.65; // balanced
+      if (mode === 'harder') { targetLow = 0.4; targetHigh = 0.8; }
+      if (mode === 'expert') { targetLow = 0.5; targetHigh = 0.85; }
+      const band = (sim >= targetLow && sim <= targetHigh) ? 1 : 0.5;
+      // penalize too similar to avoid near-tautology
+      const tooClose = sim > 0.92 ? -0.5 : 0;
+      return band * (1 + 0.3 * multi) - 0.25 * used + tooClose;
+    };
+    const ranked = uniq
+      .filter(p => !tooSimilar(p, correctPhrase))
+      .sort((a, b) => score(b) - score(a));
+
+    const out = [];
+    for (const c of ranked) {
+      if (out.length >= 3) break;
+      const nk = normOption(c);
+      if (!nk) continue;
+      if (optionUseCount.get(nk) >= 1) continue; // ensure at most once across quiz
+      out.push(c);
+    }
+    // If still short, backfill with less used multi-word phrases
+    let i = 0;
+    while (out.length < 3 && i < phrases.length) {
+      const cand = phrases[i++];
+      if (!cand || cand === correctPhrase) continue;
+      if (tooSimilar(cand, correctPhrase)) continue;
+      if (!isMulti(cand)) continue;
+      const nk = normOption(cand);
+      if (optionUseCount.get(nk) >= 1) continue;
+      out.push(cand);
+    }
+    return out.slice(0, 3);
+  }
+
+  // Precompute property sentence pool for better property distractors
+  const propertyPool = [];
+  const propertyByPhrase = new Map();
+  for (const pp of phrases) {
+    const pt = propertyText(pp, (mode !== 'balanced') ? 160 : 140);
+    if (pt) { propertyPool.push({ phrase: pp, text: pt }); propertyByPhrase.set(pp, pt); }
+  }
+
+  function pickDistractorsProperty(correctSentence, correctPhrase) {
+    const uniq = Array.from(new Set(propertyPool
+      .filter(x => x.phrase !== correctPhrase && !tooSimilar(x.text, correctSentence))
+      .map(x => x.text)));
+
+    const score = (cand) => {
+      const sim = lexicalJaccard(correctSentence, cand);
+      let targetLow = 0.25, targetHigh = 0.6;
+      if (mode === 'harder') { targetLow = 0.35; targetHigh = 0.75; }
+      if (mode === 'expert') { targetLow = 0.45; targetHigh = 0.85; }
+      const inBand = (sim >= targetLow && sim <= targetHigh) ? 1 : 0.7;
+      const used = optionUseCount.get(normOption(cand)) || 0;
+      const len = cand.length;
+      const lenBonus = (len >= correctSentence.length * 0.7 && len <= correctSentence.length * 1.3) ? 0.3 : 0;
+      return inBand + lenBonus - 0.3 * used - (sim > 0.93 ? 0.7 : 0);
+    };
+
+    const ranked = uniq.sort((a, b) => score(b) - score(a));
+    const out = [];
+    for (const c of ranked) {
+      if (out.length >= 3) break;
+      const nk = normOption(c);
+      if (!nk) continue;
+      if (optionUseCount.get(nk) >= 1) continue;
+      out.push(c);
+    }
+    // Backfill from any property texts if still short
+    let i = 0;
+    while (out.length < 3 && i < uniq.length) {
+      const cand = uniq[i++];
+      const nk = normOption(cand);
+      if (!nk) continue;
+      if (optionUseCount.get(nk) >= 1) continue;
+      out.push(cand);
+    }
+    return out.slice(0, 3);
+  }
+
   function buildConceptQ(s, phrase, seed = 0) {
     // Avoid visual references & headings; fall back to better sentence
     if (looksVisualRef(s) || looksLikeHeadingStrong(s, docTitle)) s = sentenceFor(phrase);
@@ -597,17 +705,11 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const tpl = pickTemplate(CONCEPT_TEMPLATES, mode, seed);
     const qtext = tpl(primary, secondary);
 
-    // Avoid tautology: remove any options that equal the phrase itself
-    const notPhrase = (x) => x && x.trim().toLowerCase() !== phrase.trim().toLowerCase();
-
-    const pool = distractorsForConcept(phrase).filter(notPhrase);
-    const fallbackPool = phrases.filter(pp => pp !== phrase && !tooSimilar(pp, phrase) && notPhrase(pp));
-    const optsArr = distinctFillOptions(phrase, pool.slice(0, mode !== 'balanced' ? 12 : 8), fallbackPool, phrases, 4)
-      .filter(notPhrase)
-      .map(fixSpacing);
-
-    const { arranged, idx } = placeDeterministically(optsArr, phrase, modeIdx);
+    const distractors = pickDistractorsConcept(phrase).map(fixSpacing);
+    const allOpts = [phrase, ...distractors];
+    const { arranged, idx } = placeDeterministically(allOpts, phrase, modeIdx);
     const explanation = wantExplanations ? `Context: ${primary}${secondary ? ' | ' + secondary : ''}` : undefined;
+    markUsed(arranged, phrase);
     return { question: qtext, options: arranged, answer_index: idx, qtype: 'concept', explanation };
   }
 
