@@ -704,6 +704,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   // Precompute property sentence pool for better property distractors
   const propertyPool = [];
   const propertyByPhrase = new Map();
+  const propertyTextKey = (t) => normalizeEquivalents(t).replace(/\s+/g, ' ').trim();
   for (const pp of phrases) {
     const pt = propertyText(pp, (mode !== 'balanced') ? 160 : 140);
     if (pt) { propertyPool.push({ phrase: pp, text: pt }); propertyByPhrase.set(pp, pt); }
