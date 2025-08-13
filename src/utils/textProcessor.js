@@ -760,6 +760,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   // Build pool of candidates for concept/property questions
+  // Increase mode separation: expert favors rare concepts and more properties; harder mid; balanced easy
   const conceptTargets = [];
   for (const s of sentences) {
     if (looksVisualRef(s) || looksLikeHeadingStrong(s, docTitle)) continue;
