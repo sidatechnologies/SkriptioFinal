@@ -592,20 +592,24 @@ function Studio() {
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
                   {/* Desktop/tablet segmented control */}
-                  <div className="hidden md:inline-flex rounded-md overflow-hidden border border-border">
-                    <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
-                    <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
-                    <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
-                  </div>
+                  {isDesktop && (
+                    <div className="inline-flex rounded-md overflow-hidden border border-border">
+                      <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
+                    </div>
+                  )}
                   {/* Mobile dropdown */}
-                  <div className="select-wrap md:hidden">
-                    <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                      <option value="balanced">Balanced</option>
-                      <option value="harder">Harder</option>
-                      <option value="expert">Expert</option>
-                    </select>
-                    <span className="select-arrow"><ChevronDown size={16} /></span>
-                  </div>
+                  {!isDesktop && (
+                    <div className="select-wrap">
+                      <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                        <option value="balanced">Balanced</option>
+                        <option value="harder">Harder</option>
+                        <option value="expert">Expert</option>
+                      </select>
+                      <span className="select-arrow"><ChevronDown size={16} /></span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Include formulas</div>
