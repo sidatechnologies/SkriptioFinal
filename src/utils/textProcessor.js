@@ -266,7 +266,8 @@ function adjustToLengthBand(correctLen, s, low = 0.85, high = 1.15) {
   let t = String(s || '').trim();
   if (!t) return t;
   const minL = Math.max(40, Math.floor(correctLen * low));
-  const maxL = Math.min(200, Math.ceil(correctLen * high));
+  // Ensure we don't over-truncate long phrases to tiny fragments
+  const maxL = Math.max(60, Math.min(200, Math.ceil(correctLen * high)));
   if (t.length > maxL) t = cutToWordBoundary(t, maxL);
   // do not pad shorter; prefer natural sentences
   return t;
