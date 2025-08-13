@@ -1139,6 +1139,61 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   return fixed;
 }
 
+// Build theory questions (descriptive, open-ended) from sentences and phrases
+export function buildTheoryQuestions(sentences, phrases, total = 10, opts = {}) {
+  const { difficulty = 'balanced', docTitle = '' } = opts;
+  // Prefer multi-word phrases and de-genericize
+  const BAN = new Set(['work','process','one process','ongoing process','analysis tools']);
+  const multi = phrases.filter(p => p && p.includes(' ') && !BAN.has(p.toLowerCase()));
+  const uni = phrases.filter(p => p && !p.includes(' ') && !BAN.has(p.toLowerCase()));
+  const pool = [...multi, ...uni];
+  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/]/g, '\\$&')}\\b`, 'i').test(s);
+  const pickSentence = (p) => {
+    const s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
+    return s || sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50) || sentences[0] || '';
+  };
+  const templates = {
+    balanced: [
+      (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`,
+      (p, s) => `Describe how "${p}" affects workflow efficiency. Refer to the material and outline at least two concrete impacts.`,
+      (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`
+    ],
+    harder: [
+      (p, s) => `Analyze "${p}" in context. Using the material, identify root causes, consequences, and two mitigation strategies.`,
+      (p, s) => `Compare and contrast "${p}" with a related concept from the material. Discuss similarities, differences, and when each applies.`,
+      (p, s) => `Given the following context, explain how it illustrates "${p}": ${summarizeSentence(s || pickSentence(p), 140)}`
+    ],
+    expert: [
+      (p, s) => `Synthesize a detailed explanation of "${p}" that connects principles, trade‑offs, and constraints. Support your answer with material‑based examples.`,
+      (p, s) => `Develop a step‑by‑step approach or checklist to diagnose and address issues related to "${p}" in practice, grounded in the material.`,
+      (p, s) => `Critically evaluate the role of "${p}" within a broader system. Discuss metrics, failure modes, and improvement levers with evidence from the text.`
+    ]
+  };
+  const list = templates[difficulty] || templates.balanced;
+  const out = [];
+  const used = new Set();
+  let i = 0;
+  while (out.length < total && i < pool.length + 20) {
+    const p = pool[i % Math.max(1, pool.length)] || phrases[i % Math.max(1, phrases.length)] || 'the topic';
+    i++;
+    const key = normalizeEquivalents(p);
+    if (used.has(key)) continue;
+    used.add(key);
+    const s = pickSentence(p);
+    // rotate templates
+    const tpl = list[out.length % list.length];
+    const q = tpl(p, s);
+    // Ensure descriptive prompt length
+    if (!q || q.length < 60) continue;
+    out.push(q);
+  }
+  // Backfill if we couldn't reach total
+  while (out.length < total) {
+    out.push('Explain a core idea from the material in depth. Include definitions, context, and an example.');
+  }
+  return out.slice(0, total);
+}
+
 // Build flashcards from sentences and phrases
 export function buildFlashcards(sentences, phrases, total = 12) {
   const cards = [];
