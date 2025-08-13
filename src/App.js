@@ -513,9 +513,8 @@ function Studio() {
     uid: generateUUID(),
     ts: Date.now(),
     title: result.title,
-    quiz: result.quiz.map(q => ({ question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation })),
-    answers,
-    score
+    // Keep answer_index so recipients can evaluate locally; do not include sender answers/score
+    quiz: result.quiz.map(q => ({ question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation }))
   });
 
   const buildShareURL = () => {
