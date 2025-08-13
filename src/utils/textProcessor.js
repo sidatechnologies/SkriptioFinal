@@ -922,12 +922,21 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       .filter(o => o.length >= 3 && !BAD_TAIL.test(o))
       .filter(o => o.toLowerCase() !== (q.qtype !== 'formula' ? q.question.toLowerCase() : ''));
 
-    const baseOpts = distinctFillOptions(correct, cleanedOpts.filter((o, idx) => idx !== q.answer_index), phrases.filter(p => p !== correct), phrases, 4)
-      .map(fixSpacing);
-    const placed = placeDeterministically(baseOpts, correct, (i + modeIdx) % 4);
+    // Start from cleaned options produced earlier; preserve their order
+    let arranged = cleanedOpts.slice();
+    // Ensure the correct answer is present; if not, append it
+    if (!arranged.some(o => o === correct)) arranged.push(correct);
+    // Pad up to 4 options deterministically while avoiding near-duplicates
+    const candPool = [...phrases, 'General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+    for (let ci = 0; arranged.length < 4 && ci < candPool.length; ci++) {
+      const cand = ensureCaseAndPeriod(correct, adjustToLengthBand(correct.length, candPool[ci], 0.85, 1.15));
+      if (!cand) continue;
+      if (arranged.includes(cand)) continue;
+      if (tooSimilar(cand, correct)) continue;
+      arranged.push(cand);
+    }
 
     // Enforce cross-question option diversity
-    let arranged = placed.arranged.slice();
     const correctKey = normKey(correct);
     for (let k = 0; k < arranged.length; k++) {
       const key = normKey(arranged[k]);
