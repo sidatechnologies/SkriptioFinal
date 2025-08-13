@@ -182,8 +182,16 @@ function normalizeText(raw) {
   return kept.join('\n');
 }
 
-function repairDanglingEnd(s) {
+function fixSpacing(s) {
   let t = s.replace(/\s{2,}/g, ' ').trim();
+  // ensure space after period if followed by capital letter
+  t = t.replace(/([a-z0-9])\.([A-Z])/g, '$1. $2');
+  // replace accidental double periods
+  t = t.replace(/\.\./g, '.');
+  return t;
+}
+function repairDanglingEnd(s) {
+  let t = fixSpacing(s);
   if (/(\b(a|an|the)\s*[\.:])$/i.test(t)) t = t.replace(/\b(a|an|the)\s*[\.:]$/i, '.');
   if (!/[.!?]$/.test(t)) t += '.';
   return t;
