@@ -372,15 +372,39 @@ function jaccard(a, b) {
   const uni = A.size + B.size - inter;
   return uni === 0 ? 0 : inter / uni;
 }
+function singularizeWord(w) {
+  if (!w) return w;
+  // Common exceptions and quick outs
+  const exceptions = new Set(['is','this','his','was','gas','class','pass','analysis','basis','crisis','thesis']);
+  if (exceptions.has(w)) return w;
+  if (w.endsWith('ies') && w.length > 4) return w.slice(0, -3) + 'y'; // policies -> policy
+  if (w.endsWith('sses')) return w.slice(0, -2); // classes -> class
+  if (w.endsWith('ses') && w.length > 4) return w.slice(0, -1); // cases -> case
+  if (w.endsWith('ves') && w.length > 4) return w.slice(0, -3) + 'f'; // shelves -> shelf (approx)
+  if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us') && !w.endsWith('is')) return w.slice(0, -1);
+  return w;
+}
+function normalizeMorphology(s) {
+  return (s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(singularizeWord)
+    .join(' ')
+    .trim();
+}
 function normalizeEquivalents(s) {
   if (!s) return '';
-  return s
-    .toLowerCase()
+  let t = s.toLowerCase();
+  t = t
     .replace(/\bnumerical\s*v\b/g, 'numerical variable')
     .replace(/\bnumerical\s*var(iable)?s?\b/g, 'numerical variable')
     .replace(/\bclass\s*lbl\b/g, 'class label')
-    .replace(/\bpca\b/g, 'principal component analysis')
-    .trim();
+    .replace(/\bpca\b/g, 'principal component analysis');
+  // Morphological normalization (singularize basics)
+  t = normalizeMorphology(t);
+  return t.trim();
 }
 function tooSimilar(a, b) {
   if (!a || !b) return false;
