@@ -850,6 +850,17 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
       globalSeen.add(normKey(arranged[k]));
     }
 
+    // Unify option display lengths: summarize long options to a reasonable target window and remove ellipsis
+    const correctLen = (correct || '').length || 0;
+    const targetLen = Math.min(100, Math.max(60, Math.round(correctLen * 1.2)));
+    arranged = arranged.map((opt) => {
+      let v = (opt || '').toString().trim();
+      if (v.length > targetLen) v = summarizeSentence(v, targetLen);
+      v = v.replace(/\.\.\.$/, '.');
+      v = ensureCaseAndPeriod(correct, v);
+      return v;
+    });
+
     return { ...q, options: arranged, answer_index: arranged.indexOf(correct) >= 0 ? arranged.indexOf(correct) : placed.idx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
 
