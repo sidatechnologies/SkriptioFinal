@@ -68,7 +68,7 @@ function Landing() {
             <div className="inline-flex items-center">
               <span className="gold-pill inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs">
                 <span className="h-1.5 w-1.5 rounded-full gold-dot"/>
-                <span>A product by <span className="font-medium">Aceel AI</span></span>
+                <span className="text-[#F5C542]">A product by <span className="font-medium text-[#F5C542]">Aceel AI</span></span>
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
