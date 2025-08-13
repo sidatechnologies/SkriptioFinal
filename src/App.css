@@ -24,6 +24,9 @@ button, .btn { transition: background-color .2s ease, color .2s ease, border-col
   background: #000 !important; color: #fff !important; border-color: transparent !important;
 }
 .dark .quiz-option--selected, .dark .quiz-option.quiz-option--selected { background: #fff !important; color: #000 !important; }
+/* Ensure the letter stays visible when selected */
+.quiz-option .quiz-letter { color: inherit; opacity: 0.9; }
+.quiz-option--selected .quiz-letter { color: inherit !important; opacity: 0.95; }
 
 /* Ensure plan objectives wrap fully */
 .plan-objective { white-space: normal; word-break: break-word; }

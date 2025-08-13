@@ -588,11 +588,18 @@ function Studio() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
-                  <div className="inline-flex rounded-md overflow-hidden border border-border">
+                  {/* Desktop/tablet segmented control */}
+                  <div className="hidden sm:inline-flex rounded-md overflow-hidden border border-border">
                     <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
                   </div>
+                  {/* Mobile dropdown */}
+                  <select className="sm:hidden text-sm bg-transparent border border-border rounded-md px-2 py-1" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <option value="balanced">Balanced</option>
+                    <option value="harder">Harder</option>
+                    <option value="expert">Expert</option>
+                  </select>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Include formulas</div>
@@ -670,13 +677,14 @@ function Studio() {
                                 const isSelected = answers[idx] === oi;
                                 const isCorrect = evaluated && q.answer_index === oi;
                                 const showAsWrong = evaluated && isSelected && !isCorrect;
+                                const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
                                 return (
                                   <button
                                     key={oi}
                                     onClick={() => selectOption(idx, oi)}
-                                    className={`text-left rounded-md border px-3 py-2 quiz-option ${isSelected ? 'quiz-option--selected' : ''} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
+                                    className={`text-left rounded-md border px-3 py-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
                                   >
-                                    <span className="mr-2 text-foreground/70">{String.fromCharCode(65 + oi)})</span> {opt}
+                                    <span className="mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span> {opt}
                                   </button>
                                 );
                               })}
