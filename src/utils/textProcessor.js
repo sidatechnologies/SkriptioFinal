@@ -744,7 +744,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const final = [];
   for (const q of combined) {
     if (!q || !q.question || typeof q.question !== 'string') continue;
-    if (!Array.isArray(q.options) || !Number.isInteger(q.answer_index)) continue;
+    if (!Array.isArray(q.options) || q.answer_index == null) continue;
     const key = q.question.toLowerCase();
     if (seenQ.has(key)) continue;
 
