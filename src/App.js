@@ -320,13 +320,45 @@ function Studio() {
     try {
       const json = JSON.stringify(obj);
       const input = new TextEncoder().encode(json);
-      const deflated = pako.deflate(input);
+      const deflated = pako.deflate(input, { level: 9 });
       return toB64Url(deflated);
     } catch (e) {
       const s = JSON.stringify(obj);
       const b64 = btoa(unescape(encodeURIComponent(s)));
-      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
     }
+  };
+
+  // Compact quiz payload: dictionary of strings to reduce size
+  const compactQuiz = (quiz, title) => {
+    const dict = [];
+    const indexOf = (s) => {
+      const str = String(s || '');
+      let i = dict.indexOf(str);
+      if (i === -1) { dict.push(str); i = dict.length - 1; }
+      return i;
+    };
+    const q = quiz.map(qq => [
+      indexOf(qq.question),
+      qq.options.map(o => indexOf(o)),
+      qq.answer_index
+    ]);
+    return { v: 1, t: title || '', d: dict, q };
+  };
+
+  const expandQuiz = (payload) => {
+    if (!payload || payload.v !== 1) return null;
+    const dict = payload.d || [];
+    return (payload.q || []).map(item => {
+      const qIdx = item[0];
+      const optIdxs = item[1] || [];
+      const ansIdx = item[2] || 0;
+      return {
+        question: dict[qIdx] || '',
+        options: optIdxs.map(i => dict[i] || ''),
+        answer_index: ansIdx
+      };
+    });
   };
   const decodeShare = (b64u) => {
     try {
