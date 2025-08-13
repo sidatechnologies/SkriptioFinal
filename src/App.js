@@ -220,9 +220,9 @@ function Landing() {
       {/* Footer: email + social only */}
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <a href="mailto:aceel@sidahq.com" className="inline-flex items-center gap-2 text-sm hover-gold">
-            <Mail size={16}/> aceel@sidahq.com
-          </a>
+          <div className="text-sm text-foreground/80">
+            © {new Date().getFullYear()} Aceel AI — <a href="mailto:aceel@sidahq.com" className="inline-flex items-center gap-2 hover-gold"><Mail size={16}/> aceel@sidahq.com</a>
+          </div>
           <div className="flex items-center gap-4 text-foreground/80">
             <a href="https://instagram.com/aceel.ai" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover-gold"><Instagram size={18}/></a>
             <a href="https://x.com/aceeldotai" target="_blank" rel="noreferrer" aria-label="X" className="hover-gold"><Twitter size={18}/></a>
