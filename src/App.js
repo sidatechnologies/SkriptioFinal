@@ -166,35 +166,12 @@ function Landing() {
         </div>
       </Section>
 
-      {/* About */}
-      <Section id="about" title="About Skriptio" subtitle="Built to help you learn faster with the material you already have.">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div className="space-y-3">
-            <p className="text-foreground/80">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning.</p>
-            <p className="text-foreground/80">Difficulty modes alter question composition and distractor tightness, while formula detection preserves math expressions for exact-match questions. Everything runs locally in your browser.</p>
-            <div className="flex items-center gap-3 pt-2">
-              <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
-              <Button variant="secondary" onClick={() => navigate('/studio')} className="bg-white/10 hover:bg-white/20">Try now</Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-card border border-border rounded-lg p-5">
-              <div className="flex items-center gap-2 text-sm font-medium"><Sparkles size={16}/> On-device</div>
-              <p className="text-sm text-foreground/80 mt-1">No uploads. No accounts. Just results.</p>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5">
-              <div className="flex items-center gap-2 text-sm font-medium"><GraduationCap size={16}/> Effective learning</div>
-              <p className="text-sm text-foreground/80 mt-1">Active recall + spaced repetition baked in.</p>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5">
-              <div className="flex items-center gap-2 text-sm font-medium"><Users size={16}/> For students &amp; teams</div>
-              <p className="text-sm text-foreground/80 mt-1">Share your kit via a private link; no server store.</p>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5">
-              <div className="flex items-center gap-2 text-sm font-medium"><Shield size={16}/> Privacy-first</div>
-              <p className="text-sm text-foreground/80 mt-1">We don’t collect or store your data. Ever.</p>
-            </div>
-          </div>
+      {/* About (minimal, centered) */}
+      <Section id="about" title="About Skriptio">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-foreground/80">
+            Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.
+          </p>
         </div>
       </Section>
 
