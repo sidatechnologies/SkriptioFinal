@@ -990,7 +990,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   // Ensure each question has 4 distinct options, remove broken fragments, and trim to total
-  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.|\b(a|an|the|multiple|several|various)\s*\.|^\s*(analysis tools|tools|lean management|work stage)\.?\s*$/i;
+  const BAD_TAIL = /(of\s+(a|an|the)\s*\.|such as\s*\.|including\s*\.|\b(a|an|the|multiple|several|various)\s*\.|^\s*(analysis tools|tools|lean management|work stage|one process|ongoing process|work)\.?\s*$/i;
   const globalSeen = new Set();
   const normKey = (s) => normalizeEquivalents(String(s || ''))
     .toLowerCase()
