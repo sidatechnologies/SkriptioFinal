@@ -231,6 +231,38 @@ function summarizeSentence(s, targetLen = 140) {
   return repairDanglingEnd(t);
 }
 
+function wordsSet(s) {
+  try {
+    return new Set(tokenize(String(s || '')).filter(t => !STOPWORDS.has(t)));
+  } catch { return new Set(); }
+}
+function lexicalJaccard(a, b) {
+  const A = wordsSet(a); const B = wordsSet(b);
+  if (A.size === 0 && B.size === 0) return 0;
+  let inter = 0; for (const x of A) if (B.has(x)) inter++;
+  const uni = A.size + B.size - inter; return uni === 0 ? 0 : inter / uni;
+}
+function ensureCaseAndPeriod(pattern, s) {
+  let t = String(s || '').trim();
+  if (!t) return t;
+  // match capitalization of first letter
+  const cap = /^[A-Z]/.test(String(pattern || 'A'));
+  t = cap ? (t[0].toUpperCase() + t.slice(1)) : (t[0].toLowerCase() + t.slice(1));
+  // ensure terminal punctuation similar to pattern (default to period)
+  const pend = /[.!?]$/.test(String(pattern || '.')) ? pattern.slice(-1) : '.';
+  if (!/[.!?]$/.test(t)) t += pend || '.';
+  return t;
+}
+function adjustToLengthBand(correctLen, s, low = 0.85, high = 1.15) {
+  let t = String(s || '').trim();
+  if (!t) return t;
+  const minL = Math.max(40, Math.floor(correctLen * low));
+  const maxL = Math.min(200, Math.ceil(correctLen * high));
+  if (t.length > maxL) t = cutToWordBoundary(t, maxL);
+  // do not pad shorter; prefer natural sentences
+  return t;
+}
+
 // Split text into sentences
 export function splitSentences(text) {
   const clean = normalizeText(text);
