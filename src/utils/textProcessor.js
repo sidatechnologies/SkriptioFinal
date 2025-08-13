@@ -973,7 +973,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     });
 
     const ansIdx = arranged.indexOf(correct);
-    return { ...q, options: arranged, answer_index: ansIdx >= 0 ? ansIdx : 0, qtype: q.qtype || 'mcq', explanation: q.explanation };
+    // Deterministic placement of the correct answer among arranged options to avoid bias
+    const { arranged: placedArr, idx: placedIdx } = placeDeterministically(arranged, correct, (i + modeIdx) % 4);
+    const ansIdx = placedArr.indexOf(correct);
+    return { ...q, options: placedArr, answer_index: ansIdx >= 0 ? ansIdx : placedIdx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
 
   // If still fewer than total (edge-case), synthesize filler concept items
