@@ -248,6 +248,21 @@
         comment: "Applied spec: removed gold from hero H1 and hero bg; only 'A product by Aceel AI' pill remains golden (pin + text + outline) in hero and navbar; navbar brand 'Skriptio' not golden; About reduced to single centered paragraph; added dedicated CTA above footer; footer aligned email-left, © center, socials-right."
 
 
+  - task: "Fix build errors: RegExp escape and BAD_TAIL pattern"
+    implemented: true
+    working: true
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Compile failures in textProcessor.js: Unexpected token in template RegExp and Invalid RegExp (BAD_TAIL) Unterminated group."
+      - working: true
+        agent: "main"
+        comment: "Switched all dynamic RegExp constructions to use escapeRegExp helper and corrected BAD_TAIL group parentheses. Restarted frontend; landing and Studio load successfully."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
