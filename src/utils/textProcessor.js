@@ -588,7 +588,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const quiz = [];
   const used = new Set();
   const cooccur = Object.fromEntries(phrases.map(p => [p, new Set()]));
-  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
   const looksVisualRef = (s) => /\b(figure|fig\.?\s?\d+|diagram|chart|graph|table|image|see\s+(fig|diagram|table)|as\s+shown|following\s+(figure|diagram)|in\s+the\s+(figure|diagram))\b/i.test(s);
   sentences.forEach((s, idx) => {
     phrases.forEach(p => { if (hasPhrase(p, s)) cooccur[p].add(idx); });
