@@ -498,18 +498,34 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   function buildPropertyQ(phrase, seed = 0) {
     const stem = pickTemplate(PROPERTY_TEMPLATES, mode, seed)(phrase);
     const correct = propertyText(phrase, (mode !== 'balanced') ? 160 : 140);
+
+    // avoid tautology: don't allow the phrase itself to appear as any option
+    const notPhrase = (s) => s && s.trim().toLowerCase() !== phrase.trim().toLowerCase();
+
     const related = distractorsForConcept(phrase);
     const poolPhrases = (mode !== 'balanced') ? related : phrases.filter(p => p !== phrase);
     const props = [];
     for (const pp of poolPhrases) {
-      if (props.length >= 12) break;
+      if (props.length >= 18) break;
       if (pp === phrase) continue;
+      // avoid distractor identical to the asked phrase
+      if (!notPhrase(pp)) continue;
       const pt = propertyText(pp, 140);
       const v = validatePropSentence(pt, docTitle);
       if (!v) continue;
+      if (!notPhrase(v)) continue;
       if (!tooSimilar(v, correct)) props.push(v);
     }
-    const optsArr = distinctFillOptions(correct, props, [], [], 4);
+    const optsArr = distinctFillOptions(correct, props, [], [], 4)
+      .filter(notPhrase) // prune any leftover phrase echoes
+      .map(fixSpacing);
+
+    // As a final guard, if any option equals the phrase, replace it with a safe generic
+    const GENERIC = ['Background theory', 'General concept', 'Related idea'];
+    for (let i = 0; i < optsArr.length; i++) {
+      if (!notPhrase(optsArr[i])) optsArr[i] = GENERIC[i % GENERIC.length];
+    }
+
     const { arranged, idx } = placeDeterministically(optsArr, correct, modeIdx);
     const explanation = wantExplanations ? `Derived from text around "${phrase}".` : undefined;
     return { question: stem, options: arranged, answer_index: idx, qtype: 'property', explanation };
