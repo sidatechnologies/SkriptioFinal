@@ -456,21 +456,44 @@ function Studio() {
     }
   };
 
-  const fetchAsBase64 = async (url) => {
+  const loadPoppinsAndWordmark = async () => {
     try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const ab = await res.arrayBuffer();
-      return btoa(String.fromCharCode(...new Uint8Array(ab)));
-    } catch { return null; }
+      // Load font with FontFace from local /public
+      const ff = new FontFace('PoppinsEmbed', `url(${POPPINS_URL})`);
+      await ff.load();
+      document.fonts.add(ff);
+      // Render wordmark to canvas to avoid jsPDF custom-font issues
+      const canvas = document.createElement('canvas');
+      canvas.width = 220; canvas.height = 30;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '600 18px PoppinsEmbed, Poppins, Helvetica, Arial';
+      ctx.fillText('Skriptio', canvas.width / 2, canvas.height / 2);
+      wordmarkDataRef.current = canvas.toDataURL('image/png');
+      return true;
+    } catch {
+      // Fallback: render with Helvetica
+      const canvas = document.createElement('canvas');
+      canvas.width = 220; canvas.height = 30;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 18px Helvetica, Arial';
+      ctx.fillText('Skriptio', canvas.width / 2, canvas.height / 2);
+      wordmarkDataRef.current = canvas.toDataURL('image/png');
+      return false;
+    }
   };
 
   const ensureAssetsLoaded = async () => {
     if (!logoDataRef.current) {
       logoDataRef.current = await fetchAsDataURL(LOGO_URL);
     }
-    if (!poppinsBase64Ref.current) {
-      poppinsBase64Ref.current = await fetchAsBase64(POPPINS_URL);
+    if (!wordmarkDataRef.current) {
+      await loadPoppinsAndWordmark();
     }
   };
 
