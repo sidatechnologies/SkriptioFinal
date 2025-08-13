@@ -491,7 +491,7 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
     if (opt === undefined || opt === null) return false;
     const norm = String(opt).trim();
     if (!norm) return false;
-    if (seen.has(norm.toLowerCase())) return false;
+    if (seen.has(normalizeEquivalents(norm))) return false;
     for (const s of selected) { if (tooSimilar(String(s), norm)) return false; }
     selected.push(norm);
     seen.add(norm.toLowerCase());
