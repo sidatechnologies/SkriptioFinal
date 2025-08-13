@@ -18,7 +18,7 @@ function Landing() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [heroTab, setHeroTab] = useState('quiz');
-  useEffect(() => { prewarmML(); prewarmPDF(); }, []);
+  useEffect(() => { prewarmPDF(); }, []);
 
   const HeroCard = ({ icon, title, desc, className = "" }) => (
     <div className={`rounded-xl border bg-card/90 p-4 card-glow hero-card hover:shadow-xl transition-shadow ${className}`}>
