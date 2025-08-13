@@ -695,8 +695,9 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   while (quiz.length < wantConcept + wantProperty && pi < propPhrases.length) {
     const p = propPhrases[pi++];
     if (detIndex(p, 3) !== modeIdx && quiz.length < wantConcept) continue;
-    used.add(p);
     const q = buildPropertyQ(p, pi + modeIdx);
+    if (!q || !q.question || !Array.isArray(q.options) || q.answer_index == null) continue;
+    used.add(p);
     quiz.push({ id: generateUUID(), ...q });
   }
 
