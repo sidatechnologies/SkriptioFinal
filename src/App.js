@@ -66,7 +66,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-6 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 text-xs text-foreground/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
+              <span className="h-1.5 w-1.5 rounded-full gold-dot"/> A product by <span className="font-medium">Aceel AI</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
             <p className="text-foreground/80 text-lg">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
