@@ -583,12 +583,9 @@ function Studio() {
       if (navigator.share) {
         await navigator.share({ title: result.title || 'Skriptio Quiz', text: 'Review my quiz answers', url });
       } else {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(url);
-          toast({ title: 'Share link copied', description: 'Paste it in chat or email.' });
-        } else {
-          window.prompt('Copy this link', url);
-        }
+        const ok = await robustCopy(url);
+        if (ok) toast({ title: 'Share link copied', description: 'Paste it in chat or email.' });
+        else toast({ title: 'Copy failed', description: 'Please copy manually from the prompt.' });
       }
     } catch {}
   };
