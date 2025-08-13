@@ -526,7 +526,8 @@ function validatePropSentence(s, docTitle) {
 export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const { difficulty = 'balanced', formulas = [], docTitle = '' } = opts;
   const includeFormulas = opts.includeFormulas !== false; // default true
-  const wantExplanations = !!opts.explain;
+  // Always compute explanations so they can be toggled on after generation
+  const wantExplanations = true;
 
   const mode = difficulty; // alias
   const modeIdx = mode === 'balanced' ? 0 : (mode === 'harder' ? 1 : 2);
