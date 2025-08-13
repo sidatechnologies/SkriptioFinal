@@ -217,18 +217,18 @@ function Landing() {
         </div>
       </Section>
 
-      {/* Footer */}
+      {/* Footer: email + social only */}
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm">© {new Date().getFullYear()} Skriptio · by Aceel AI</div>
-          <nav className="flex items-center gap-5 text-sm text-foreground/80">
-            <a href="#how" className="hover:text-foreground">How it works</a>
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#usecases" className="hover:text-foreground">Use cases</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
-            <Link to="/studio" className="hover:text-foreground">Open Studio</Link>
-          </nav>
-          <ThemeToggle />
+          <a href="mailto:aceel@sidahq.com" className="inline-flex items-center gap-2 text-sm hover-gold">
+            <Mail size={16}/> aceel@sidahq.com
+          </a>
+          <div className="flex items-center gap-4 text-foreground/80">
+            <a href="https://instagram.com/aceel.ai" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover-gold"><Instagram size={18}/></a>
+            <a href="https://x.com/aceeldotai" target="_blank" rel="noreferrer" aria-label="X" className="hover-gold"><Twitter size={18}/></a>
+            <a href="https://www.linkedin.com/company/aceel-ai" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="hover-gold"><Linkedin size={18}/></a>
+            <button type="button" className="opacity-40 cursor-not-allowed" aria-disabled="true" title="Facebook (coming soon)"><Facebook size={18}/></button>
+          </div>
         </div>
       </footer>
     </div>
