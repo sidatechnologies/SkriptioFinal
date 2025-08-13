@@ -227,20 +227,22 @@ export function tokenize(text) {
 }
 
 function refineKeyPhrases(candidates, sentences, docTitle) {
-  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like']);
+  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like', 'models like', 'used reduce']);
   const ok = [];
   const seen = new Set();
   for (const p of candidates) {
-    const tokens = p.split(' ');
+    const key = p.toLowerCase().trim();
+    const tokens = key.split(' ');
     if (tokens.some(t => t.length < 3)) continue;
-    if (BAN.has(p)) continue;
-    if (p === 'data') continue; // too generic
+    if (BAN.has(key)) continue;
+    if (key === 'data') continue; // too generic
+    if (key.includes(' like')) continue; // skip patterns like "models like"
+    if (key.startsWith('used')) continue; // skip weird "used" stems
     // must appear in at least one good sentence
     const s = sentences.find(sen => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(sen));
     if (!s) continue;
     if (looksLikeHeadingStrong(s, docTitle)) continue;
     // prefer longer phrase over its substring
-    const key = p.toLowerCase();
     if ([...seen].some(k => k.includes(key) || key.includes(k))) continue;
     ok.push(p);
     seen.add(key);
