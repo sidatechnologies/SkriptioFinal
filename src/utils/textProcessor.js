@@ -1107,6 +1107,21 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     return { ...q, options: placedArr, answer_index: resolvedIdx >= 0 ? resolvedIdx : placedIdx, qtype: q.qtype || 'mcq', explanation: q.explanation };
   });
 
+  // Standardize punctuation for concept label options: avoid trailing periods on short labels
+  const isLabel = (s) => (s || '').split(/\s+/).filter(Boolean).length <= 3 && !/[,:;]/.test(s || '');
+  for (let i = 0; i < fixed.length; i++) {
+    const q = fixed[i];
+    if (q.qtype === 'concept') {
+      const correct = q.options[q.answer_index] || '';
+      const correctIsLabel = isLabel(correct);
+      if (correctIsLabel) {
+        const cleaned = q.options.map((o) => (o || '').replace(/[\.;:,]+$/,'').trim());
+        const { arranged, idx } = placeDeterministically(cleaned, cleaned[q.answer_index], (i + modeIdx) % 4);
+        fixed[i] = { ...q, options: arranged, answer_index: idx };
+      }
+    }
+  }
+
   // If still fewer than total (edge-case), synthesize filler concept items
   if (fixed.length < total) {
     const fillerNeeded = total - fixed.length;
