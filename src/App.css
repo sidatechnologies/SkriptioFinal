@@ -39,12 +39,14 @@ input[type=file] { display: none; }
     radial-gradient(900px 360px at 20% 0%, rgba(255,255,255,0.08), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(900px 380px at 80% 10%, rgba(255,255,255,0.05), transparent);
+  overflow-x: hidden;
 }
 .dark .hero-gradient {
   background:
     radial-gradient(1100px 420px at 18% -10%, rgba(255,255,255,0.06), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(1100px 420px at 75% 0%, rgba(255,255,255,0.05), transparent);
+  overflow-x: hidden;
 }
 
 /* Gold accents */
