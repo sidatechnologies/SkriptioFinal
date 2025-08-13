@@ -489,12 +489,13 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
   const seen = new Set([normalizeEquivalents(String(correct))]);
   const addIf = (opt) => {
     if (opt === undefined || opt === null) return false;
-    const norm = String(opt).trim();
-    if (!norm) return false;
-    if (seen.has(normalizeEquivalents(norm))) return false;
-    for (const s of selected) { if (tooSimilar(String(s), norm)) return false; }
-    selected.push(norm);
-    seen.add(norm.toLowerCase());
+    const raw = String(opt).trim();
+    if (!raw) return false;
+    const normMorph = normalizeEquivalents(raw);
+    if (seen.has(normMorph)) return false;
+    for (const s of selected) { if (tooSimilar(String(s), raw)) return false; }
+    selected.push(raw);
+    seen.add(normMorph);
     return true;
   };
   for (const c of pool || []) {
