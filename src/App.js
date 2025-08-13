@@ -512,32 +512,19 @@ function Studio() {
       // ignore logo errors, continue
     }
 
-    // Try to use Poppins; hard fallback to Helvetica if anything goes wrong
-    let fontOk = false;
+    // Draw wordmark as image if available; fallback to Helvetica text
     try {
-      if (poppinsBase64Ref.current) {
-        // Register only once per document
-        const list = doc.getFontList ? doc.getFontList() : {};
-        const hasPoppins = !!(list && list.Poppins);
-        if (!hasPoppins) {
-          doc.addFileToVFS('Poppins-Regular.ttf', poppinsBase64Ref.current);
-          doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
-        }
-        doc.setFont('Poppins', 'normal');
-        fontOk = true;
+      if (wordmarkDataRef.current) {
+        const ww = 28; // mm
+        const wh = 8;
+        doc.addImage(wordmarkDataRef.current, 'PNG', (pw - ww) / 2, topY + 10, ww, wh, undefined, 'FAST');
+      } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(14);
+        doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
       }
     } catch (e) {
-      fontOk = false;
-    }
-    if (!fontOk) {
-      try { doc.setFont('helvetica', 'normal'); } catch {}
-    }
-
-    try {
-      doc.setFontSize(14);
-      doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
-    } catch (e) {
-      // If text fails under Poppins, re-fallback to Helvetica and retry once
+      // Fallback text path in case image add fails
       try {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(14);
