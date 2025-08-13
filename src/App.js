@@ -436,11 +436,75 @@ function Studio() {
     }
   };
 
+  // PDF assets: logo and Poppins font
+  const LOGO_URL = "https://customer-assets.emergentagent.com/job_nav-hero-blend/artifacts/8tbjc2bq_Aceel%20AI%20Logo%20%284%29.png";
+  const logoDataRef = useRef(null);
+  const poppinsBase64Ref = useRef(null);
+
+  const fetchAsDataURL = async (url) => {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      const blob = await res.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const ensureAssetsLoaded = async () => {
+    if (!logoDataRef.current) {
+      logoDataRef.current = await fetchAsDataURL(LOGO_URL);
+    }
+    // Try a couple of Poppins Regular URLs from fonts.gstatic; if all fail, we continue without custom font
+    if (!poppinsBase64Ref.current) {
+      const fontUrls = [
+        'https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrJJnecw.ttf', // Regular 400
+        'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJnecg.ttf'
+      ];
+      for (const u of fontUrls) {
+        try {
+          const res = await fetch(u, { mode: 'cors' });
+          if (!res.ok) continue;
+          const ab = await res.arrayBuffer();
+          const b64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
+          poppinsBase64Ref.current = b64;
+          break;
+        } catch {}
+      }
+    }
+  };
+
   const addHeader = (doc) => {
     const pw = doc.internal.pageSize.getWidth();
-    doc.setFontSize(16);
-    doc.text("Skriptio", pw / 2, 15, { align: "center" });
-    doc.setFontSize(11);
+    const topY = 12;
+    // Draw logo if available
+    try {
+      if (logoDataRef.current) {
+        const imgW = 18; // mm
+        const imgH = 18;
+        doc.addImage(logoDataRef.current, 'PNG', (pw - imgW) / 2, topY - 6, imgW, imgH, undefined, 'FAST');
+      }
+    } catch {}
+    // Register and use Poppins for the brand word if loaded
+    try {
+      if (poppinsBase64Ref.current) {
+        if (!doc.getFontList().Poppins) {
+          doc.addFileToVFS('Poppins-Regular.ttf', poppinsBase64Ref.current);
+          doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
+        }
+        doc.setFont('Poppins', 'normal');
+      } else {
+        doc.setFont('helvetica', 'normal');
+      }
+    } catch { doc.setFont('helvetica', 'normal'); }
+    doc.setFontSize(14);
+    doc.text("Skriptio", pw / 2, topY + 14, { align: "center" });
+    // Body font size will be set by caller
+    doc.setFont('helvetica', 'normal');
   };
 
   const addFooter = (doc) => {
