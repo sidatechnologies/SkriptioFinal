@@ -1226,7 +1226,7 @@ export function buildStudyPlan(sentences, phrases) {
   const groups = Array.from({ length: days }, () => []);
   // Assign sentences greedily to phrase buckets by first match
   const buckets = phrases.slice(0, days).map(p => ({ phrase: p, items: [] }));
-  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/g, '\\$&')}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
   for (const s of sentences) {
     const idx = buckets.findIndex(b => hasPhrase(b.phrase, s));
     if (idx !== -1) buckets[idx].items.push(s);
