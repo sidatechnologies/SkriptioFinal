@@ -111,7 +111,7 @@ function Landing() {
               <div className="inline-flex items-center gap-2"><Clock size={14}/> Saves hours of prep</div>
             </div>
           </div>
-          <div className="relative">
+          <div className="relative flex justify-center lg:justify-end">
             {/* Marketable hero visual: abstract atom animation */}
             <div className="hero-atom">
               <div className="nucleus" />
