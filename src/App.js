@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle } from "lucide-react";
+import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts, generateUUID } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
@@ -45,16 +45,17 @@ function Landing() {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="font-semibold tracking-tight">Skriftio</div>
+            <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80">
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#about" className="hover:text-foreground">About</a>
+            <a href="#usecases" className="hover:text-foreground">Use cases</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <span className="px-3 py-1 rounded-full border border-border text-foreground/80 hidden lg:inline-flex">A product by Aceel AI</span>
           </nav>
           <div className="flex items-center gap-3">
-            <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:inline-flex">Open Studio</Button>
+            <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:inline-flex">Open Studio <ArrowRight className="ml-1" size={14}/></Button>
             <ThemeToggle />
           </div>
         </div>
@@ -67,20 +68,27 @@ function Landing() {
             <div className="inline-flex items-center gap-2 text-xs text-foreground/80">
               <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Turn your PDFs &amp; notes into a complete study kit in seconds.</h1>
-            <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a focused 7‑day plan. 100% on-device.</p>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
+            <p className="text-foreground/80 text-lg">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
             <div className="flex items-center gap-3">
               <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Open Studio <ArrowRight className="ml-2" size={16}/>
+                Try Skriptio Free
               </Button>
-              <Button variant="secondary" onClick={() => navigate('/studio')} className="bg-white/10 hover:bg-white/20">Try now</Button>
+              <button onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm inline-flex items-center text-foreground/90 hover:underline">
+                How it works <ArrowRight size={14} className="ml-1"/>
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-5 text-xs text-foreground/80 pt-1">
+              <div className="inline-flex items-center gap-2"><Zap size={14}/> Fast &amp; minimal</div>
+              <div className="inline-flex items-center gap-2"><Shield size={14}/> Private (runs in your browser)</div>
+              <div className="inline-flex items-center gap-2"><Clock size={14}/> Saves hours of prep</div>
             </div>
           </div>
           <div className="relative">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <HeroCard className="float-slow" icon={<ListChecks size={16}/>} title="Quiz" desc="10 challenging MCQs with answers and optional explanations." />
-              <HeroCard className="float-med float-delay-1" icon={<BookOpen size={16}/>} title="Flashcards" desc="Concise concept cards built from key sentences." />
-              <HeroCard className="float-fast float-delay-2" icon={<Calendar size={16}/>} title="7‑Day Plan" desc="Daily objectives for steady progress." />
+              <HeroCard className="float-slow" icon={<ListChecks size={16}/>} title="Auto Quiz" desc="10 questions generated from your content for quick recall." />
+              <HeroCard className="float-med float-delay-1" icon={<BookOpen size={16}/>} title="Flashcards" desc="Key concepts organized for spaced repetition." />
+              <HeroCard className="float-fast float-delay-2" icon={<Calendar size={16}/>} title="7‑Day Plan" desc="Daily objectives to keep you moving." />
             </div>
           </div>
         </div>
@@ -103,6 +111,24 @@ function Landing() {
             <div className="text-xs text-foreground/70">Step 3</div>
             <div className="font-medium mt-1">Study efficiently</div>
             <p className="text-sm text-foreground/80 mt-1">Practice with active recall, flip flashcards, and follow your daily plan.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* Use cases (lightweight) */}
+      <Section id="usecases" title="Use cases" subtitle="Designed for students, instructors, and teams.">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Students</div>
+            <p className="text-sm text-foreground/80 mt-1">Turn class notes and PDFs into practice kits before exams.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Instructors</div>
+            <p className="text-sm text-foreground/80 mt-1">Create quick quizzes and handouts from lecture material.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Teams</div>
+            <p className="text-sm text-foreground/80 mt-1">Share learning kits internally using private links.</p>
           </div>
         </div>
       </Section>
@@ -198,7 +224,7 @@ function Landing() {
           <nav className="flex items-center gap-5 text-sm text-foreground/80">
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#about" className="hover:text-foreground">About</a>
+            <a href="#usecases" className="hover:text-foreground">Use cases</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
             <Link to="/studio" className="hover:text-foreground">Open Studio</Link>
           </nav>
