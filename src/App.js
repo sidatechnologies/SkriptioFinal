@@ -397,6 +397,9 @@ function Studio() {
       setLoadingStep('Generating study kit...');
       await pause();
       const studyData = await generateArtifacts(extractedText, title, { difficulty, includeFormulas, explain: showExplanations });
+      // Build 10 theory questions (descriptive prompts without answers)
+      const theoryQs = buildTheoryQuestions(studyData.text, studyData.flashcards.map(c => c.front.replace(/^Define:\s*/i, '').trim()), 10, { difficulty, docTitle: studyData.title });
+      setTheory(theoryQs);
       setResult(studyData);
       setAnswers({});
       setScore(null);
