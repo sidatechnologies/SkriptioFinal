@@ -859,6 +859,22 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   // Final safeguards: deduplicate questions by stem and enforce distinctness where possible
   const seenQ = new Set();
   const final = [];
+  // Enforce progressive difficulty: earlier questions easier, later harder
+  const reorderForProgression = (arr) => {
+    const concept = arr.filter(q => q.qtype === 'concept');
+    const property = arr.filter(q => q.qtype === 'property');
+    const formula = arr.filter(q => q.qtype === 'formula');
+    if (mode === 'balanced') {
+      // start with concept, then property, end with 1 formula if any
+      return [...concept.slice(0, 6), ...property.slice(0, 3), ...formula.slice(0, 1), ...concept.slice(6), ...property.slice(3), ...formula.slice(1)];
+    }
+    if (mode === 'harder') {
+      // mix: concept -> property -> concept -> formula
+      return [...concept.slice(0, 4), ...property.slice(0, 4), ...concept.slice(4, 6), ...formula.slice(0, 2), ...concept.slice(6), ...property.slice(4), ...formula.slice(2)];
+    }
+    // expert: more properties and formulas later
+    return [...concept.slice(0, 3), ...property.slice(0, 5), ...formula.slice(0, 2), ...concept.slice(3), ...property.slice(5), ...formula.slice(2)];
+  };
   for (const q of combined) {
     if (!q || !q.question || typeof q.question !== 'string') continue;
     if (!Array.isArray(q.options) || q.answer_index == null) continue;
