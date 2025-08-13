@@ -80,8 +80,9 @@ export async function extractTextFromPDF(file) {
 
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items.map(item => item.str).join(' ');
+      const textContent = await page.getTextContent().catch(() => null);
+      const items = Array.isArray(textContent?.items) ? textContent.items : [];
+      const pageText = items.map(item => String(item?.str || '')).join(' ');
       let collected = pageText.trim();
 
       // Heuristic: if page has too little selectable text or looks like images/formula-heavy, try limited OCR
