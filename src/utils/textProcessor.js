@@ -781,11 +781,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     // If we couldn't find enough statement-like distractors, synthesize by substituting the phrase
     if (distractors.length < 3) {
       const synth = [];
-      const esc = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
       const relPhrases = phrases.filter(p => p && p !== phrase);
       for (const r of relPhrases) {
         try {
-          const rx = new RegExp(`\\b${esc(phrase)}\\b`, 'ig');
+          const rx = new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'ig');
           let v = correct.replace(rx, r);
           v = adjustToLengthBand(correct.length, v, 0.92, 1.08);
           v = ensureCaseAndPeriod(correct, v);
