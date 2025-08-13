@@ -915,7 +915,8 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     .replace(/[^a-z0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  const fixed = final.slice(0, total).map((q, i) => {
+  const ordered = reorderForProgression(final).slice(0, total);
+  const fixed = ordered.map((q, i) => {
     const correct = (q.options[q.answer_index] || '').trim();
     const cleanedOpts = q.options
       .map(o => (o || '').trim())
