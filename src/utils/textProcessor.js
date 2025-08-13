@@ -779,7 +779,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const correctedIndex = Math.min(q.answer_index, padded.length - 1);
 
     seenQ.add(key);
-    final.push({ ...q, options: filteredOptions, answer_index: correctedIndex });
+    final.push({ ...q, options: padded, answer_index: correctedIndex });
     if (final.length >= total) break;
   }
 
