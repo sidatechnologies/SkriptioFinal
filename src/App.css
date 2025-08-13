@@ -32,17 +32,31 @@ input, textarea { transition: background-color .2s ease, border-color .2s ease; 
 /* Hide default file input */
 input[type=file] { display: none; }
 
-/* Hero gradient wrapper */
+/* Hero gradient wrapper with warm gold accent */
+:root { --gold-hex: #F5C542; }
 .hero-gradient {
   background:
+    radial-gradient(900px 360px at 20% 0%, rgba(245,197,66,0.12), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(900px 380px at 80% 10%, rgba(255,255,255,0.05), transparent);
 }
 .dark .hero-gradient {
   background:
+    radial-gradient(1100px 420px at 18% -10%, rgba(245,197,66,0.16), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(1100px 420px at 75% 0%, rgba(255,255,255,0.05), transparent);
 }
+
+/* Gold accents */
+.gold-pill { background: rgba(245,197,66,0.18); color: #fff; border: 1px solid rgba(245,197,66,0.3); box-shadow: 0 0 0 1px rgba(245,197,66,0.08) inset; }
+.dark .gold-pill { background: rgba(245,197,66,0.14); color: #fff; border-color: rgba(245,197,66,0.35); }
+.gold-dot { background: var(--gold-hex); }
+.gold-link { color: var(--gold-hex); }
+.gold-link:hover { opacity: .9; }
+
+/* Subtle gold glow for hero cards */
+.hero-card { border-color: rgba(245,197,66,0.18) !important; }
+.hero-card:hover { box-shadow: 0 10px 40px rgba(245,197,66,0.15), 0 8px 30px rgba(0,0,0,0.25); }
 
 /* Floating animated cards */
 @keyframes floaty {
