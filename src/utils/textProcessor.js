@@ -639,7 +639,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
   // Global option usage tracker for this quiz to reduce repetition across questions
   const optionUseCount = new Map();
-  const normOption = (s) => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const normOption = (s) => normalizeEquivalents(String(s || '')).replace(/\s+/g, ' ').trim();
   const markUsed = (arr, correct) => {
     for (const o of arr) {
       const k = normOption(o);
