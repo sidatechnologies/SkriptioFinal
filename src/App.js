@@ -285,17 +285,17 @@ function Studio() {
 
   useEffect(() => {
     try {
-      const h = window.location.hash || '';
-      const m = h.match(/#share=([A-Za-z0-9_\-]+)/);
-      if (m && m[1]) {
-        const b64u = m[1];
-        const json = decodeShare(b64u);
+      const q = new URLSearchParams(window.location.search);
+      const token = q.get('s');
+      if (token) {
+        const json = decodeShare(token);
         if (json && json.quiz) {
           setResult({ title: json.title || 'Shared Quiz', quiz: json.quiz, flashcards: [], plan: [] });
-          setAnswers(json.answers || {});
-          if (json.score) setScore(json.score);
-          setEvaluated(Boolean(json.score));
-          toast({ title: 'Loaded shared answers', description: 'You are viewing a shared quiz.' });
+          // Do not auto-load answers/score from shared links
+          setAnswers({});
+          setScore(null);
+          setEvaluated(false);
+          toast({ title: 'Loaded shared quiz', description: 'Select answers and click Evaluate to see results.' });
         }
       }
     } catch {}
