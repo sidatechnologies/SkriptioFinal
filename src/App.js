@@ -63,7 +63,7 @@ function Landing() {
             {/* Mobile: theme toggle then menu button */}
             <ThemeToggle className="md:hidden" />
             <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border md:hidden" onClick={() => setMobileOpen(prev => !prev)}>
-              <Menu size={18} />
+              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
             </button>
             {/* Desktop: theme toggle at far right */}
             <ThemeToggle className="hidden md:inline-flex" />
