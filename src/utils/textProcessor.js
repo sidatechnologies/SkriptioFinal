@@ -726,14 +726,16 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   let ci = 0;
   while (combined.length < total && ci < conceptTargets.length) {
     const { s, phrase } = conceptTargets[ci++];
-    if (combined.some(q => q.qtype === 'concept' && q.options[q.answer_index] === phrase)) continue;
+    if (combined.some(q => q && q.qtype === 'concept' && Array.isArray(q.options) && q.options[q.answer_index] === phrase)) continue;
     const q = buildConceptQ(s, phrase, ci + modeIdx);
+    if (!q || !q.question || !Array.isArray(q.options) || q.answer_index == null) continue;
     combined.push({ id: generateUUID(), ...q });
   }
   let pj = 0;
   while (combined.length < total && pj < phrases.length) {
     const p = phrases[pj++];
     const q = buildPropertyQ(p, pj + modeIdx);
+    if (!q || !q.question || !Array.isArray(q.options) || q.answer_index == null) continue;
     combined.push({ id: generateUUID(), ...q });
   }
 
@@ -741,12 +743,17 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const seenQ = new Set();
   const final = [];
   for (const q of combined) {
+    if (!q || !q.question || typeof q.question !== 'string') continue;
+    if (!Array.isArray(q.options) || !Number.isInteger(q.answer_index)) continue;
     const key = q.question.toLowerCase();
     if (seenQ.has(key)) continue;
 
     // reject any option that equals the asked phrase (for concept/property)
-    const asked = q.qtype !== 'formula' ? (q.options[q.answer_index] || '').toLowerCase() : null;
-    const filteredOptions = q.options.map(o => (o || '').trim()).map(fixSpacing).filter(o => !asked || o.toLowerCase() !== asked);
+    const asked = q.qtype !== 'formula' ? String(q.options[q.answer_index] || '').toLowerCase() : null;
+    const filteredOptions = (q.options || [])
+      .map(o => (o ?? '').toString().trim())
+      .map(fixSpacing)
+      .filter(o => o && (!asked || o.toLowerCase() !== asked));
     if (filteredOptions.length < 4) continue;
     const correctedIndex = Math.min(q.answer_index, filteredOptions.length - 1);
 
