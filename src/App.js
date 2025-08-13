@@ -593,17 +593,36 @@ function Studio() {
     } catch {}
   };
 
+  const robustCopy = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {}
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) return true;
+    } catch {}
+    try {
+      window.prompt('Copy this link', text);
+      return true;
+    } catch {}
+    return false;
+  };
+
   const copyShareURL = async () => {
     if (!result?.quiz?.length) return;
     const url = buildShareURL();
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(url);
-        toast({ title: 'Share link copied', description: 'Paste it anywhere.' });
-      } else {
-        window.prompt('Copy this link', url);
-      }
-    } catch {}
+    const ok = await robustCopy(url);
+    if (ok) toast({ title: 'Share link copied', description: 'Paste it anywhere.' });
+    else toast({ title: 'Copy failed', description: 'Please copy manually from the prompt.' });
   };
 
   return (
