@@ -235,14 +235,11 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   const mode = difficulty;
   const modeIdx = mode === 'balanced' ? 0 : (mode === 'harder' ? 1 : 2);
 
-  // Attempt embeddings quickly
-  const vecs = await embedSentences(sentences, deadlineMs);
-  // If not available, return as-is
-  if (!vecs) return artifacts;
-
-  // Phrase embeddings for MMR distractors
-  const phrases = keyphrases;
-  const phraseVecs = await embedSentences(phrases, 80);
+  // Light-weight: only embed a small set of phrases to avoid UI stalls
+  const phrases = keyphrases.slice(0, Math.min(24, keyphrases.length));
+  const phraseVecs = await embedSentences(phrases, Math.min(120, deadlineMs || 120));
+  // If not available quickly, skip enhancement entirely
+  if (!phraseVecs) return artifacts;
 
   function mmrSelect(queryVec, candidateVecs, candidateLabels, k = 3, lambda = 0.72) {
     const selected = [];
