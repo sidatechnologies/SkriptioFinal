@@ -47,7 +47,7 @@ function Landing() {
           <Link to="/" className="flex items-center gap-3">
             <div className="font-semibold tracking-tight gold-outline">Skriptio</div>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80">
+          <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80 ml-auto">
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#usecases" className="hover:text-foreground">Use cases</a>
