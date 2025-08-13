@@ -886,6 +886,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   // Build property questions
   const propPhrases = phrases.filter(p => !used.has(p));
   let pi = 0;
+  const seenPropertyStems = new Set();
   while (quiz.length < wantConcept + wantProperty && pi < propPhrases.length) {
     const p = propPhrases[pi++];
     if (detIndex(p, 3) !== modeIdx && quiz.length < wantConcept) continue;
