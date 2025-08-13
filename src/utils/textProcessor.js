@@ -738,7 +738,22 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     let distractors = pickDistractorsProperty(correct, phrase);
     // If we couldn't find enough statement-like distractors, synthesize by substituting the phrase
     if (distractors.length < 3) {
-      const synth = synthesizePropertyDistractors(correct, phrase);
+      const synth = [];
+      const esc = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+      const relPhrases = phrases.filter(p => p && p !== phrase);
+      for (const r of relPhrases) {
+        try {
+          const rx = new RegExp(`\\b${esc(phrase)}\\b`, 'ig');
+          let v = correct.replace(rx, r);
+          v = adjustToLengthBand(correct.length, v, 0.92, 1.08);
+          v = ensureCaseAndPeriod(correct, v);
+          const vv = validatePropSentence(v, docTitle);
+          if (!vv) continue;
+          if (tooSimilar(vv, correct)) continue;
+          synth.push(vv);
+          if (synth.length >= 6) break;
+        } catch {}
+      }
       const merged = Array.from(new Set([...distractors, ...synth]));
       distractors = merged.slice(0, 3);
     }
