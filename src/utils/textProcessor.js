@@ -567,6 +567,10 @@ function validatePropSentence(s, docTitle) {
   // reject obviously incomplete tails like "... of a ." / "... such as ." / "... including ."
   if (/\b(of\s+(a|an|the)\s*\.)$/i.test(t)) return null;
   if (/(such as|including|like)\s*\.$/i.test(t)) return null;
+  // reject sentences ending with dangling adjectives/terms
+  const BAD_END_WORDS = ['absolute','minimum','maximum','typical','common','continuous','primary','secondary'];
+  const lastWord = t.replace(/[^A-Za-z ]/g, ' ').trim().split(/\s+/).pop() || '';
+  if (BAD_END_WORDS.includes(lastWord.toLowerCase())) return null;
   return t;
 }
 
