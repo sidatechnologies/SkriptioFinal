@@ -509,26 +509,7 @@ function Studio() {
       // ignore logo errors, continue
     }
 
-    // Draw wordmark as image if available; fallback to Helvetica text
-    try {
-      if (wordmarkDataRef.current) {
-        const ww = 28; // mm
-        const wh = 8;
-        doc.addImage(wordmarkDataRef.current, 'PNG', (pw - ww) / 2, topY + 10, ww, wh, undefined, 'FAST');
-      } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(14);
-        doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
-      }
-    } catch (e) {
-      // Fallback text path in case image add fails
-      try {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(14);
-        doc.text('Skriptio', pw / 2, topY + 14, { align: 'center' });
-      } catch {}
-    }
-
+    // No text wordmark as requested; only logo. Keep some spacing.
     // Reset to body font (Helvetica) for downstream content
     try { doc.setFont('helvetica', 'normal'); } catch {}
   };
