@@ -93,10 +93,59 @@ function Landing() {
             </div>
           </div>
           <div className="relative">
-            <div className="flex flex-col gap-4 max-w-sm ml-auto">
-              <HeroCard className="float-slow" icon={<ListChecks size={16}/>} title="Auto Quiz" desc="10 questions generated from your content for quick recall." />
-              <HeroCard className="float-med float-delay-1" icon={<BookOpen size={16}/>} title="Flashcards" desc="Key concepts organized for spaced repetition." />
-              <HeroCard className="float-fast float-delay-2" icon={<Calendar size={16}/>} title="7‑Day Plan" desc="Daily objectives to keep you moving." />
+            <div className="bg-card/80 border border-border rounded-xl p-3 md:p-4 card-glow">
+              <div className="flex items-center gap-2 text-xs mb-3">
+                <button onClick={() => setHeroTab('quiz')} className={`px-2.5 py-1 rounded-md ${heroTab==='quiz' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>Quiz</button>
+                <button onClick={() => setHeroTab('cards')} className={`px-2.5 py-1 rounded-md ${heroTab==='cards' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>Flashcards</button>
+                <button onClick={() => setHeroTab('plan')} className={`px-2.5 py-1 rounded-md ${heroTab==='plan' ? 'bg-white text-black tab-underline' : 'bg-transparent text-foreground/80 hover:text-foreground'}`}>7‑Day Plan</button>
+              </div>
+              {heroTab==='quiz' && (
+                <div className="space-y-2 fade-slide-in">
+                  <div className="text-sm font-medium">Q1. What is active recall?</div>
+                  <div className="grid gap-1">
+                    <div className="rounded-md border border-border px-3 py-2 text-sm">A) Reviewing notes passively</div>
+                    <div className="rounded-md border border-border px-3 py-2 text-sm">B) Retrieving info from memory</div>
+                    <div className="rounded-md border border-border px-3 py-2 text-sm">C) Highlighting important parts</div>
+                    <div className="rounded-md border border-border px-3 py-2 text-sm">D) Re-listening lectures</div>
+                  </div>
+                </div>
+              )}
+              {heroTab==='cards' && (
+                <div className="grid gap-2 fade-slide-in">
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-xs text-foreground/70">Front</div>
+                    <div className="text-sm font-medium">Define spaced repetition</div>
+                    <div className="mt-2 text-xs text-foreground/70">Back</div>
+                    <div className="text-sm">Reviewing information at increasing intervals to boost retention.</div>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-xs text-foreground/70">Front</div>
+                    <div className="text-sm font-medium">What is a key benefit of flashcards?</div>
+                    <div className="mt-2 text-xs text-foreground/70">Back</div>
+                    <div className="text-sm">They encourage retrieval practice and active recall.</div>
+                  </div>
+                </div>
+              )}
+              {heroTab==='plan' && (
+                <div className="grid gap-2 fade-slide-in">
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-sm font-medium">Day 1</div>
+                    <ul className="list-disc pl-5 text-sm">
+                      <li>Skim content, note key topics</li>
+                      <li>Generate 10-question quiz</li>
+                      <li>Attempt quiz once</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-sm font-medium">Day 2</div>
+                    <ul className="list-disc pl-5 text-sm">
+                      <li>Study flashcards</li>
+                      <li>Reattempt missed questions</li>
+                      <li>Refine notes</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
