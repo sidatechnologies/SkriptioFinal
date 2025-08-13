@@ -755,9 +755,9 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const ctx = contextSentence ? contextFromSentence(contextSentence, formula) : 'Select the formula exactly as presented in the material.';
     const qtext = pickTemplate(FORMULA_TEMPLATES, mode, seed)(ctx);
     const optsArr = distinctFillOptions(formula, formulaPool.filter(f => f !== formula), phrases, formulaPool, 4);
-    const placed = placeDeterministically(optsArr, formula, modeIdx);
+    const placedF = placeDeterministically(optsArr, formula, modeIdx);
     const explanation = wantExplanations ? 'Exact match required from provided material.' : undefined;
-    return { question: qtext, options: placed.arranged, answer_index: placed.idx, qtype: 'formula', explanation };
+    return { question: qtext, options: placedF.arranged, answer_index: placedF.idx, qtype: 'formula', explanation };
   }
 
   // Build pool of candidates for concept/property questions
