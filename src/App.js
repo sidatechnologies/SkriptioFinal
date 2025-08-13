@@ -520,7 +520,9 @@ function Studio() {
   const buildShareURL = () => {
     const payload = buildSharePayload();
     const token = b64uEncode(payload);
-    return `${window.location.origin}${window.location.pathname}#share=${token}`;
+    // Shorten visually by using a share-specific path and ?s param (still same page)
+    const base = `${window.location.origin}${window.location.pathname}`;
+    return `${base}?s=${token}`;
   };
 
   const shareAnswers = async () => {
