@@ -551,8 +551,8 @@ function Studio() {
     uid: generateUUID(),
     ts: Date.now(),
     title: result.title,
-    // Keep only what is needed to evaluate locally; omit sender answers/score/explanations to shorten
-    quiz: result.quiz.map(q => ({ question: q.question, options: q.options, answer_index: q.answer_index }))
+    // Compact the quiz to minimize token size
+    compact: compactQuiz(result.quiz, result.title)
   });
 
   const buildShareURL = () => {
