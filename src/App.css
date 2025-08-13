@@ -30,10 +30,31 @@ button, .btn { transition: background-color .2s ease, color .2s ease, border-col
 
 /* Ensure plan objectives wrap fully */
 .plan-objective { white-space: normal; word-break: break-word; }
-input, textarea { transition: background-color .2s ease, border-color .2s ease; }
+input, textarea, select { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
 
 /* Hide default file input */
 input[type=file] { display: none; }
+
+/* Custom select control for mobile difficulty */
+.select-wrap { position: relative; display: inline-block; }
+.select-control {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: rgba(255,255,255,0.08);
+  color: inherit;
+  border-color: rgba(255,255,255,0.2);
+  padding-right: 2rem;
+}
+.dark .select-control {
+  background-color: rgba(255,255,255,0.08);
+  color: #fff;
+  border-color: rgba(255,255,255,0.25);
+}
+.select-arrow {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; opacity: 0.7;
+}
 
 /* Hero gradient wrapper with warm gold accent */
 :root { --gold-hex: #F5C542; }

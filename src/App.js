@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, X } from "lucide-react";
+import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, X, ChevronDown } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts, generateUUID } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
@@ -595,11 +595,14 @@ function Studio() {
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
                   </div>
                   {/* Mobile dropdown */}
-                  <select className="sm:hidden text-sm bg-transparent border border-border rounded-md px-2 py-1" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                    <option value="balanced">Balanced</option>
-                    <option value="harder">Harder</option>
-                    <option value="expert">Expert</option>
-                  </select>
+                  <div className="select-wrap sm:hidden">
+                    <select className="select-control text-sm border border-border rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                      <option value="balanced">Balanced</option>
+                      <option value="harder">Harder</option>
+                      <option value="expert">Expert</option>
+                    </select>
+                    <span className="select-arrow text-foreground/70"><ChevronDown size={16} /></span>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Include formulas</div>
@@ -682,9 +685,13 @@ function Studio() {
                                   <button
                                     key={oi}
                                     onClick={() => selectOption(idx, oi)}
-                                    className={`text-left rounded-md border px-3 py-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
+                                    className={`text-left rounded-md border px-3 py-2 flex items-center justify-between gap-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
                                   >
-                                    <span className="mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span> {opt}
+                                    <span className="mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
+                                    <span className="flex-1">{opt}</span>
+                                    {evaluated && isSelected && (
+                                      <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
+                                    )}
                                   </button>
                                 );
                               })}
