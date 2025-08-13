@@ -438,6 +438,10 @@ function fixMidwordSpaces(s) {
   ];
   let t = s;
   for (const rx of patterns) t = t.replace(rx, '$1$2');
+  // Fix leading-letter splits like "I nventory" -> "Inventory"
+  t = t.replace(/\b([A-Z])\s+([a-z]{5,})\b/g, '$1$2');
+  // Fix intra-word hyphenation artifacts that became spaces, e.g., "require ments" -> "requirements"
+  t = t.replace(/\b([A-Za-z]{3,})\s+(ment|ments|tion|tions|sion|sions|ness|ship|hood|able|ible|ally|ically)\b/gi, '$1$2');
   return t;
 }
 
