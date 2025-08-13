@@ -220,7 +220,7 @@ function isIncompleteTail(s) {
   return bads.some(rx => rx.test(t));
 }
 
-function summarizeSentence(s, targetLen = 140) {
+function summarizeSentence(s, targetLen = 180) {
   if (!s) return s;
   let t = s.replace(/\([^)]*\)/g, ''); // drop parentheticals
   t = t.replace(/\[[^\]]*\]/g, '');    // drop bracketed
