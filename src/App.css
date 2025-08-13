@@ -36,13 +36,13 @@ input[type=file] { display: none; }
 :root { --gold-hex: #F5C542; }
 .hero-gradient {
   background:
-    radial-gradient(900px 360px at 20% 0%, rgba(245,197,66,0.12), transparent),
+    radial-gradient(900px 360px at 20% 0%, rgba(255,255,255,0.08), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(900px 380px at 80% 10%, rgba(255,255,255,0.05), transparent);
 }
 .dark .hero-gradient {
   background:
-    radial-gradient(1100px 420px at 18% -10%, rgba(245,197,66,0.16), transparent),
+    radial-gradient(1100px 420px at 18% -10%, rgba(255,255,255,0.06), transparent),
     radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
     radial-gradient(1100px 420px at 75% 0%, rgba(255,255,255,0.05), transparent);
 }
