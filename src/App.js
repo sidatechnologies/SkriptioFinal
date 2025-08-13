@@ -85,7 +85,7 @@ function Landing() {
             </div>
           </div>
           <div className="relative">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-4 max-w-sm ml-auto">
               <HeroCard className="float-slow" icon={<ListChecks size={16}/>} title="Auto Quiz" desc="10 questions generated from your content for quick recall." />
               <HeroCard className="float-med float-delay-1" icon={<BookOpen size={16}/>} title="Flashcards" desc="Key concepts organized for spaced repetition." />
               <HeroCard className="float-fast float-delay-2" icon={<Calendar size={16}/>} title="7‑Day Plan" desc="Daily objectives to keep you moving." />
