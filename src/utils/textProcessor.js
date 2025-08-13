@@ -892,6 +892,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     if (detIndex(p, 3) !== modeIdx && quiz.length < wantConcept) continue;
     const q = buildPropertyQ(p, pi + modeIdx);
     if (!q || !q.question || !Array.isArray(q.options) || q.answer_index == null) continue;
+    // Stricter global de-dup: disallow reusing nearly identical property sentences across different phrases
+    const pk = normalizeEquivalents((q.options[q.answer_index] || '').toString());
+    if (seenPropertyStems.has(pk)) continue;
+    seenPropertyStems.add(pk);
     used.add(p);
     quiz.push({ id: generateUUID(), ...q });
   }
