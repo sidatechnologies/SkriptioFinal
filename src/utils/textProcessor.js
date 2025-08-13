@@ -1149,7 +1149,7 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
   const multi = phrases.filter(p => p && p.includes(' ') && !BAN.has(p.toLowerCase()));
   const uni = phrases.filter(p => p && !p.includes(' ') && !BAN.has(p.toLowerCase()));
   const pool = [...multi, ...uni];
-  const hasPhrase = (p, s) => new RegExp(`\\b${p.replace(/[.*+?^${}()|[\\]\\/]/g, '\\$&')}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
   const pickSentence = (p) => {
     const s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
     return s || sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50) || sentences[0] || '';
