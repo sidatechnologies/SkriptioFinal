@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Zap, Shield, Clock, GraduationCap, Sparkles, Layers, Users, ChevronRight, Menu, X } from "lucide-react";
+import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts, generateUUID } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
@@ -12,56 +12,63 @@ import { Input } from "./components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import { toast } from "./components/ui/use-toast";
 import pako from "pako";
+import "./App.css";
 
 function Landing() {
   const navigate = useNavigate();
-  // Prewarm ML model in background so first Studio use is fast
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
-  const heroBg = { background: 'radial-gradient(600px 200px at 20% 10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 80% 0%, rgba(255,255,255,0.05), transparent)' };
+  const HeroCard = ({ icon, title, desc, className = "" }) => (
+    <div className={`rounded-xl border border-border bg-card/90 p-4 card-glow hover:shadow-xl transition-shadow ${className}`}>
+      <div className="flex items-center gap-2 text-sm font-medium mb-1">{icon}{title}</div>
+      <div className="text-xs text-foreground/80">{desc}</div>
+    </div>
+  );
 
-  const Step = ({ no, title, desc }) => (
-    <div className="bg-card border border-border rounded-lg p-4">
-      <div className="text-xs text-foreground/70">Step {no}</div>
-      <div className="font-medium mt-1">{title}</div>
-      <div className="text-sm text-foreground/80 mt-1">{desc}</div>
-    </div>
-  );
-  const Feature = ({ icon, title, desc }) => (
-    <div className="bg-card border border-border rounded-lg p-4">
-      <div className="flex items-center gap-2 text-sm font-medium">{icon}{title}</div>
-      <div className="text-sm text-foreground/80 mt-1">{desc}</div>
-    </div>
-  );
-  const FAQ = ({ q, a }) => (
-    <div className="bg-card border border-border rounded-lg p-4">
-      <div className="font-medium">{q}</div>
-      <div className="text-sm text-foreground/80 mt-1">{a}</div>
-    </div>
+  const Section = ({ id, title, subtitle, children }) => (
+    <section id={id} className="py-14">
+      <div className="max-w-6xl mx-auto px-6">
+        {title && (
+          <div className="mb-6">
+            <h2 className="section-title text-2xl md:text-3xl font-semibold">{title}</h2>
+            {subtitle && <p className="text-foreground/80 mt-1">{subtitle}</p>}
+          </div>
+        )}
+        {children}
+      </div>
+    </section>
   );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="font-semibold tracking-tight">Skriptio</div>
+            <div className="font-semibold tracking-tight">Skriftio</div>
           </Link>
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-foreground/80">Skriptio Studio · by Aceel AI</div>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80">
+            <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#features" className="hover:text-foreground">Features</a>
+            <a href="#about" className="hover:text-foreground">About</a>
+            <a href="#faq" className="hover:text-foreground">FAQ</a>
+          </nav>
+          <div className="flex items-center gap-3">
+            <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:inline-flex">Open Studio</Button>
             <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div className="space-y-4">
+      {/* Hero */}
+      <div className="hero-gradient">
+        <div className="max-w-6xl mx-auto px-6 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-5">
             <div className="inline-flex items-center gap-2 text-xs text-foreground/80">
               <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"/> A product by <span className="font-medium">Aceel AI</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
-            <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster - without complex setup.</p>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Turn your PDFs &amp; notes into a complete study kit in seconds.</h1>
+            <p className="text-foreground/80 text-lg">Upload content or paste notes → get a 10‑question quiz, smart flashcards, and a focused 7‑day plan. 100% on-device.</p>
             <div className="flex items-center gap-3">
               <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Open Studio <ArrowRight className="ml-2" size={16}/>
@@ -69,29 +76,135 @@ function Landing() {
               <Button variant="secondary" onClick={() => navigate('/studio')} className="bg-white/10 hover:bg-white/20">Try now</Button>
             </div>
           </div>
-          <div className="rounded-xl p-8 border border-border bg-[radial-gradient(600px_200px_at_20%_10%,rgba(255,255,255,0.06),transparent),radial-gradient(800px_300px_at_80%_0%,rgba(255,255,255,0.05),transparent)]">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Step no="1" title="Add your material" desc="Paste your notes or upload a PDF. You can combine both in a single session." />
-              <Step no="2" title="Generate your kit" desc="Skriptio builds a 10‑question quiz, a set of flashcards, and a focused 7‑day plan." />
-              <Step no="3" title="Study efficiently" desc="Use quizzes for active recall, flip through flashcards, and follow the daily objectives." />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <Feature icon={<ListChecks size={18}/>} title="Quiz" desc="10 tough MCQs with explanations and exact answers."/>
-              <Feature icon={<BookOpen size={18}/>} title="Flashcards" desc="Concept cards built from key sentences and keywords for spaced repetition."/>
-              <Feature icon={<Calendar size={18}/>} title="7‑Day Plan" desc="Actionable objectives chunked to keep you moving each day."/>
-              <Feature icon={<Layers size={18}/>} title="Combine sources" desc="Upload a PDF and paste notes together to create richer kits."/>
-              <Feature icon={<GraduationCap size={18}/>} title="Learn anywhere" desc="Responsive design works on desktop and mobile so you can study on the go."/>
-              <Feature icon={<Sparkles size={18}/>} title="On-device" desc="Everything runs in your browser after page load. No servers, no data sharing."/>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <FAQ q="Do I need an internet connection?" a="No. Skriptio runs entirely in your browser after the initial page load." />
-              <FAQ q="Can I use both PDF and text?" a="Yes. You can upload a PDF and also paste text notes in the same session." />
-              <FAQ q="What kind of quiz is generated?" a="A 10‑question mix of concept checks, property questions, and formula items derived from your content. Difficulty modes change the composition." />
-              <FAQ q="Do you save my content?" a="No. Everything runs in your browser session - nothing is sent to servers or saved." />
+          <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <HeroCard className="float-slow" icon={<ListChecks size={16}/>} title="Quiz" desc="10 challenging MCQs with answers and optional explanations." />
+              <HeroCard className="float-med float-delay-1" icon={<BookOpen size={16}/>} title="Flashcards" desc="Concise concept cards built from key sentences." />
+              <HeroCard className="float-fast float-delay-2" icon={<Calendar size={16}/>} title="7‑Day Plan" desc="Daily objectives for steady progress." />
             </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* How it works */}
+      <Section id="how" title="How it works" subtitle="Three simple steps to get your personalized study kit.">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="text-xs text-foreground/70">Step 1</div>
+            <div className="font-medium mt-1">Add your material</div>
+            <p className="text-sm text-foreground/80 mt-1">Paste text notes or upload a PDF. You can combine both in one session.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="text-xs text-foreground/70">Step 2</div>
+            <div className="font-medium mt-1">Generate your kit</div>
+            <p className="text-sm text-foreground/80 mt-1">Skriptio builds a quiz, flashcards, and a 7‑day plan directly in your browser.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="text-xs text-foreground/70">Step 3</div>
+            <div className="font-medium mt-1">Study efficiently</div>
+            <p className="text-sm text-foreground/80 mt-1">Practice with active recall, flip flashcards, and follow your daily plan.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* Features */}
+      <Section id="features" title="Features" subtitle="Everything you need to turn notes into learning outcomes.">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><ListChecks size={16}/> Tough quizzes</div>
+            <p className="text-sm text-foreground/80 mt-1">10 MCQs per kit: concept, property, and formula items tuned by difficulty.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><BookOpen size={16}/> Smart flashcards</div>
+            <p className="text-sm text-foreground/80 mt-1">Concise fronts; context-rich backs derived from the text you provide.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><Calendar size={16}/> 7‑Day plans</div>
+            <p className="text-sm text-foreground/80 mt-1">Clustered topics with 3 daily objectives for steady, guided progress.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><Layers size={16}/> Combine sources</div>
+            <p className="text-sm text-foreground/80 mt-1">Upload PDFs and paste notes together for richer, more varied quizzes.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><Shield size={16}/> Private by design</div>
+            <p className="text-sm text-foreground/80 mt-1">Runs 100% in your browser after load. No servers, no data sharing.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 text-sm font-medium"><Clock size={16}/> Fast &amp; responsive</div>
+            <p className="text-sm text-foreground/80 mt-1">Optimized, incremental processing keeps the UI smooth even on large notes.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* About */}
+      <Section id="about" title="About Skriptio" subtitle="Built to help you learn faster with the material you already have.">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div className="space-y-3">
+            <p className="text-foreground/80">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning.</p>
+            <p className="text-foreground/80">Difficulty modes alter question composition and distractor tightness, while formula detection preserves math expressions for exact-match questions. Everything runs locally in your browser.</p>
+            <div className="flex items-center gap-3 pt-2">
+              <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
+              <Button variant="secondary" onClick={() => navigate('/studio')} className="bg-white/10 hover:bg-white/20">Try now</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="flex items-center gap-2 text-sm font-medium"><Sparkles size={16}/> On-device</div>
+              <p className="text-sm text-foreground/80 mt-1">No uploads. No accounts. Just results.</p>
+            </div>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="flex items-center gap-2 text-sm font-medium"><GraduationCap size={16}/> Effective learning</div>
+              <p className="text-sm text-foreground/80 mt-1">Active recall + spaced repetition baked in.</p>
+            </div>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="flex items-center gap-2 text-sm font-medium"><Users size={16}/> For students &amp; teams</div>
+              <p className="text-sm text-foreground/80 mt-1">Share your kit via a private link; no server store.</p>
+            </div>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="flex items-center gap-2 text-sm font-medium"><Shield size={16}/> Privacy-first</div>
+              <p className="text-sm text-foreground/80 mt-1">We don’t collect or store your data. Ever.</p>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* FAQ */}
+      <Section id="faq" title="FAQ" subtitle="Answers to common questions.">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Do I need an internet connection?</div>
+            <p className="text-sm text-foreground/80 mt-1">No. Skriptio runs entirely in your browser after the initial page load.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Can I use both PDF and text?</div>
+            <p className="text-sm text-foreground/80 mt-1">Yes. You can upload a PDF and also paste text notes in the same session.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">What kind of quiz is generated?</div>
+            <p className="text-sm text-foreground/80 mt-1">A 10‑question mix of concept checks, property questions, and formula items derived from your content. Difficulty modes change the composition.</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <div className="font-medium">Do you save my content?</div>
+            <p className="text-sm text-foreground/80 mt-1">No. Everything runs in your browser session — nothing is sent to servers or saved.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* Footer */}
+      <footer className="border-t border-border">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-sm">© {new Date().getFullYear()} Skriptio · by Aceel AI</div>
+          <nav className="flex items-center gap-5 text-sm text-foreground/80">
+            <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#features" className="hover:text-foreground">Features</a>
+            <a href="#about" className="hover:text-foreground">About</a>
+            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <Link to="/studio" className="hover:text-foreground">Open Studio</Link>
+          </nav>
+          <ThemeToggle />
+        </div>
+      </footer>
     </div>
   );
 }
@@ -157,7 +270,6 @@ function Studio() {
       const deflated = pako.deflate(input);
       return toB64Url(deflated);
     } catch (e) {
-      // Fallback to legacy uncompressed
       const s = JSON.stringify(obj);
       const b64 = btoa(unescape(encodeURIComponent(s)));
       return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -165,13 +277,11 @@ function Studio() {
   };
   const decodeShare = (b64u) => {
     try {
-      // Try gzip first
       const bytes = fromB64Url(b64u);
       const inflated = pako.inflate(bytes);
       const jsonStr = new TextDecoder().decode(inflated);
       return JSON.parse(jsonStr);
     } catch {
-      // Legacy path (plain JSON base64u)
       try {
         const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
         const pad = '='.repeat((4 - (b64.length % 4)) % 4);
@@ -223,10 +333,8 @@ function Studio() {
   // PDF Helpers
   const ensureJsPDF = async () => {
     try {
-      // Try prewarmed path first (non-blocking with deadline)
       const jsPDF = await getJsPDF(1200);
       if (jsPDF) return jsPDF;
-      // Fallback to dynamic import if not ready yet
       const mod = await import("jspdf");
       return mod.jsPDF;
     } catch (err) {
@@ -286,7 +394,6 @@ function Studio() {
           const prefix = String.fromCharCode(65 + oi);
           y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170);
         }
-        // Correct answer line
         const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0));
         y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170);
         if (showExplanations && q.explanation) {
@@ -372,7 +479,6 @@ function Studio() {
       if (navigator.share) {
         await navigator.share({ title: result.title || 'Skriptio Quiz', text: 'Review my quiz answers', url });
       } else {
-        // If share not supported, fallback to copy
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(url);
           toast({ title: 'Share link copied', description: 'Paste it in chat or email.' });
@@ -491,7 +597,6 @@ function Studio() {
 
           <Tabs defaultValue="quiz" className="w_full">
             <TabsList className="bg.white/10">
-              {/* ensure theme awareness */}
               <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
               <TabsTrigger value="flashcards" className="data-[state=active]:bg-white data-[state=active]:text-black"><BookOpen size={16} className="mr-2"/>Flashcards</TabsTrigger>
               <TabsTrigger value="plan" className="data-[state=active]:bg-white data-[state=active]:text-black"><Calendar size={16} className="mr-2"/>7-Day Plan</TabsTrigger>

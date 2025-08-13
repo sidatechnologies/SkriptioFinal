@@ -229,21 +229,32 @@
       - working: "NA"
         agent: "main"
         comment: "Implemented pako-based deflate compression for share payload with base64url. Added UID+timestamp so links are always unique. Two buttons: Share (Web Share API) and Copy Link (clipboard/prompt). Backward-compatible decoder supports legacy uncompressed tokens."
+  - task: "Rebuild landing page with hero + animated cards, step flow, features, about, FAQ, footer; minimal gradient and both themes"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js, /app/src/App.css"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Landing split into structured sections with subtle gradients and animated hero cards. Preserved light/dark themes via ThemeToggle."
 
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 4
+  test_sequence: 5
   run_ui: false
 
 ## test_plan:
   current_focus:
-    - "Studio: Generate quiz and verify answers are hidden pre-Evaluate and revealed post-Evaluate with correct highlighting"
-    - "Studio: Use Share and Copy Link; open generated link to confirm it loads shared quiz and that URL token is compressed (shorter than legacy)"
+    - "Landing: Verify hero (3 animated cards), sections (How it works, Features, About, FAQ), and footer render in both light/dark themes with minimal gradient"
+    - "Studio: Regression check generate/evaluate/share still work"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
   - agent: "main"
-    message: "Added gzip-compressed share links with unique IDs, dedicated Share + Copy buttons, and on-screen answer reveal only after Evaluate. Please run a UI smoke test: 1) Generate quiz from sample text, ensure answers are hidden; 2) Click Evaluate and see correct highlights and line; 3) Click Share and Copy Link to verify both work; 4) Paste link in new tab to confirm it loads the shared quiz and selections."
+    message: "Rebuilt the landing page into multiple sections and imported App.css for styling. Please run a UI check: hero cards animate, navigation anchors scroll, sections look clean on both themes, and Studio flow unaffected."
