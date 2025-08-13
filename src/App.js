@@ -197,13 +197,16 @@ function Landing() {
         </div>
       </Section>
 
-      {/* Footer: email + social only */}
+      {/* Footer: email left, copyright center, socials right */}
       <footer className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-foreground/80">
-            © {new Date().getFullYear()} Aceel AI — <a href="mailto:aceel@sidahq.com" className="inline-flex items-center gap-2 hover-gold"><Mail size={16}/> aceel@sidahq.com</a>
+        <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+          <div className="justify-self-start text-sm text-foreground/80">
+            <a href="mailto:aceel@sidahq.com" className="inline-flex items-center gap-2 hover-gold"><Mail size={16}/> aceel@sidahq.com</a>
           </div>
-          <div className="flex items-center gap-4 text-foreground/80">
+          <div className="justify-self-center text-sm text-foreground/80">
+            © {new Date().getFullYear()} Aceel AI
+          </div>
+          <div className="justify-self-end flex items-center gap-4 text-foreground/80">
             <a href="https://instagram.com/aceel.ai" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover-gold"><Instagram size={18}/></a>
             <a href="https://x.com/aceeldotai" target="_blank" rel="noreferrer" aria-label="X" className="hover-gold"><Twitter size={18}/></a>
             <a href="https://www.linkedin.com/company/aceel-ai" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="hover-gold"><Linkedin size={18}/></a>
