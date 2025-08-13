@@ -406,13 +406,26 @@ function cutToWordBoundary(text, maxLen) {
   // Prefer a clean period instead of ellipsis
   return base.replace(/[,.\-:;]+$/, '') + '.';
 }
-function contextFromSentence(sentence, phrase, maxLen = 220) {
-  let ctx = removePhraseOnce(sentence, phrase);
+function fixMidwordSpaces(s) {
+  if (!s) return s;
+  // Join common broken suffixes (responsibility, advantages, control, bottleneck, etc.)
+  const patterns = [
+    /([A-Za-z]{3,})\s+(ability|ibility|sibility|ality|ments?|ness|ship|hood|ation|ization|cation|fully|ically|ances?|tages?|gories|curity|label|linear|regression|control|bottleneck|responsibility)/gi
+  ];
+  let t = s;
+  for (const rx of patterns) t = t.replace(rx, '$1$2');
+  return t;
+}
+
+function contextFromSentence(sentence, phrase, maxLen = 220, removePhrase = true) {
+  let ctx = removePhrase ? removePhraseOnce(sentence, phrase) : sentence;
   if (!ctx || ctx.length < 30) ctx = sentence;
+  ctx = fixMidwordSpaces(ctx);
   // de-emphasize raw numbers to avoid giveaways
   ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
   if (!/[.!?]$/.test(ctx)) ctx += '.';
   if (ctx.length > maxLen) ctx = cutToWordBoundary(ctx, maxLen);
+  ctx = fixMidwordSpaces(ctx);
   return repairDanglingEnd(ctx);
 }
 
