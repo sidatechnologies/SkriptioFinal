@@ -19,7 +19,7 @@ function Landing() {
   useEffect(() => { prewarmML(); prewarmPDF(); }, []);
 
   const HeroCard = ({ icon, title, desc, className = "" }) => (
-    <div className={`rounded-xl border border-border bg-card/90 p-4 card-glow hover:shadow-xl transition-shadow ${className}`}>
+    <div className={`rounded-xl border bg-card/90 p-4 card-glow hero-card hover:shadow-xl transition-shadow ${className}`}>
       <div className="flex items-center gap-2 text-sm font-medium mb-1">{icon}{title}</div>
       <div className="text-xs text-foreground/80">{desc}</div>
     </div>
