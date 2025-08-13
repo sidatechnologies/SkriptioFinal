@@ -691,6 +691,12 @@ function Studio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Feedback floater */}
+      <a href="https://forms.gle/jk7VCgX4UgMWzJjb9" target="_blank" rel="noreferrer" title="feedback" aria-label="feedback"
+         className="fixed bottom-5 right-5 z-50 inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/80 text-white bg-black/90 hover:bg-black focus:outline-none"
+         style={{boxShadow: '0 0 0 2px #fff inset'}}>
+        !
+      </a>
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
