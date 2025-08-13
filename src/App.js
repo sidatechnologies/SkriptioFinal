@@ -374,6 +374,12 @@ function Studio() {
   };
   const evaluate = () => {
     if (!result?.quiz?.length) return;
+    // Require all questions to be answered before evaluating
+    const unanswered = result.quiz.findIndex((_, idx) => !Number.isInteger(answers[idx]));
+    if (unanswered !== -1) {
+      toast({ title: 'Answer all questions', description: `Please select an option for Q${unanswered + 1} before evaluating.` });
+      return;
+    }
     let sc = 0;
     result.quiz.forEach((q, idx) => {
       const selected = answers[idx];
