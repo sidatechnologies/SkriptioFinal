@@ -262,10 +262,9 @@ function lexicalJaccard(a, b) {
 function ensureCaseAndPeriod(pattern, s) {
   let t = String(s || '').trim();
   if (!t) return t;
-  // match capitalization of first letter
-  const cap = /^[A-Z]/.test(String(pattern || 'A'));
-  t = cap ? (t[0].toUpperCase() + t.slice(1)) : (t[0].toLowerCase() + t.slice(1));
-  // ensure terminal punctuation similar to pattern (default to period)
+  // Always start with uppercase irrespective of source
+  t = t[0].toUpperCase() + t.slice(1);
+  // Ensure terminal punctuation (prefer period if none)
   const pend = /[.!?]$/.test(String(pattern || '.')) ? pattern.slice(-1) : '.';
   if (!/[.!?]$/.test(t)) t += pend || '.';
   return t;
