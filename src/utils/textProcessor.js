@@ -458,8 +458,13 @@ function contextFromSentence(sentence, phrase, maxLen = 220, removePhrase = true
   let ctx = removePhrase ? removePhraseOnce(sentence, phrase) : sentence;
   if (!ctx || ctx.length < 30) ctx = sentence;
   ctx = fixMidwordSpaces(ctx);
-  // de-emphasize raw numbers to avoid giveaways
-  ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
+  // preserve digits in numeric/system contexts to avoid losing meaning
+  const lower = (ctx || '').toLowerCase();
+  const numericContext = /(binary|decimal|octal|hex(a)?decimal|radix|base|mantissa|exponent|floating[- ]?point|sign bit|bit position|two's complement|1's complement|2's complement|complement method|number system|digit)/i.test(lower);
+  if (!numericContext) {
+    ctx = ctx.replace(/\b\d+(\.\d+)?\b/g, 'X');
+  }
+
   if (!/[.!?]$/.test(ctx)) ctx += '.';
   if (ctx.length > maxLen) ctx = cutToWordBoundary(ctx, maxLen);
   ctx = fixMidwordSpaces(ctx);
