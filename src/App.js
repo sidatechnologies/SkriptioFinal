@@ -940,7 +940,7 @@ function Studio() {
                                     >
                                       <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
                                       <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
-                                      {evaluated &amp;&amp; isSelected &amp;&amp; (
+                                      {evaluated && isSelected && (
                                         <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
                                       )}
                                     </button>
