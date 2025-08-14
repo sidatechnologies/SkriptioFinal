@@ -830,7 +830,7 @@ function Studio() {
               {pdfBusy.cards ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Flashcards PDF'}
             </Button>
             <Button variant="outline" disabled={!theory?.length || pdfBusy.plan} onClick={downloadTheoryPDF} aria-busy={pdfBusy.plan}>
-              {pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Plan PDF'}
+              {pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Theory PDF'}
             </Button>
             <Button variant="outline" disabled={!result?.quiz?.length} onClick={shareAnswers}>
               Share
