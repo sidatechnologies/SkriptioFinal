@@ -487,6 +487,10 @@ function placeDeterministically(choices, correct, seed = 0) {
 }
 
 function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
+  // Remove empties early
+  pool = (pool || []).filter(x => x && String(x).trim().length > 0);
+  fallbackPool = (fallbackPool || []).filter(x => x && String(x).trim().length > 0);
+  allPhrases = (allPhrases || []).filter(x => x && String(x).trim().length > 0);
   const selected = [correct];
   const seen = new Set([normalizeEquivalents(String(correct))]);
   const addIf = (opt) => {
