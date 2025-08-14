@@ -282,6 +282,8 @@
       - working: false
         agent: "testing"
         comment: "Compile failures in textProcessor.js: Unexpected token in template RegExp and Invalid RegExp (BAD_TAIL) Unterminated group."
+  - agent: "main"
+    message: "Added robust option padding for concept MCQs and updated PDF footer branding. Please retest: 1) Generate quizzes with small and sparse inputs to check 4 options always appear; 2) Export all PDFs and verify footer reads 'skriptio.sidahq.com | aceel@sidahq.com' without layout issues."
       - working: true
         agent: "main"
         comment: "Switched all dynamic RegExp constructions to use escapeRegExp helper and corrected BAD_TAIL group parentheses. Restarted frontend; landing and Studio load successfully."
