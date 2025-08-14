@@ -1144,6 +1144,7 @@ function escapeRegExp(s) {
   return String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
+  const sents = splitSentences(rawText || '');
   const { difficulty = 'balanced', docTitle = '' } = opts;
   // Prefer multi-word phrases and de-genericize
   const BAN = new Set(['work','process','one process','ongoing process','analysis tools']);
