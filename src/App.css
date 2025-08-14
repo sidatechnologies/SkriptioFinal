@@ -31,6 +31,33 @@ button, .btn { transition: background-color .2s ease, color .2s ease, border-col
 /* Ensure plan objectives wrap fully */
 .plan-objective { white-space: normal; word-break: break-word; }
 input, textarea, select { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+/* Prominent input outlines in light theme */
+input[type="text"], textarea {
+  border: 1.5px solid rgba(0,0,0,0.6);
+  background: #fff;
+}
+.dark input[type="text"], .dark textarea {
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.04);
+}
+/* Upload button to look more prominent in light theme */
+.button-upload, .btn-upload {
+  border: 1.5px solid rgba(0,0,0,0.6) !important;
+}
+
+/* Checkboxes styling */
+input[type="checkbox"] {
+  width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff;
+}
+input[type="checkbox"]:checked::after {
+  content: ""; position: absolute; left: 3px; top: 1px; width: 8px; height: 12px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.dark input[type="checkbox"] {
+  background: #000; border-color: #fff; box-shadow: 0 0 0 1px #fff inset;
+}
+.dark input[type="checkbox"]:checked::after {
+  border-color: #fff;
+}
 
 /* Hide default file input */
 input[type=file] { display: none; }
