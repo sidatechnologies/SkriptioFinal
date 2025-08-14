@@ -815,7 +815,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     // As a final guard, if any option equals the phrase, replace it with a safe generic
     const GENERIC = ['Background theory', 'General concept', 'Related idea'];
     for (let i = 0; i < optsArr.length; i++) {
-      if (!notPhrase(optsArr[i])) optsArr[i] = GENERIC[i % GENERIC.length];
+      if (!notPhrase(optsArr[i]) || !optsArr[i]) optsArr[i] = GENERIC[i % GENERIC.length];
+    }
+    while (optsArr.length < 4) {
+      optsArr.push(GENERIC[optsArr.length % GENERIC.length]);
     }
 
     // Normalize all options (including correct) to match capitalization and punctuation of the correct answer
