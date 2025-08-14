@@ -606,6 +606,29 @@ function Studio() {
     }
   };
 
+  const downloadTheoryPDF = async () => {
+    if (!theory?.length) return;
+    setPdfBusy(s => ({ ...s, plan: true }));
+    try {
+      const jsPDF = await ensureJsPDF();
+      const doc = new jsPDF();
+      await ensureAssetsLoaded();
+      addHeader(doc);
+      let y = 32;
+      doc.setFontSize(13);
+      y = lineWrap(doc, `Title: ${result?.title || "Untitled"}`, 15, y, 180);
+      doc.setFontSize(12);
+      theory.forEach((t, idx) => {
+        y = lineWrap(doc, `Q${idx + 1}: ${t}`, 15, y, 180);
+        y += 4;
+      });
+      addFooter(doc);
+      doc.save("skriptio-theory.pdf");
+    } finally {
+      setPdfBusy(s => ({ ...s, plan: false }));
+    }
+  };
+
   const downloadPlanPDF = async () => {
     if (!result?.plan?.length) return;
     setPdfBusy(s => ({ ...s, plan: true }));
