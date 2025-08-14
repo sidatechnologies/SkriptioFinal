@@ -296,6 +296,8 @@
   current_focus:
     - "Landing: Verify hero (3 animated cards), sections (How it works, Features, About, FAQ), and footer render in both light/dark themes with minimal gradient"
     - "Studio: Regression check generate/evaluate/share still work"
+    - "MCQ integrity: Ensure every question shows exactly 4 options across difficulties"
+    - "PDF exports: Confirm new footer branding appears on all pages and doesn't overlap content"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
