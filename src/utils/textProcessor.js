@@ -602,7 +602,8 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   const wantExplanations = true;
 
   const mode = difficulty; // alias
-  const modeIdx = mode === 'balanced' ? 0 : (mode === 'harder' ? 1 : 2);
+  // Introduce randomness by default: randomize seed bucket per run
+  const modeIdx = Math.floor(Math.random() * 3);
 
   const quiz = [];
   const used = new Set();
