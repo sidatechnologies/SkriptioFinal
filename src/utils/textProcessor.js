@@ -625,9 +625,14 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
   }
 
   function sentenceFor(p) {
-    // Prefer non-visual references and avoid headings
-    let s = sentences.find(ss => hasPhrase(p, ss) && !looksVisualRef(ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
-    if (!s) s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle));
+    // Prefer non-visual references and avoid headings; also avoid where phrase appears too early (likely a heading)
+    const tooEarly = (ss, phrase) => {
+      const idx = ss.toLowerCase().indexOf(String(phrase || '').toLowerCase());
+      return idx >= 0 && idx < 25; // phrase starts too early in line
+    };
+    let s = sentences.find(ss => hasPhrase(p, ss) && !looksVisualRef(ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50 && !tooEarly(ss, p));
+    if (!s) s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && !tooEarly(ss, p));
+    if (!s) s = sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
     return s || sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle)) || sentences[0] || '';
   }
 
