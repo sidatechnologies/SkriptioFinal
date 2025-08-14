@@ -604,7 +604,7 @@ function Studio() {
         }
         const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0));
         y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170);
-        if (showExplanations &amp;&amp; q.explanation) {
+        if (showExplanations && q.explanation) {
           y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170);
         }
         y += 4;
