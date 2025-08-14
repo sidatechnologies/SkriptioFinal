@@ -703,7 +703,7 @@ function Studio() {
     return t.slice(0, 60) || 'study-kit';
   };
   const inferTitle = () => {
-    if (title &amp;&amp; title.trim()) return title.trim();
+    if (title && title.trim()) return title.trim();
     const firstNonEmpty = (text || '').split(/\n+/).map(l => l.trim()).find(Boolean) || '';
     return firstNonEmpty.slice(0, 80) || 'Study Kit';
   };
