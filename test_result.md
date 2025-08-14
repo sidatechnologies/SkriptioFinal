@@ -287,29 +287,44 @@
       - working: true
         agent: "main"
         comment: "Switched all dynamic RegExp constructions to use escapeRegExp helper and corrected BAD_TAIL group parentheses. Restarted frontend; landing and Studio load successfully."
+  - task: "Add floating expandable menu (Feedback + Merch) on Studio page"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Replaced the single exclamation floater with a toggleable menu. Two items appear when expanded: Feedback (opens Google Form) and Merch (navigates to /merch). Theme-aware high-contrast styling (white/black in light, inverse in dark)."
+  - task: "Create Merch page with Aceel AI Logo freebie and placeholders; add to navbar"
+    implemented: true
+    working: "NA"
+    file: "/app/src/pages/Merch.jsx, /app/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /merch route. Column 1 shows glass preview card with Aceel AI logo and a small bottom-right download button, title on left in header. Columns 2/3 are glass placeholders with 'Coming soon'. Added Merch link to landing navbar (desktop and mobile)."
 
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 5
+  test_sequence: 6
   run_ui: false
 
 ## test_plan:
   current_focus:
-    - "Landing: Verify hero (3 animated cards), sections (How it works, Features, About, FAQ), and footer render in both light/dark themes with minimal gradient"
-    - "Studio: Regression check generate/evaluate/share still work"
-    - "MCQ integrity: Ensure every question shows exactly 4 options across difficulties"
-    - "PDF exports: Confirm new footer branding appears on all pages and doesn't overlap content"
+    - "Floating menu: Toggle visibility; Feedback opens external form; Merch navigates to /merch"
+    - "Merch page: Verify logo preview, download works, placeholders render; Theme adherence"
+    - "Landing navbar: Merch link visible on desktop & mobile menu; navigation works"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
   - agent: "main"
-    message: "Rebuilt the landing page into multiple sections and imported App.css for styling. Please run a UI check: hero cards animate, navigation anchors scroll, sections look clean on both themes, and Studio flow unaffected."
-  - agent: "testing"
-    message: "Completed comprehensive landing page validation. Landing page is working well with minor content discrepancies: navigation shows 'About' instead of 'Use cases', and 'Saves' keyword missing from bullet points. All core UI elements, animations, theme toggle, and Studio functionality are working perfectly. Hero structure, animated cards, CTAs, and gradient visibility all validated successfully."
-  - agent: "user"
-    message: "Studio shows 0 questions for pasted text and PDFs. WebGL context lost errors. Generate causes screen to go black/hang; spinner persists. Very bad UX."
-  - agent: "main"
-    message: "Applied fixes: 1) Disabled TFJS WebGL and forced CPU; 2) Removed ML prewarm on landing/studio to avoid blocking; 3) Timeboxed/downsized ML refinement to phrases only and skip if not ready; 4) Option padding: never drop a question if <4 options, pad deterministically; 5) OCR limited to max 2 pages and 6s budget to prevent hangs. Requesting retest: paste text and small/large PDFs across all difficulties; verify quiz shows 10 questions with responsive UI."
+    message: "Implemented floating expandable menu (Feedback + Merch), created /merch page with freebies and placeholders, and added Merch link to landing header (desktop + mobile). Requesting UI validation when convenient."

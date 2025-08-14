@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, X, ChevronDown } from "lucide-react";
+import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Check, Sparkles, Layers, GraduationCap, Shield, Clock, Users, HelpCircle, Zap, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, X, ChevronDown, MessageSquare, ShoppingBag } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import { extractTextFromPDF, generateArtifacts, generateUUID, buildTheoryQuestions } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
@@ -14,6 +14,7 @@ import { toast } from "./components/ui/use-toast";
 import pako from "pako";
 import "./App.css";
 import { friendlySlugFromString } from "./utils/shortener";
+import Merch from "./pages/Merch";
 
 function Landing() {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ function Landing() {
               <a href="#features" className="hover:text-foreground">Features</a>
               <a href="#usecases" className="hover:text-foreground">Use cases</a>
               <a href="#faq" className="hover:text-foreground">FAQ</a>
+              <Link to="/merch" className="hover:text-foreground">Merch</Link>
               <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full gold-dot"/>A product by Aceel AI</span>
             </nav>
             <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio <ArrowRight className="ml-1" size={14}/></Button></div>
@@ -79,6 +81,7 @@ function Landing() {
             <a href="#features" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Features</a>
             <a href="#usecases" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Use cases</a>
             <a href="#faq" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>FAQ</a>
+            <Link to="/merch" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Merch</Link>
             <Button size="sm" onClick={() => { setMobileOpen(false); navigate('/studio'); }} className="bg-primary text-primary-foreground hover:bg-primary/90 w-fit">Open Studio <ArrowRight className="ml-1" size={14}/></Button>
           </div>
         </div>
@@ -274,6 +277,9 @@ function Studio() {
   const [showExplanations, setShowExplanations] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
   const [theory, setTheory] = useState([]);
+
+  // Floating menu state
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmPDF(); }, []);
@@ -589,16 +595,16 @@ function Studio() {
       doc.setFontSize(13);
       y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
       doc.setFontSize(12);
-      for (let i = 0; i < result.quiz.length; i++) {
+      for (let i = 0; i &lt; result.quiz.length; i++) {
         const q = result.quiz[i];
         y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
-        for (let oi = 0; oi < q.options.length; oi++) {
+        for (let oi = 0; oi &lt; q.options.length; oi++) {
           const prefix = String.fromCharCode(65 + oi);
           y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170);
         }
         const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0));
         y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170);
-        if (showExplanations && q.explanation) {
+        if (showExplanations &amp;&amp; q.explanation) {
           y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170);
         }
         y += 4;
@@ -697,7 +703,7 @@ function Studio() {
     return t.slice(0, 60) || 'study-kit';
   };
   const inferTitle = () => {
-    if (title && title.trim()) return title.trim();
+    if (title &amp;&amp; title.trim()) return title.trim();
     const firstNonEmpty = (text || '').split(/\n+/).map(l => l.trim()).find(Boolean) || '';
     return firstNonEmpty.slice(0, 80) || 'Study Kit';
   };
@@ -727,7 +733,7 @@ function Studio() {
 
   const robustCopy = async (text) => {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
+      if (navigator.clipboard &amp;&amp; window.isSecureContext) {
         await navigator.clipboard.writeText(text);
         return true;
       }
@@ -759,12 +765,32 @@ function Studio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Feedback floater */}
-      <a href="https://forms.gle/jk7VCgX4UgMWzJjb9" target="_blank" rel="noreferrer" title="feedback" aria-label="feedback"
-         className="fixed bottom-5 right-5 z-50 inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/80 text-white bg-black/90 hover:bg-black focus:outline-none"
-         style={{boxShadow: '0 0 0 2px #fff inset'}}>
-        !
-      </a>
+      {/* Floating expandable menu */}
+      <div className="fixed bottom-5 right-5 z-50">
+        {/* Children (show when open) */}
+        <div className={`flex flex-col items-end gap-2 mb-2 transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+          <button onClick={() => { setMenuOpen(false); window.open('https://forms.gle/jk7VCgX4UgMWzJjb9', '_blank', 'noopener'); }}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full border shadow-sm
+                             bg-white text-black border-black/80 hover:bg-white/90
+                             dark:bg-black dark:text-white dark:border-white/80">
+            <MessageSquare size={16} /> <span className="text-sm">Feedback</span>
+          </button>
+          <button onClick={() => { setMenuOpen(false); navigate('/merch'); }}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full border shadow-sm
+                             bg-white text-black border-black/80 hover:bg-white/90
+                             dark:bg-black dark:text-white dark:border-white/80">
+            <ShoppingBag size={16} /> <span className="text-sm">Merch</span>
+          </button>
+        </div>
+        {/* Main toggle button */}
+        <button onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border
+                           bg-white text-black border-black/80 hover:bg-white/90
+                           dark:bg-black dark:text-white dark:border-white/80"
+                style={{boxShadow: '0 0 0 2px currentColor inset'}}>
+          {menuOpen ? '×' : '!'}
+        </button>
+      </div>
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
@@ -795,13 +821,13 @@ function Studio() {
                 <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
-                {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
+                {file &amp;&amp; <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
                   {/* Desktop/tablet segmented control */}
-                  {isDesktop && (
+                  {isDesktop &amp;&amp; (
                     <div className="inline-flex rounded-md overflow-hidden border border-border">
                       <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
                       <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
@@ -809,7 +835,7 @@ function Studio() {
                     </div>
                   )}
                   {/* Mobile dropdown */}
-                  {!isDesktop && (
+                  {!isDesktop &amp;&amp; (
                     <div className="select-wrap">
                       <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                         <option value="balanced">Balanced</option>
@@ -899,13 +925,13 @@ function Studio() {
                                 const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                                 let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                                 displayOpts = displayOpts.filter(v => v.length > 0);
-                                while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                 displayOpts = displayOpts.slice(0, 4);
                                 return displayOpts.map((opt, oi) => {
                                   const isSelected = answers[idx] === oi;
-                                  const isCorrect = evaluated && q.answer_index === oi;
-                                  const showAsWrong = evaluated && isSelected && !isCorrect;
-                                  const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
+                                  const isCorrect = evaluated &amp;&amp; q.answer_index === oi;
+                                  const showAsWrong = evaluated &amp;&amp; isSelected &amp;&amp; !isCorrect;
+                                  const selectedClass = !evaluated &amp;&amp; isSelected ? 'quiz-option--selected' : '';
                                   return (
                                     <button
                                       key={oi}
@@ -914,7 +940,7 @@ function Studio() {
                                     >
                                       <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
                                       <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
-                                      {evaluated && isSelected && (
+                                      {evaluated &amp;&amp; isSelected &amp;&amp; (
                                         <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
                                       )}
                                     </button>
@@ -922,20 +948,20 @@ function Studio() {
                                 });
                               })()}
                             </div>
-                            {evaluated && (() => {
+                            {evaluated &amp;&amp; (() => {
                               const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                               let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                               displayOpts = displayOpts.filter(v => v.length > 0);
-                              while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                              while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                               displayOpts = displayOpts.slice(0, 4);
                               const correctText = ((q.options[q.answer_index] ?? '') + '').trim();
                               let correctIdx = displayOpts.indexOf(correctText);
-                              if (correctIdx < 0) correctIdx = 0;
+                              if (correctIdx &lt; 0) correctIdx = 0;
                               const userIdx = Number.isInteger(answers[idx]) ? Math.min(Math.max(0, answers[idx]), 3) : null;
                               return (
                                 <div className="text-xs text-foreground/80 space-y-1">
                                   <div>Correct answer: {String.fromCharCode(65 + correctIdx)}) {displayOpts[correctIdx]}</div>
-                                  {userIdx !== null && (
+                                  {userIdx !== null &amp;&amp; (
                                     <div className={`${userIdx === correctIdx ? 'text-green-600' : 'text-red-600'}`}>
                                       Your answer: {String.fromCharCode(65 + userIdx)}) {displayOpts[userIdx]}
                                     </div>
@@ -943,7 +969,7 @@ function Studio() {
                                 </div>
                               );
                             })()}
-                            {evaluated && showExplanations && q.explanation && (
+                            {evaluated &amp;&amp; showExplanations &amp;&amp; q.explanation &amp;&amp; (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
                           </CardContent>
@@ -952,7 +978,7 @@ function Studio() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Button onClick={evaluate} className="bg-primary text-primary-foreground hover:bg-primary/90">Evaluate</Button>
-                      {score && <div className="text-sm text-foreground/80">Your score: {score}</div>}
+                      {score &amp;&amp; <div className="text-sm text-foreground/80">Your score: {score}</div>}
                     </div>
                   </div>
                 )}
@@ -1033,6 +1059,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/studio/*" element={<Studio />} />
+      <Route path="/merch" element={<Merch />} />
     </Routes>
   );
 }
