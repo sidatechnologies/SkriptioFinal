@@ -461,7 +461,9 @@ function fixMidwordSpaces(s) {
 }
 
 function contextFromSentence(sentence, phrase, maxLen = 220, removePhrase = true) {
-  let ctx = removePhrase ? removePhraseOnce(sentence, phrase) : sentence;
+  // strip numeric section labels like "2.", "2.4.", "2.4.2" at the start
+  const cleanedSentence = String(sentence || '').replace(/^\s*(\d+(?:\.\d+){0,4})(?:\s*[:\.\-])?\s+/, '');
+  let ctx = removePhrase ? removePhraseOnce(cleanedSentence, phrase) : cleanedSentence;
   if (!ctx || ctx.length < 30) ctx = sentence;
   ctx = fixMidwordSpaces(ctx);
   // fully disable digit masking to preserve numeric clarity
