@@ -969,7 +969,7 @@ function Studio() {
                                 </div>
                               );
                             })()}
-                            {evaluated &amp;&amp; showExplanations &amp;&amp; q.explanation &amp;&amp; (
+                            {evaluated && showExplanations && q.explanation && (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
                           </CardContent>
