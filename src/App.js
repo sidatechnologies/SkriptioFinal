@@ -978,7 +978,7 @@ function Studio() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Button onClick={evaluate} className="bg-primary text-primary-foreground hover:bg-primary/90">Evaluate</Button>
-                      {score &amp;&amp; <div className="text-sm text-foreground/80">Your score: {score}</div>}
+                      {score && <div className="text-sm text-foreground/80">Your score: {score}</div>}
                     </div>
                   </div>
                 )}
