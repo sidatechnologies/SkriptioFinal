@@ -946,6 +946,22 @@ function Studio() {
                   </div>
                 )}
               </TabsContent>
+
+              <TabsContent value="theory">
+                {!result ? (
+                  <EmptyState label="Your Theory Questions will appear here once generated."/>
+                ) : (
+                  <div className="grid gap-3">
+                    {theory?.length ? theory.map((t, i) => (
+                      <Card key={i} className="bg-card border-border">
+                        <CardContent className="p-5">
+                          <div className="text-sm">Q{i + 1}: {t}</div>
+                        </CardContent>
+                      </Card>
+                    )) : <EmptyState label="Your Theory Questions will appear here once generated."/>}
+                  </div>
+                )}
+              </TabsContent>
             </div>
           </Tabs>
         </div>
