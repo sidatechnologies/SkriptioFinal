@@ -107,6 +107,29 @@
 ## backend: []
 
 ## frontend:
+  - task: "Ensure 4 options for every concept MCQ (pad when distractors are short)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated concept question builder to use distinctFillOptions with robust fallbacks so MCQs always have exactly 4 options. Prevents missing option C/D cases."
+  - task: "Update PDF footer branding in all exports"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "PDF footer now shows: 'skriptio.sidahq.com | aceel@sidahq.com' instead of just email. Applies to Quiz, Flashcards, Theory, and Plan exports."
+
   - task: "Convert full-stack app to frontend-only with client-side processing"
     implemented: true
     working: true
