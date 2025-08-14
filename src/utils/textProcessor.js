@@ -155,6 +155,8 @@ function looksLikeHeading(s) {
   if (/^(x\.|x\.x\.|x\s*x\.)/i.test(t)) return true;
   // Also treat explicit numeric headings as headings: 1. , 1.1 , 2.3.4
   if (/^\d+(\.\d+)*\.?\s*([A-Z][A-Za-z]+\b)?(\s+.*)?$/.test(t) && !/[.!?]$/.test(t)) return true;
+  // Treat lines that start with a numeric chapter label then a title as headings
+  if (/^\d+(\.\d+)*\s+[A-Za-z].{0,80}$/.test(t) && !/[.!?]$/.test(t)) return true;
   return false;
 }
 function looksLikeHeadingStrong(s, docTitle = '') {
