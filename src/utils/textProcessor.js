@@ -417,7 +417,8 @@ function tooSimilar(a, b) {
 
 function removePhraseOnce(sentence, phrase) {
   const rx = new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'i');
-  return sentence.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
+  // Replace the phrase with an explicit blank to avoid malformed grammar like "is a  that..."
+  return sentence.replace(rx, '_____').replace(/\s{2,}/g, ' ').trim();
 }
 
 function cutToWordBoundary(text, maxLen) {
