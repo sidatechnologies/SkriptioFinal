@@ -768,8 +768,10 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const qtext = tpl(primary, secondary);
 
     const distractors = pickDistractorsConcept(phrase).map(fixSpacing);
-    const allOpts = [phrase, ...distractors];
-    const { arranged, idx } = placeDeterministically(allOpts, phrase, modeIdx);
+    // Ensure exactly 4 options using robust filler with fallbacks
+    const fallbackPool = phrases.filter(p => p && p !== phrase);
+    const optsArr = distinctFillOptions(phrase, distractors, fallbackPool, phrases, 4).map(fixSpacing);
+    const { arranged, idx } = placeDeterministically(optsArr, phrase, modeIdx);
     const explanation = wantExplanations ? `Context: ${primary}${secondary ? ' | ' + secondary : ''}` : undefined;
     markUsed(arranged, phrase);
     return { question: qtext, options: arranged, answer_index: idx, qtype: 'concept', explanation };
