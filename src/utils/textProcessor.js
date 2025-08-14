@@ -905,6 +905,11 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     if (used.has(phrase)) continue;
     const q = buildConceptQ(s, phrase, i + modeIdx);
     if (!q) continue;
+    // Avoid same correct concept appearing too many times (e.g., sign bit, binary number)
+    const correct = q.options[q.answer_index];
+    const count = conceptAnswerUseCount.get(correct) || 0;
+    if (count >= 1) { continue; }
+    conceptAnswerUseCount.set(correct, count + 1);
     // Length-balance options against the correct answer for concept items too
     const corr = q.options[q.answer_index] || '';
     const banded = q.options.map(o => adjustToLengthBand(corr.length, o, 0.85, 1.15));
