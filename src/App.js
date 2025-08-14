@@ -929,7 +929,7 @@ function Studio() {
                                 displayOpts = displayOpts.slice(0, 4);
                                 return displayOpts.map((opt, oi) => {
                                   const isSelected = answers[idx] === oi;
-                                  const isCorrect = evaluated &amp;&amp; q.answer_index === oi;
+                                  const isCorrect = evaluated && q.answer_index === oi;
                                   const showAsWrong = evaluated &amp;&amp; isSelected &amp;&amp; !isCorrect;
                                   const selectedClass = !evaluated &amp;&amp; isSelected ? 'quiz-option--selected' : '';
                                   return (
