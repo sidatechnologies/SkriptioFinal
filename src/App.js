@@ -829,7 +829,7 @@ function Studio() {
             <Button variant="outline" disabled={!result?.flashcards?.length || pdfBusy.cards} onClick={downloadCardsPDF} aria-busy={pdfBusy.cards}>
               {pdfBusy.cards ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Flashcards PDF'}
             </Button>
-            <Button variant="outline" disabled={!result?.plan?.length || pdfBusy.plan} onClick={downloadPlanPDF} aria-busy={pdfBusy.plan}>
+            <Button variant="outline" disabled={!theory?.length || pdfBusy.plan} onClick={downloadTheoryPDF} aria-busy={pdfBusy.plan}>
               {pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Plan PDF'}
             </Button>
             <Button variant="outline" disabled={!result?.quiz?.length} onClick={shareAnswers}>
