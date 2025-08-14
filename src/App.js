@@ -922,16 +922,27 @@ function Studio() {
                                 });
                               })()}
                             </div>
-                            {evaluated && (
-                              <div className="text-xs text-foreground/80 space-y-1">
-                                <div>Correct answer: {String.fromCharCode(65 + (q.answer_index ?? 0))}) {q.options[q.answer_index]}</div>
-                                {Number.isInteger(answers[idx]) && (
-                                  <div className={`${answers[idx] === q.answer_index ? 'text-green-600' : 'text-red-600'}`}>
-                                    Your answer: {String.fromCharCode(65 + answers[idx])}) {q.options[answers[idx]]}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                            {evaluated && (() => {
+                              const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+                              let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
+                              displayOpts = displayOpts.filter(v => v.length > 0);
+                              while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                              displayOpts = displayOpts.slice(0, 4);
+                              const correctText = ((q.options[q.answer_index] ?? '') + '').trim();
+                              let correctIdx = displayOpts.indexOf(correctText);
+                              if (correctIdx < 0) correctIdx = 0;
+                              const userIdx = Number.isInteger(answers[idx]) ? Math.min(Math.max(0, answers[idx]), 3) : null;
+                              return (
+                                <div className="text-xs text-foreground/80 space-y-1">
+                                  <div>Correct answer: {String.fromCharCode(65 + correctIdx)}) {displayOpts[correctIdx]}</div>
+                                  {userIdx !== null && (
+                                    <div className={`${userIdx === correctIdx ? 'text-green-600' : 'text-red-600'}`}>
+                                      Your answer: {String.fromCharCode(65 + userIdx)}) {displayOpts[userIdx]}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                             {evaluated && showExplanations && q.explanation && (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
