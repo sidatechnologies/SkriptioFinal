@@ -1153,8 +1153,8 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
   const pool = [...multi, ...uni];
   const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
   const pickSentence = (p) => {
-    const s = sentences.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
-    return s || sentences.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50) || sentences[0] || '';
+    const s = sents.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50);
+    return s || sents.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50) || sents[0] || '';
   };
   const templates = {
     balanced: [
