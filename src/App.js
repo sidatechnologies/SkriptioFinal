@@ -524,7 +524,7 @@ function Studio() {
     const ph = doc.internal.pageSize.getHeight();
     const pw = doc.internal.pageSize.getWidth();
     doc.setFontSize(10);
-    doc.text("skriptio@sidahq.com", pw / 2, ph - 10, { align: "center" });
+    doc.text("aceel@sidahq.com", pw / 2, ph - 10, { align: "center" });
   };
 
   const newPage = (doc) => {
