@@ -400,7 +400,36 @@ function Studio() {
       // Build 10 theory questions (descriptive prompts without answers)
       const theoryQs = buildTheoryQuestions(studyData.text, studyData.flashcards.map(c => c.front.replace(/^Define:\s*/i, '').trim()), 10, { difficulty, docTitle: studyData.title });
       setTheory(theoryQs);
-      setResult(studyData);
+      // Normalize quiz to guarantee 4 visible options (UI safeguard)
+      const normalizedQuiz = (studyData.quiz || []).map((q) => {
+        const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+        const clean = (v) => (v ?? '').toString().trim();
+        let opts = Array.isArray(q.options) ? q.options.map(clean) : [];
+        let ai = Number.isInteger(q.answer_index) ? q.answer_index : 0;
+        let correct = clean(opts[ai]);
+        opts = opts.filter(v => v.length > 0);
+        let gi = 0;
+        while (opts.length < 4 && gi < GENERICS.length + 4) {
+          const cand = GENERICS[gi % GENERICS.length];
+          if (!opts.includes(cand)) opts.push(cand);
+          gi++;
+        }
+        if (opts.length > 4) {
+          if (correct && !opts.slice(0, 4).includes(correct) && opts.includes(correct)) {
+            opts[3] = correct;
+          }
+          opts = opts.slice(0, 4);
+        }
+        if (!correct || !opts.includes(correct)) {
+          correct = opts[0] || GENERICS[0];
+          ai = 0;
+        } else {
+          ai = opts.indexOf(correct);
+          if (ai < 0 || ai > 3) ai = 0;
+        }
+        return { ...q, options: opts, answer_index: ai };
+      });
+      setResult({ ...studyData, quiz: normalizedQuiz });
       setAnswers({});
       setScore(null);
       setEvaluated(false);
