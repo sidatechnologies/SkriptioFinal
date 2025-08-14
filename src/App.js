@@ -792,7 +792,7 @@ function Studio() {
               </div>
               <div className="flex items-center gap-3">
                 <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="hidden" />
-                <Button variant="secondary" className="bg-white/10 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
+                <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
                 {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
