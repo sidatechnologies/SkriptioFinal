@@ -665,6 +665,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
 
   // Global option usage tracker for this quiz to reduce repetition across questions
   const optionUseCount = new Map();
+  const conceptAnswerUseCount = new Map(); // track how many times a phrase is the correct answer
   const usedPropertyTextKeys = new Set();
   const normOption = (s) => normalizeEquivalents(String(s || '')).replace(/\s+/g, ' ').trim();
   const markUsed = (arr, correct) => {
