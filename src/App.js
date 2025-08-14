@@ -948,7 +948,7 @@ function Studio() {
                                 });
                               })()}
                             </div>
-                            {evaluated &amp;&amp; (() => {
+                            {evaluated && (() => {
                               const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                               let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                               displayOpts = displayOpts.filter(v => v.length > 0);
