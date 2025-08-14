@@ -268,7 +268,7 @@ function Studio() {
   const [score, setScore] = useState(null);
   const [evaluated, setEvaluated] = useState(false);
   const fileInputRef = useRef();
-  const [pdfBusy, setPdfBusy] = useState({ quiz: false, cards: false, plan: false });
+  const [pdfBusy, setPdfBusy] = useState({ quiz: false, cards: false, plan: false, theory: false });
   const [difficulty, setDifficulty] = useState('balanced');
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
