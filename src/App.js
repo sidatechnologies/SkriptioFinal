@@ -733,7 +733,7 @@ function Studio() {
 
   const robustCopy = async (text) => {
     try {
-      if (navigator.clipboard &amp;&amp; window.isSecureContext) {
+      if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
         return true;
       }
