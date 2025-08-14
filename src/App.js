@@ -895,25 +895,32 @@ function Studio() {
                           <CardContent className="p-5 space-y-3">
                             <div className="font-medium">Q{idx + 1}. {q.question}</div>
                             <div className="grid gap-2">
-                              {q.options.map((opt, oi) => {
-                                const isSelected = answers[idx] === oi;
-                                const isCorrect = evaluated && q.answer_index === oi;
-                                const showAsWrong = evaluated && isSelected && !isCorrect;
-                                const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
-                                return (
-                                  <button
-                                    key={oi}
-                                    onClick={() => selectOption(idx, oi)}
-                                    className={`text-left rounded-md border px-3 py-2 flex items-start gap-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
-                                  >
-                                    <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
-                                    <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
-                                    {evaluated && isSelected && (
-                                      <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
-                                    )}
-                                  </button>
-                                );
-                              })}
+                              {(() => {
+                                const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+                                let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
+                                displayOpts = displayOpts.filter(v => v.length > 0);
+                                while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                displayOpts = displayOpts.slice(0, 4);
+                                return displayOpts.map((opt, oi) => {
+                                  const isSelected = answers[idx] === oi;
+                                  const isCorrect = evaluated && q.answer_index === oi;
+                                  const showAsWrong = evaluated && isSelected && !isCorrect;
+                                  const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
+                                  return (
+                                    <button
+                                      key={oi}
+                                      onClick={() => selectOption(idx, oi)}
+                                      className={`text-left rounded-md border px-3 py-2 flex items-start gap-2 quiz-option ${selectedClass} ${isCorrect ? 'border-green-500/70 bg-green-500/10' : ''} ${showAsWrong ? 'border-red-500/70 bg-red-500/10' : ''}`}
+                                    >
+                                      <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
+                                      <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
+                                      {evaluated && isSelected && (
+                                        <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
+                                      )}
+                                    </button>
+                                  );
+                                });
+                              })()}
                             </div>
                             {evaluated && (
                               <div className="text-xs text-foreground/80 space-y-1">
