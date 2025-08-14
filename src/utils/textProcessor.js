@@ -975,7 +975,7 @@ export function buildQuiz(sentences, phrases, total = 10, opts = {}) {
     const filteredOptions = (q.options || [])
       .map(o => (o ?? '').toString().trim())
       .map(fixSpacing)
-      .filter(o => o);
+      .filter(o => o && o.trim().length >= (q.qtype === 'property' ? 20 : 2));
     // If less than 4, pad deterministically using phrases and safe generics
     let padded = filteredOptions.slice();
     if (padded.length < 4) {
