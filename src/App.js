@@ -821,7 +821,7 @@ function Studio() {
                 <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
-                {file &amp;&amp; <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
+                {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
