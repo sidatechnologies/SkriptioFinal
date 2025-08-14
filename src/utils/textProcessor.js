@@ -151,6 +151,10 @@ function looksLikeHeading(s) {
   if (isAllCaps(t)) return true;
   if (isTitleCaseLine(t)) return true;
   if (!/[.!?]$/.test(t) && t.split(/\s+/).length <= 8) return true;
+  // Masked numeric headings like "X.X" or "X." should be treated as headings
+  if (/^(x\.|x\.x\.|x\s*x\.)/i.test(t)) return true;
+  // Also treat explicit numeric headings as headings: 1. , 1.1 , 2.3.4
+  if (/^\d+(\.\d+)*\.?\s*([A-Z][A-Za-z]+\b)?(\s+.*)?$/.test(t) && !/[.!?]$/.test(t)) return true;
   return false;
 }
 function looksLikeHeadingStrong(s, docTitle = '') {
