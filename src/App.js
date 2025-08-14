@@ -931,7 +931,7 @@ function Studio() {
                                   const isSelected = answers[idx] === oi;
                                   const isCorrect = evaluated && q.answer_index === oi;
                                   const showAsWrong = evaluated && isSelected && !isCorrect;
-                                  const selectedClass = !evaluated &amp;&amp; isSelected ? 'quiz-option--selected' : '';
+                                  const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
                                   return (
                                     <button
                                       key={oi}
