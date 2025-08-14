@@ -1238,25 +1238,48 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
 }
 
 // Build flashcards from sentences and phrases
-export function buildFlashcards(sentences, phrases, total = 12) {
+export function buildFlashcards(sentences, phrases, total = 12, docTitle = '') {
   const cards = [];
   const used = new Set();
   const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
+  const isAuthorish = (s) => /\b(About the Author|author|editor|biography|Professor|Prof\.|Dr\.|Assistant Professor|Associate Professor|Lecturer|Head of|Department|Institute|University|College|UGC|Scholarship|IGNOU|Haldia|Study Centre|Heritage Institute|JIS College|West Bengal)\b/i.test(String(s || ''));
+  const validateFlash = (s) => {
+    if (!s) return null;
+    if (isAuthorish(s)) return null;
+    if (looksLikeHeadingStrong(s, docTitle)) return null;
+    const t = repairDanglingEnd(s);
+    if (t.length < 60 || t.length > 400) return null;
+    if (!hasVerb(t)) return null;
+    // Drop common broken tails
+    if (/(which\s+(has|is))\s*\.$/i.test(t)) return null;
+    if (/(using\s+only|for)\s*\.$/i.test(t)) return null;
+    if (/end\s+carry|\br\s*m\b/i.test(t)) return null;
+    return t;
+  };
+
+  // Primary pass: definition-style cards per phrase
   for (const p of phrases) {
     if (cards.length >= total) break;
-    const s = sentences.find(sen => hasPhrase(p, sen));
-    if (!s || used.has(p) || s.length < 60) continue;
+    const sen = sentences.find(sen => hasPhrase(p, sen) && validateFlash(sen));
+    const v = validateFlash(sen);
+    if (!v || used.has(p)) continue;
     used.add(p);
     const front = `Define: ${p}`;
-    const back = s.length <= 280 ? s : s.slice(0, 277) + '...';
+    const back = ensureCaseAndPeriod('A.', v.length <= 280 ? v : v.slice(0, 277) + '.');
     cards.push({ front, back });
   }
-  // Add generic concept questions if needed
-  while (cards.length < total && sentences.length > 0) {
-    const s = sentences[cards.length % sentences.length];
-    const back = s.length <= 280 ? s : s.slice(0, 277) + '...';
-    cards.push({ front: 'Key idea?', back });
+
+  // Fallback: pick validated, non-author sentences as key ideas
+  if (cards.length < total) {
+    const pool = sentences.map(validateFlash).filter(Boolean);
+    let i = 0;
+    while (cards.length < total && i < pool.length) {
+      const v = pool[i++];
+      const back = ensureCaseAndPeriod('A.', v.length <= 280 ? v : v.slice(0, 277) + '.');
+      cards.push({ front: 'Key idea?', back });
+    }
   }
+
   return cards.slice(0, total);
 }
 
