@@ -835,7 +835,7 @@ function Studio() {
                     </div>
                   )}
                   {/* Mobile dropdown */}
-                  {!isDesktop &amp;&amp; (
+                  {!isDesktop && (
                     <div className="select-wrap">
                       <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                         <option value="balanced">Balanced</option>
