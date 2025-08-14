@@ -1201,7 +1201,10 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
   }
   // Backfill if we couldn't reach total
   while (out.length < total) {
-    out.push('Explain a core idea from the material in depth. Include definitions, context, and an example.');
+    // diversify fallbacks with simple templating and phrase rotation
+    const fallbackP = pool[(out.length) % Math.max(1, pool.length)] || (phrases[(out.length) % Math.max(1, phrases.length)] || 'the topic');
+    const fb = list[out.length % list.length](fallbackP, pickSentence(fallbackP));
+    out.push(fb && fb.length >= 60 ? fb : `Explain "${fallbackP}" in your own words, including a definition, context from the material, and one concrete example.`);
   }
   return out.slice(0, total);
 }
