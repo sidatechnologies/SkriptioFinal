@@ -1170,7 +1170,9 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
     balanced: [
       (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`,
       (p, s) => `Describe how "${p}" affects workflow efficiency. Refer to the material and outline at least two concrete impacts.`,
-      (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`
+      (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`,
+      // Q10 intentionally mirrors Q7 per spec
+      (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`
     ],
     harder: [
       (p, s) => `Analyze "${p}" in context. Using the material, identify root causes, consequences, and two mitigation strategies.`,
