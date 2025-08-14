@@ -961,7 +961,7 @@ function Studio() {
                               return (
                                 <div className="text-xs text-foreground/80 space-y-1">
                                   <div>Correct answer: {String.fromCharCode(65 + correctIdx)}) {displayOpts[correctIdx]}</div>
-                                  {userIdx !== null &amp;&amp; (
+                                  {userIdx !== null && (
                                     <div className={`${userIdx === correctIdx ? 'text-green-600' : 'text-red-600'}`}>
                                       Your answer: {String.fromCharCode(65 + userIdx)}) {displayOpts[userIdx]}
                                     </div>
