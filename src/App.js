@@ -434,7 +434,7 @@ function Studio() {
           ai = 0;
         } else {
           ai = opts.indexOf(correct);
-          if (ai &lt; 0 || ai > 3) ai = 0;
+          if (ai < 0 || ai > 3) ai = 0;
         }
         return { ...q, options: opts, answer_index: ai };
       });
