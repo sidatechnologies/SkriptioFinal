@@ -847,6 +847,7 @@ function Studio() {
             </Button>
           </div>
 
+          <div className="studio-tabs-wrap">
           <Tabs defaultValue="quiz" className="w_full">
             <TabsList className="bg.white/10">
               <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
