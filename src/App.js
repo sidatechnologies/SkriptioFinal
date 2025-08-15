@@ -418,7 +418,7 @@ function Studio() {
         let correct = clean(opts[ai]);
         opts = opts.filter(v => v.length > 0);
         let gi = 0;
-        while (opts.length &lt; 4 &amp;&amp; gi &lt; GENERICS.length + 4) {
+        while (opts.length < 4 && gi < GENERICS.length + 4) {
           const cand = GENERICS[gi % GENERICS.length];
           if (!opts.includes(cand)) opts.push(cand);
           gi++;
