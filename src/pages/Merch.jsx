@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import ThemeToggle from "../components/ThemeToggle";
 import { Download, PackageOpen } from "lucide-react";
+import FloatingMenu from "../components/FloatingMenu";
 
 export default function Merch() {
   const navigate = useNavigate();
@@ -28,9 +29,12 @@ export default function Merch() {
         </div>
       </header>
 
+      {/* Global Floating menu on Merch */}
+      <FloatingMenu />
+
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-semibold">Merch & Freebies</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold">Merch &amp; Freebies</h1>
           <p className="text-foreground/80 mt-1 text-sm">Download digital freebies. More items coming soon.</p>
         </div>
 

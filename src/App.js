@@ -15,6 +15,7 @@ import pako from "pako";
 import "./App.css";
 import { friendlySlugFromString } from "./utils/shortener";
 import Merch from "./pages/Merch";
+import FloatingMenu from "./components/FloatingMenu";
 
 function Landing() {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ function Landing() {
                 <span className="text-[#F5C542]">A product by <span className="font-medium text-[#F5C542]">Aceel AI</span></span>
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight section-title">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
             <p className="text-foreground/80 text-lg">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
             <div className="flex items-center gap-3">
               <Button onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -238,6 +239,9 @@ function Landing() {
         </div>
       </section>
 
+      {/* Global Floating menu on Landing */}
+      <FloatingMenu />
+
       {/* Footer: email left, copyright center, socials right */}
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
@@ -278,8 +282,7 @@ function Studio() {
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
   const [theory, setTheory] = useState([]);
 
-  // Floating menu state
-  const [menuOpen, setMenuOpen] = useState(false);
+  // Floating menu state handled by FloatingMenu component
 
   // Prewarm ML model here as well, in case user lands directly on Studio
   useEffect(() => { prewarmPDF(); }, []);
@@ -315,7 +318,7 @@ function Studio() {
 
   const toB64Url = (bytes) => {
     let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    for (let i = 0; i &lt; bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const b64 = btoa(binary);
     return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   };
@@ -324,7 +327,7 @@ function Studio() {
     const pad = '='.repeat((4 - (b64.length % 4)) % 4);
     const binary = atob(b64 + pad);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    for (let i = 0; i &lt; binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return bytes;
   };
 
@@ -415,13 +418,13 @@ function Studio() {
         let correct = clean(opts[ai]);
         opts = opts.filter(v => v.length > 0);
         let gi = 0;
-        while (opts.length < 4 && gi < GENERICS.length + 4) {
+        while (opts.length &lt; 4 &amp;&amp; gi &lt; GENERICS.length + 4) {
           const cand = GENERICS[gi % GENERICS.length];
           if (!opts.includes(cand)) opts.push(cand);
           gi++;
         }
         if (opts.length > 4) {
-          if (correct && !opts.slice(0, 4).includes(correct) && opts.includes(correct)) {
+          if (correct &amp;&amp; !opts.slice(0, 4).includes(correct) &amp;&amp; opts.includes(correct)) {
             opts[3] = correct;
           }
           opts = opts.slice(0, 4);
@@ -431,7 +434,7 @@ function Studio() {
           ai = 0;
         } else {
           ai = opts.indexOf(correct);
-          if (ai < 0 || ai > 3) ai = 0;
+          if (ai &lt; 0 || ai > 3) ai = 0;
         }
         return { ...q, options: opts, answer_index: ai };
       });
@@ -595,16 +598,16 @@ function Studio() {
       doc.setFontSize(13);
       y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
       doc.setFontSize(12);
-      for (let i = 0; i < result.quiz.length; i++) {
+      for (let i = 0; i &lt; result.quiz.length; i++) {
         const q = result.quiz[i];
         y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
-        for (let oi = 0; oi < q.options.length; oi++) {
+        for (let oi = 0; oi &lt; q.options.length; oi++) {
           const prefix = String.fromCharCode(65 + oi);
           y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170);
         }
         const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0));
         y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170);
-        if (showExplanations && q.explanation) {
+        if (showExplanations &amp;&amp; q.explanation) {
           y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170);
         }
         y += 4;
@@ -703,7 +706,7 @@ function Studio() {
     return t.slice(0, 60) || 'study-kit';
   };
   const inferTitle = () => {
-    if (title && title.trim()) return title.trim();
+    if (title &amp;&amp; title.trim()) return title.trim();
     const firstNonEmpty = (text || '').split(/\n+/).map(l => l.trim()).find(Boolean) || '';
     return firstNonEmpty.slice(0, 80) || 'Study Kit';
   };
@@ -733,7 +736,7 @@ function Studio() {
 
   const robustCopy = async (text) => {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
+      if (navigator.clipboard &amp;&amp; window.isSecureContext) {
         await navigator.clipboard.writeText(text);
         return true;
       }
@@ -765,32 +768,8 @@ function Studio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Floating expandable menu */}
-      <div className="fixed bottom-5 right-5 z-50">
-        {/* Children (show when open) */}
-        <div className={`flex flex-col items-end gap-2 mb-2 transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
-          <button onClick={() => { setMenuOpen(false); window.open('https://forms.gle/jk7VCgX4UgMWzJjb9', '_blank', 'noopener'); }}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full border shadow-sm
-                             bg-white text-black border-black/80 hover:bg-white/90
-                             dark:bg-black dark:text-white dark:border-white/80">
-            <MessageSquare size={16} /> <span className="text-sm">Feedback</span>
-          </button>
-          <button onClick={() => { setMenuOpen(false); navigate('/merch'); }}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full border shadow-sm
-                             bg-white text-black border-black/80 hover:bg-white/90
-                             dark:bg-black dark:text-white dark:border-white/80">
-            <ShoppingBag size={16} /> <span className="text-sm">Merch</span>
-          </button>
-        </div>
-        {/* Main toggle button */}
-        <button onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu"
-                className="inline-flex items-center justify-center w-11 h-11 rounded-full border
-                           bg-white text-black border-black/80 hover:bg-white/90
-                           dark:bg-black dark:text-white dark:border-white/80"
-                style={{boxShadow: '0 0 0 2px currentColor inset'}}>
-          {menuOpen ? '×' : '!'}
-        </button>
-      </div>
+      {/* Global Floating menu on Studio */}
+      <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
@@ -811,31 +790,31 @@ function Studio() {
               <CardDescription>Paste raw text or upload a PDF. Processing happens in your browser.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-input-title" />
+              <Input placeholder="Title (optional)" value={title} onChange={e =&gt; setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-input-title" />
               <div>
-                <Textarea placeholder="Paste text here (supports LaTeX like $...$)" rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-textarea-notes" />
+                <Textarea placeholder="Paste text here (supports LaTeX like $...$)" rows={8} value={text} onChange={e =&gt; setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-textarea-notes" />
                 <div className="mt-2 text-xs text-foreground/70">Tip: You can combine PDF + pasted notes. Math formulas in text are preserved.</div>
               </div>
               <div className="flex items-center gap-3">
-                <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="hidden" />
-                <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileInputRef.current?.click()}>
+                <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e =&gt; setFile(e.target.files?.[0] || null)} className="hidden" />
+                <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() =&gt; fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
-                {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
+                {file &amp;&amp; <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
                   {/* Desktop/tablet segmented control */}
-                  {isDesktop && (
+                  {isDesktop &amp;&amp; (
                     <div className="inline-flex rounded-md overflow-hidden border border-border">
-                      <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
-                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
-                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
+                      <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('balanced')}>Balanced</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('harder')}>Harder</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('expert')}>Expert</button>
                     </div>
                   )}
                   {/* Mobile dropdown */}
-                  {!isDesktop && (
+                  {!isDesktop &amp;&amp; (
                     <div className="select-wrap">
                       <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                         <option value="balanced">Balanced</option>
@@ -849,14 +828,14 @@ function Studio() {
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Include formulas</div>
                   <label className="text-sm flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={includeFormulas} onChange={e => setIncludeFormulas(e.target.checked)} />
+                    <input type="checkbox" checked={includeFormulas} onChange={e =&gt; setIncludeFormulas(e.target.checked)} />
                     <span className="text-foreground/80">Yes</span>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Show explanations</div>
                   <label className="text-sm flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={showExplanations} onChange={e => setShowExplanations(e.target.checked)} />
+                    <input type="checkbox" checked={showExplanations} onChange={e =&gt; setShowExplanations(e.target.checked)} />
                     <span className="text-foreground/80">On</span>
                   </label>
                 </div>
@@ -925,13 +904,13 @@ function Studio() {
                                 const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                                 let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                                 displayOpts = displayOpts.filter(v => v.length > 0);
-                                while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                 displayOpts = displayOpts.slice(0, 4);
                                 return displayOpts.map((opt, oi) => {
                                   const isSelected = answers[idx] === oi;
-                                  const isCorrect = evaluated && q.answer_index === oi;
-                                  const showAsWrong = evaluated && isSelected && !isCorrect;
-                                  const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
+                                  const isCorrect = evaluated &amp;&amp; q.answer_index === oi;
+                                  const showAsWrong = evaluated &amp;&amp; isSelected &amp;&amp; !isCorrect;
+                                  const selectedClass = !evaluated &amp;&amp; isSelected ? 'quiz-option--selected' : '';
                                   return (
                                     <button
                                       key={oi}
@@ -940,7 +919,7 @@ function Studio() {
                                     >
                                       <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
                                       <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
-                                      {evaluated && isSelected && (
+                                      {evaluated &amp;&amp; isSelected &amp;&amp; (
                                         <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
                                       )}
                                     </button>
@@ -948,20 +927,20 @@ function Studio() {
                                 });
                               })()}
                             </div>
-                            {evaluated && (() => {
+                            {evaluated &amp;&amp; (() => {
                               const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                               let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                               displayOpts = displayOpts.filter(v => v.length > 0);
-                              while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                              while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                               displayOpts = displayOpts.slice(0, 4);
                               const correctText = ((q.options[q.answer_index] ?? '') + '').trim();
                               let correctIdx = displayOpts.indexOf(correctText);
-                              if (correctIdx < 0) correctIdx = 0;
+                              if (correctIdx &lt; 0) correctIdx = 0;
                               const userIdx = Number.isInteger(answers[idx]) ? Math.min(Math.max(0, answers[idx]), 3) : null;
                               return (
                                 <div className="text-xs text-foreground/80 space-y-1">
                                   <div>Correct answer: {String.fromCharCode(65 + correctIdx)}) {displayOpts[correctIdx]}</div>
-                                  {userIdx !== null && (
+                                  {userIdx !== null &amp;&amp; (
                                     <div className={`${userIdx === correctIdx ? 'text-green-600' : 'text-red-600'}`}>
                                       Your answer: {String.fromCharCode(65 + userIdx)}) {displayOpts[userIdx]}
                                     </div>
@@ -969,7 +948,7 @@ function Studio() {
                                 </div>
                               );
                             })()}
-                            {evaluated && showExplanations && q.explanation && (
+                            {evaluated &amp;&amp; showExplanations &amp;&amp; q.explanation &amp;&amp; (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
                           </CardContent>
@@ -978,7 +957,7 @@ function Studio() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Button onClick={evaluate} className="bg-primary text-primary-foreground hover:bg-primary/90">Evaluate</Button>
-                      {score && <div className="text-sm text-foreground/80">Your score: {score}</div>}
+                      {score &amp;&amp; <div className="text-sm text-foreground/80">Your score: {score}</div>}
                     </div>
                   </div>
                 )}
