@@ -188,3 +188,10 @@ input[type=file] { display: none; }
     0 0 12px rgba(245,197,66,0.25),
     0 0 2px rgba(245,197,66,0.65);
 }
+
+.w_full{width:100%}
+/* Prevent studio tabs from overflowing on mobile */
+@media (max-width: 768px){
+  .studio-tabs-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .studio-tabs-wrap .TabsList{min-width:640px}
+}
