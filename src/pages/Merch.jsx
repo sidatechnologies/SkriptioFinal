@@ -49,9 +49,10 @@ export default function Merch() {
               <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/10 dark:to-white/5 border border-border">
                 <img src={assetUrl} alt="Aceel AI Logo" className="absolute inset-0 w-full h-full object-contain p-6" />
                 {/* Download button bottom-right */}
-                <a href={assetUrl} download className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors
-                  bg-white text-black border-black/70 hover:bg-white/90 dark:bg-black dark:text-white dark:border-white/70">
-                  <Download size={14} /> Download
+                <a href={assetUrl} download className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-all
+                  bg-white text-black border-black/70 hover:bg-white/95 dark:bg-black dark:text-white dark:border-white/70 shadow-sm hover:shadow-md group">
+                  <Download size={14} className="transition-transform group-hover:-translate-y-0.5" />
+                  <span className="hidden sm:inline">Download</span>
                 </a>
               </div>
             </div>
