@@ -990,6 +990,7 @@ function Studio() {
               </TabsContent>
             </div>
           </Tabs>
+          </div>
         </div>
       </main>
     </div>
