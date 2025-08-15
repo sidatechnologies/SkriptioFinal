@@ -598,10 +598,10 @@ function Studio() {
       doc.setFontSize(13);
       y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180);
       doc.setFontSize(12);
-      for (let i = 0; i &lt; result.quiz.length; i++) {
+      for (let i = 0; i < result.quiz.length; i++) {
         const q = result.quiz[i];
         y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180);
-        for (let oi = 0; oi &lt; q.options.length; oi++) {
+        for (let oi = 0; oi < q.options.length; oi++) {
           const prefix = String.fromCharCode(65 + oi);
           y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170);
         }
