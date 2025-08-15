@@ -16,6 +16,7 @@ import "./App.css";
 import { friendlySlugFromString } from "./utils/shortener";
 import Merch from "./pages/Merch";
 import FloatingMenu from "./components/FloatingMenu";
+import { fromB64Url, b64uEncodeObject as b64uEncode } from "./utils/b64url";
 
 function Landing() {
   const navigate = useNavigate();
@@ -316,66 +317,6 @@ function Studio() {
     } catch {}
   }, []);
 
-  const toB64Url = (bytes) => {
-    let binary = '';
-    for (const b of bytes) binary += String.fromCharCode(b);
-    const b64 = btoa(binary);
-    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  };
-  const fromB64Url = (b64u) => {
-    const b64 = b64u.replace(/-/g, '+').replace(/_/g, '/');
-    const pad = '='.repeat((4 - (b64.length % 4)) % 4);
-    const binary = atob(b64 + pad);
-    const bytes = new Uint8Array(binary.length);
-    let idx = 0;
-    for (const ch of binary) { bytes[idx++] = ch.charCodeAt(0); }
-    return bytes;
-  };
-
-  const b64uEncode = (obj) => {
-    try {
-      const json = JSON.stringify(obj);
-      const input = new TextEncoder().encode(json);
-      const deflated = pako.deflate(input, { level: 9 });
-      return toB64Url(deflated);
-    } catch (e) {
-      const s = JSON.stringify(obj);
-      const b64 = btoa(unescape(encodeURIComponent(s)));
-      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-    }
-  };
-
-  // Compact quiz payload: dictionary of strings to reduce size
-  const compactQuiz = (quiz, title) => {
-    const dict = [];
-    const indexOf = (s) => {
-      const str = String(s || '');
-      let i = dict.indexOf(str);
-      if (i === -1) { dict.push(str); i = dict.length - 1; }
-      return i;
-    };
-    const q = quiz.map(qq => [
-      indexOf(qq.question),
-      qq.options.map(o => indexOf(o)),
-      qq.answer_index
-    ]);
-    return { v: 1, t: title || '', d: dict, q };
-  };
-
-  const expandQuiz = (payload) => {
-    if (!payload || payload.v !== 1) return null;
-    const dict = payload.d || [];
-    return (payload.q || []).map(item => {
-      const qIdx = item[0];
-      const optIdxs = item[1] || [];
-      const ansIdx = item[2] || 0;
-      return {
-        question: dict[qIdx] || '',
-        options: optIdxs.map(i => dict[i] || ''),
-        answer_index: ansIdx
-      };
-    });
-  };
   const decodeShare = (b64u) => {
     try {
       const bytes = fromB64Url(b64u);
@@ -425,7 +366,7 @@ function Studio() {
           gi++;
         }
         if (opts.length > 4) {
-          if (correct &amp;&amp; !opts.slice(0, 4).includes(correct) &amp;&amp; opts.includes(correct)) {
+          if (correct && !opts.slice(0, 4).includes(correct) && opts.includes(correct)) {
             opts[3] = correct;
           }
           opts = opts.slice(0, 4);
@@ -608,7 +549,7 @@ function Studio() {
         }
         const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0));
         y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170);
-        if (showExplanations &amp;&amp; q.explanation) {
+        if (showExplanations && q.explanation) {
           y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170);
         }
         y += 4;
@@ -694,11 +635,41 @@ function Studio() {
     }
   };
 
+  const compactQuiz = (quiz, title) => {
+    const dict = [];
+    const indexOf = (s) => {
+      const str = String(s || '');
+      let i = dict.indexOf(str);
+      if (i === -1) { dict.push(str); i = dict.length - 1; }
+      return i;
+    };
+    const q = quiz.map(qq => [
+      indexOf(qq.question),
+      qq.options.map(o => indexOf(o)),
+      qq.answer_index
+    ]);
+    return { v: 1, t: title || '', d: dict, q };
+  };
+
+  const expandQuiz = (payload) => {
+    if (!payload || payload.v !== 1) return null;
+    const dict = payload.d || [];
+    return (payload.q || []).map(item => {
+      const qIdx = item[0];
+      const optIdxs = item[1] || [];
+      const ansIdx = item[2] || 0;
+      return {
+        question: dict[qIdx] || '',
+        options: optIdxs.map(i => dict[i] || ''),
+        answer_index: ansIdx
+      };
+    });
+  };
+
   const buildSharePayload = () => ({
     uid: generateUUID(),
     ts: Date.now(),
     title: result.title,
-    // Compact the quiz to minimize token size
     compact: compactQuiz(result.quiz, result.title)
   });
 
@@ -707,7 +678,7 @@ function Studio() {
     return t.slice(0, 60) || 'study-kit';
   };
   const inferTitle = () => {
-    if (title &amp;&amp; title.trim()) return title.trim();
+    if (title && title.trim()) return title.trim();
     const firstNonEmpty = (text || '').split(/\n+/).map(l => l.trim()).find(Boolean) || '';
     return firstNonEmpty.slice(0, 80) || 'Study Kit';
   };
@@ -717,7 +688,6 @@ function Studio() {
     const base = `${window.location.origin}/studio`;
     const name = slugify(inferTitle());
     const code = friendlySlugFromString(token, 5);
-    // Short path + token in hash to keep URL visually short; no backend required
     return `${base}/${name}/${code}#s=${token}`;
   };
 
@@ -737,7 +707,7 @@ function Studio() {
 
   const robustCopy = async (text) => {
     try {
-      if (navigator.clipboard &amp;&amp; window.isSecureContext) {
+      if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
         return true;
       }
@@ -791,31 +761,31 @@ function Studio() {
               <CardDescription>Paste raw text or upload a PDF. Processing happens in your browser.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input placeholder="Title (optional)" value={title} onChange={e =&gt; setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-input-title" />
+              <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-input-title" />
               <div>
-                <Textarea placeholder="Paste text here (supports LaTeX like $...$)" rows={8} value={text} onChange={e =&gt; setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-textarea-notes" />
+                <Textarea placeholder="Paste text here (supports LaTeX like $...$)" rows={8} value={text} onChange={e => setText(e.target.value)} className="bg-white/10 border-white/10 placeholder:text-foreground/60 studio-textarea-notes" />
                 <div className="mt-2 text-xs text-foreground/70">Tip: You can combine PDF + pasted notes. Math formulas in text are preserved.</div>
               </div>
               <div className="flex items-center gap-3">
-                <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e =&gt; setFile(e.target.files?.[0] || null)} className="hidden" />
-                <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() =&gt; fileInputRef.current?.click()}>
+                <input ref={fileInputRef} type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="hidden" />
+                <Button variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={16} className="mr-2"/> Upload PDF
                 </Button>
-                {file &amp;&amp; <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
+                {file && <div className="text-xs text-foreground/80 truncate max-w-[180px]">{file.name}</div>}
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Difficulty</div>
                   {/* Desktop/tablet segmented control */}
-                  {isDesktop &amp;&amp; (
+                  {isDesktop && (
                     <div className="inline-flex rounded-md overflow-hidden border border-border">
-                      <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('balanced')}>Balanced</button>
-                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('harder')}>Harder</button>
-                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() =&gt; setDifficulty('expert')}>Expert</button>
+                      <button type="button" className={`px-3 py-1 text-sm ${difficulty === 'balanced' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('balanced')}>Balanced</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'harder' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('harder')}>Harder</button>
+                      <button type="button" className={`px-3 py-1 text-sm border-l border-border ${difficulty === 'expert' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setDifficulty('expert')}>Expert</button>
                     </div>
                   )}
                   {/* Mobile dropdown */}
-                  {!isDesktop &amp;&amp; (
+                  {!isDesktop && (
                     <div className="select-wrap">
                       <select className="select-control text-sm rounded-md px-2 py-1 pr-7" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                         <option value="balanced">Balanced</option>
@@ -829,14 +799,14 @@ function Studio() {
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Include formulas</div>
                   <label className="text-sm flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={includeFormulas} onChange={e =&gt; setIncludeFormulas(e.target.checked)} />
+                    <input type="checkbox" checked={includeFormulas} onChange={e => setIncludeFormulas(e.target.checked)} />
                     <span className="text-foreground/80">Yes</span>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Show explanations</div>
                   <label className="text-sm flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={showExplanations} onChange={e =&gt; setShowExplanations(e.target.checked)} />
+                    <input type="checkbox" checked={showExplanations} onChange={e => setShowExplanations(e.target.checked)} />
                     <span className="text-foreground/80">On</span>
                   </label>
                 </div>
@@ -909,9 +879,9 @@ function Studio() {
                                 displayOpts = displayOpts.slice(0, 4);
                                 return displayOpts.map((opt, oi) => {
                                   const isSelected = answers[idx] === oi;
-                                  const isCorrect = evaluated &amp;&amp; q.answer_index === oi;
-                                  const showAsWrong = evaluated &amp;&amp; isSelected &amp;&amp; !isCorrect;
-                                  const selectedClass = !evaluated &amp;&amp; isSelected ? 'quiz-option--selected' : '';
+                                  const isCorrect = evaluated && q.answer_index === oi;
+                                  const showAsWrong = evaluated && isSelected && !isCorrect;
+                                  const selectedClass = !evaluated && isSelected ? 'quiz-option--selected' : '';
                                   return (
                                     <button
                                       key={oi}
@@ -920,7 +890,7 @@ function Studio() {
                                     >
                                       <span className="shrink-0 mr-2 quiz-letter">{String.fromCharCode(65 + oi)})</span>
                                       <span className="flex-1 whitespace-normal break-words min-w-0 leading-snug">{(opt || '').replace(/\.\.\.$/, '.')}</span>
-                                      {evaluated &amp;&amp; isSelected &amp;&amp; (
+                                      {evaluated && isSelected && (
                                         <span className={`text-xs ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Your choice ✓' : 'Your choice ✗'}</span>
                                       )}
                                     </button>
@@ -928,7 +898,7 @@ function Studio() {
                                 });
                               })()}
                             </div>
-                            {evaluated &amp;&amp; (() => {
+                            {evaluated && (() => {
                               const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                               let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                               displayOpts = displayOpts.filter(v => v.length > 0);
@@ -941,7 +911,7 @@ function Studio() {
                               return (
                                 <div className="text-xs text-foreground/80 space-y-1">
                                   <div>Correct answer: {String.fromCharCode(65 + correctIdx)}) {displayOpts[correctIdx]}</div>
-                                  {userIdx !== null &amp;&amp; (
+                                  {userIdx !== null && (
                                     <div className={`${userIdx === correctIdx ? 'text-green-600' : 'text-red-600'}`}>
                                       Your answer: {String.fromCharCode(65 + userIdx)}) {displayOpts[userIdx]}
                                     </div>
@@ -949,7 +919,7 @@ function Studio() {
                                 </div>
                               );
                             })()}
-                            {evaluated &amp;&amp; showExplanations &amp;&amp; q.explanation &amp;&amp; (
+                            {evaluated && showExplanations && q.explanation && (
                               <div className="text-xs text-foreground/70">Why: {q.explanation}</div>
                             )}
                           </CardContent>
@@ -958,7 +928,7 @@ function Studio() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Button onClick={evaluate} className="bg-primary text-primary-foreground hover:bg-primary/90">Evaluate</Button>
-                      {score &amp;&amp; <div className="text-sm text-foreground/80">Your score: {score}</div>}
+                      {score && <div className="text-sm text-foreground/80">Your score: {score}</div>}
                     </div>
                   </div>
                 )}
