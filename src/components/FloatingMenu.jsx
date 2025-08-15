@@ -32,7 +32,7 @@ export default function FloatingMenu({ feedbackUrl = "https://forms.gle/jk7VCgX4
   return (
     <div ref={wrapRef} className="fixed bottom-6 right-6 z-50">
       {/* Children (show when open) */}
-      <div className={`absolute bottom-0 right-12 flex items-center gap-2 transition-all duration-200 ${open ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 pointer-events-none'}`}>
+      <div className={`absolute bottom-12 right-0 flex flex-col items-end gap-2 transition-all duration-200 ${open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
         <button
           onClick={() => { setOpen(false); window.open(feedbackUrl, '_blank', 'noopener'); }}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-md border shadow-sm bg-white text-black border-black/80 hover:bg-white/90 dark:bg-black dark:text-white dark:border-white/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:focus:ring-white"
