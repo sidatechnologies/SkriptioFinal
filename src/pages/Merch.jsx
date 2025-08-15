@@ -1,14 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import ThemeToggle from "../components/ThemeToggle";
-import { Download, PackageOpen } from "lucide-react";
+import { Download, PackageOpen, Menu } from "lucide-react";
 import FloatingMenu from "../components/FloatingMenu";
 
 export default function Merch() {
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const assetUrl = "/assets/aceel-logo.png";
   const posterUrl = "https://customer-assets.emergentagent.com/job_footer-dismiss/artifacts/lwt16b59_Skriptio%20Poster.png";
+
+  const downloadFile = async (url, filename) => {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename || url.split('/').pop() || 'download';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+    } catch (e) {
+      // Fallback: open in new tab if CORS blocks blob download
+      window.open(url, '_blank', 'noopener');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -21,18 +40,34 @@ export default function Merch() {
           <div className="flex items-center gap-2">
             <nav className="hidden lg:flex items-center gap-6 text-sm text-foreground/80 mr-2">
               <Link to="/">Home</Link>
-              <a href="/\#how">How it works</a>
-              <a href="/\#features">Features</a>
-              <a href="/\#usecases">Use cases</a>
-              <a href="/\#faq">FAQ</a>
+              <a href="/#how">How it works</a>
+              <a href="/#features">Features</a>
+              <a href="/#usecases">Use cases</a>
+              <a href="/#faq">FAQ</a>
               <Link to="/merch" className="hover:text-foreground">Merch</Link>
               <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full gold-dot"/>A product by Aceel AI</span>
             </nav>
             <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button></div>
-            <ThemeToggle className="lg:ml-2" />
+            {/* Mobile/Tablet controls */}
+            <ThemeToggle className="lg:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border lg:hidden" onClick={() => setMobileOpen(prev => !prev)}>
+              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
+            </button>
+            {/* Desktop theme toggle */}
+            <ThemeToggle className="hidden lg:inline-flex" />
           </div>
         </div>
       </header>
+
+      {/* Mobile menu (only Home + Studio) */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-x-0 top-16 z-50 border-b border-border bg-background/95 shadow-lg">
+          <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <Link to="/" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Home</Link>
+            <Link to="/studio" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Studio</Link>
+          </div>
+        </div>
+      )}
 
       {/* Global Floating menu on Merch */}
       <FloatingMenu />
@@ -54,10 +89,10 @@ export default function Merch() {
               <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/10 dark:to-white/5 border border-border">
                 <img src={assetUrl} alt="Aceel AI Logo" className="absolute inset-0 w-full h-full object-contain p-6" />
                 {/* Download button bottom-right */}
-                <a href={assetUrl} download className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-all bg-white text-black border-black/70 hover:bg-white/95 dark:bg-black dark:text-white dark:border-white/70 shadow-sm hover:shadow-md group">
+                <button onClick={() => downloadFile(assetUrl, 'aceel-logo.png')} className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-all bg-white text-black border-black/70 hover:bg-white/95 dark:bg-black dark:text-white dark:border-white/70 shadow-sm hover:shadow-md group">
                   <Download size={14} className="transition-transform group-hover:-translate-y-0.5" />
                   <span className="hidden sm:inline">Download</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -71,10 +106,10 @@ export default function Merch() {
             <div className="p-4">
               <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/10 dark:to-white/5 border border-border">
                 <img src={posterUrl} alt="Skriptio Poster" className="absolute inset-0 w-full h-full object-cover" />
-                <a href={posterUrl} download className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-all bg-white text-black border-black/70 hover:bg-white/95 dark:bg-black dark:text-white dark:border-white/70 shadow-sm hover:shadow-md group">
+                <button onClick={() => downloadFile(posterUrl, 'Skriptio-Poster.png')} className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-all bg-white text-black border-black/70 hover:bg-white/95 dark:bg-black dark:text-white dark:border-white/70 shadow-sm hover:shadow-md group">
                   <Download size={14} className="transition-transform group-hover:-translate-y-0.5" />
                   <span className="hidden sm:inline">Download</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
