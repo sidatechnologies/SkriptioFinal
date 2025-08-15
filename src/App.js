@@ -76,9 +76,8 @@ function Landing() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-b border-border bg-background/95">
-          <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
-
+        <div className="md:hidden fixed inset-x-0 top-16 z-50 border-b border-border bg-background/95 shadow-lg">
+          <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm max-h-[calc(100vh-4rem)] overflow-y-auto">
             <a href="#how" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>How it works</a>
             <a href="#features" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Features</a>
             <a href="#usecases" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Use cases</a>
