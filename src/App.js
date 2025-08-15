@@ -904,7 +904,7 @@ function Studio() {
                                 const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                                 let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
                                 displayOpts = displayOpts.filter(v => v.length > 0);
-                                while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                 displayOpts = displayOpts.slice(0, 4);
                                 return displayOpts.map((opt, oi) => {
                                   const isSelected = answers[idx] === oi;
