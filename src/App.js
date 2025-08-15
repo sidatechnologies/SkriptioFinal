@@ -445,7 +445,7 @@ function Studio() {
   const loadPoppinsAndWordmark = async () => {
     try {
       // Load font with FontFace from local /public
-      const ff = new FontFace('PoppinsEmbed', `url(${POPPINS_URL})`);
+      const ff = new FontFace('PoppinsEmbed', "url(" + POPPINS_URL + ")");
       await ff.load();
       document.fonts.add(ff);
       // Render wordmark to canvas to avoid jsPDF custom-font issues
