@@ -9,8 +9,8 @@ const TabsList = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      // allow wrapping on narrow screens; base style stays the same
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-wrap gap-2",
+      // allow wrapping on narrow screens; remove fixed height so container grows with wrapped rows
+      "inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-wrap gap-2",
       className
     )}
     {...props} />
