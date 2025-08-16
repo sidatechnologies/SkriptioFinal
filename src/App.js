@@ -1009,7 +1009,11 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/studio/*" element={<Studio />} />
+      {/* Studio routes: Hub + tools + legacy kit */}
+      <Route path="/studio" element={<StudioHub />} />
+      <Route path="/studio/kit/*" element={<Studio />} />
+      <Route path="/studio/handwriting" element={<StudioHandwriting />} />
+      <Route path="/studio/summariser" element={<StudioSummariser />} />
       <Route path="/merch" element={<Merch />} />
     </Routes>
   );
