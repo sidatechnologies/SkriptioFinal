@@ -104,7 +104,8 @@ export async function extractTextFromPDF(file, options = {}) {
       return canvas;
     };
 
-    for (let i = 1; i <= pdf.numPages; i++) {
+    const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
+    for (let i = 1; i <= limitPages; i++) {
       const page = await pdf.getPage(i);
 
       let collected = '';
