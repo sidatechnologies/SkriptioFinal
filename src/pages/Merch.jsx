@@ -41,7 +41,7 @@ export default function Merch() {
             <nav className="hidden lg:flex items-center gap-6 text-sm text-foreground/80 mr-2">
               <Link to="/">Home</Link>
               <Link to="/studio">Studio</Link>
-              <Link to="/merch" className="hover:text-foreground">Merch</Link>
+
             </nav>
             <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button></div>
             {/* Mobile/Tablet controls */}
