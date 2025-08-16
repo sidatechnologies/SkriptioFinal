@@ -328,7 +328,7 @@ export function Studio() {
 
             <div className="studio-tabs-wrap">
               <Tabs defaultValue="quiz" className="w_full">
-                <TabsList className="bg.white/10 flex flex-wrap gap-2">
+                <TabsList className="flex flex-wrap gap-2">
                   <TabsTrigger value="quiz" className="data-[state=active]:bg-white data-[state=active]:text-black"><ListChecks size={16} className="mr-2"/>Quiz</TabsTrigger>
                   <TabsTrigger value="flashcards" className="data-[state=active]:bg-white data-[state=active]:text-black"><BookOpen size={16} className="mr-2"/>Flashcards</TabsTrigger>
                   <TabsTrigger value="plan" className="data-[state=active]:bg-white data-[state=active]:text-black"><Calendar size={16} className="mr-2"/>7-Day Plan</TabsTrigger>
