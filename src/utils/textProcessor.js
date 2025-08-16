@@ -84,6 +84,7 @@ export async function extractTextFromPDF(file, options = {}) {
     const preprocessCanvasForOCR = (canvas) => {
       try {
         const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
         const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = img.data;
         // compute global threshold (fast approximation)
@@ -174,10 +175,47 @@ export async function extractTextFromPDF(file, options = {}) {
       if (i % 2 === 0) await tick(); // yield periodically on large PDFs
     }
 
-    return fullText;
+    return cleanOCROutput(fullText);
   } catch (error) {
     throw new Error(`Failed to read PDF: ${error.message}`);
   }
+}
+
+// OCR post-processing: remove scanner watermarks, collapse broken words, drop noisy lines
+function cleanOCROutput(text) {
+  if (!text) return text;
+  let t = String(text);
+  // Remove common scanner watermarks
+  t = t.replace(/\bScanned with CamScanner\b/gi, "");
+  t = t.replace(/\bCamScanner\b/gi, "");
+  t = t.replace(/\bScanned with Adobe Scan\b/gi, "");
+  // Remove page headers/footers artifacts like '- 12 -'
+  t = t.replace(/\n?\s*-+\s*\d+\s*-+\s*\n?/g, "\n");
+  // Merge hyphenated line breaks and mid-word splits
+  t = t.replace(/([A-Za-z]{2,})-\n([A-Za-z]{2,})/g, "$1$2");
+  // Fix common intra-word splits like "re sults" -> "results"
+  t = t.replace(/\b([A-Za-z]{3,})\s+([a-z]{2,})\b/g, (m, a, b) => {
+    if ((a + b).length <= 12) return a + b;
+    return m;
+  });
+  // Remove lines that are mostly noise (no vowels or too much punctuation)
+  const lines = t.split(/\n+/).map(l => l.trim());
+  const kept = [];
+  for (const l of lines) {
+    if (!l) continue;
+    const letters = l.replace(/[^A-Za-z]/g, "");
+    const vowels = (letters.match(/[aeiou]/gi) || []).length;
+    const punct = (l.match(/[^A-Za-z0-9\s]/g) || []).length;
+    if (letters.length >= 4 && vowels === 0) continue;
+    if (punct > Math.max(14, Math.floor(l.length * 0.5))) continue;
+    kept.push(l);
+  }
+  t = kept.join("\n");
+  // Normalize multiple spaces
+  t = t.replace(/\s{2,}/g, ' ');
+  // Trim repeated empty lines
+  t = t.replace(/\n{3,}/g, "\n\n");
+  return t.trim();
 }
 
 // Heuristic cleaners
@@ -509,8 +547,6 @@ export function isAuthorish(s) {
   return /\b(About the Author|author|edited by|editor|biography|Professor|Prof\.|Dr\.|Assistant Professor|Associate Professor|Lecturer|Head of|Department|Institute|University|College|UGC|Scholarship|Study Centre|Affiliation|Advisor|Mentor)\b/i.test(String(s || ''));
 }
 
-// ... rest of the large file remains unchanged
-
 // Build theory questions (descriptive, open-ended) from sentences and phrases
 function escapeRegExp(s) {
   return String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -749,7 +785,7 @@ function buildQuiz(text, phrases, formulas, opts = {}) {
     out.push({ id: `s-${out.length}-${detIndex(s)}`, type: 'statement', question: `Which statement is supported by the material?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? 'This statement is derived from the provided content.' : '' });
   }
 
-  return out.slice(0, total);
+  return out.slice(0, 10);
 }
 
 function buildStudyPlan(phrases, sentences, k = 7) {
@@ -757,7 +793,7 @@ function buildStudyPlan(phrases, sentences, k = 7) {
   const topics = phrases.slice(0, Math.max(k, 7));
   for (let i = 0; i < Math.min(k, topics.length || k); i++) {
     const p = topics[i] || `Focus ${i + 1}`;
-    const sen = sentences.find(s => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s)) || '';
+    const sen = sentences.find(s => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(s)) || '';
     const one = summarizeSentence(sen || `Study ${p} with examples from the material.`, 140);
     days.push({
       title: `Day ${i + 1}: ${p}`,
