@@ -195,3 +195,20 @@ input[type=file] { display: none; }
   .studio-tabs-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
   .studio-tabs-wrap .TabsList{min-width:640px}
 }
+
+/* Ensure light theme uses strong black borders for Studio cards/buttons */
+:root.light .border-border, .light .border-border { border-color: rgba(0,0,0,0.7) !important; }
+:root.light .button-upload, :root.light .studio-input-title, :root.light .studio-textarea-notes { border-color: rgba(0,0,0,0.7) !important; }
+
+/* Tabs overflow fix on mobile for Study Kit */
+@media (max-width: 767px) {
+  .studio-tabs-wrap .radix-tabs-list,
+  .studio-tabs-wrap [role="tablist"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .studio-tabs-wrap [role="tab"] {
+    width: 100%;
+  }
+}
