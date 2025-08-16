@@ -7,14 +7,14 @@ import { Studio } from "../App";
 export default function KitRoute() {
   return (
     <>
-      {/* Overlay StudioNav below the Studio header */}
-      <div className="fixed left-0 right-0 z-30" style={{ top: 64 }}>
+      {/* Overlay StudioNav below the Studio header. Use responsive top to clear header height on mobile. */}
+      <div className="fixed left-0 right-0 z-30 top-20 md:top-16">
         <div className="max-w-6xl mx-auto px-6 py-2">
           <StudioNav />
         </div>
       </div>
       {/* Spacer so the fixed StudioNav doesn't overlap Studio content */}
-      <div style={{ height: 52 }} />
+      <div className="h-14 md:h-12" />
       {/* Render the original Studio UI as-is */}
       <Studio />
     </>

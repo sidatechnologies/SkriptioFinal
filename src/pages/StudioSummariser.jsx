@@ -38,7 +38,6 @@ export default function StudioSummariser() {
   const summarise = async (text, n) => {
     const sentences = splitSentencesLight(text).filter(s => s.length >= 40);
     if (sentences.length === 0) return [];
-    // Try embeddings; fallback to lead-based
     let picks = [];
     try {
       const vecs = await embedSentences(sentences, 140);
@@ -49,7 +48,6 @@ export default function StudioSummariser() {
       }
     } catch {}
     if (!picks.length) {
-      // Lead-3 style fallback with de-dup heuristics
       const pool = sentences.slice(0, Math.min(12, sentences.length));
       picks = pool.filter((s, i) => i % Math.ceil(pool.length / n) === 0).slice(0, n);
     }
@@ -122,8 +120,13 @@ export default function StudioSummariser() {
                 <CardDescription>Extract a concise, readable summary — all in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="file-input-reset" />
-                {file && <div className="text-xs text-foreground/80 truncate">{file.name}</div>}
+                {/* Hidden native input + clear button trigger for better visibility */}
+                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="hidden" />
+                <Button type="button" variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileRef.current?.click()} disabled={loading}>
+                  <Upload className="mr-2 h-4 w-4"/> Choose PDF
+                </Button>
+                {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
+
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Length</div>
                   <div className="inline-flex rounded-md overflow-hidden border border-border">

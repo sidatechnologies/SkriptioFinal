@@ -109,8 +109,13 @@ export default function StudioHandwriting() {
                 <CardDescription>Handwritten text PDFs work best. Processing happens in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="file-input-reset" />
-                {file && <div className="text-xs text-foreground/80 truncate">{file.name}</div>}
+                {/* Hidden native input + clear button trigger for better visibility */}
+                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="hidden" />
+                <Button type="button" variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileRef.current?.click()} disabled={loading}>
+                  <Upload className="mr-2 h-4 w-4"/> Choose PDF
+                </Button>
+                {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
+
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Upload className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
