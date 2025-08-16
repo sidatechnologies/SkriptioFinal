@@ -7,16 +7,9 @@ import { Input } from "../components/ui/input";
 import ThemeToggle from "../components/ThemeToggle";
 import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
-import { extractTextFromPDF } from "../utils/textProcessor";
+import { extractTextFromPDF, splitSentences, looksLikeHeadingStrong, isAuthorish, normalizeText } from "../utils/textProcessor";
 import { getJsPDF } from "../utils/pdf";
 import { embedSentences, centralityRank } from "../utils/ml";
-
-function splitSentencesLight(text) {
-  const raw = String(text || "").replace(/\s+/g, " ").trim();
-  if (!raw) return [];
-  const parts = raw.split(/(?<=[\.!?])\s+(?=[A-Z0-9\(\[])/);
-  return parts.map(s => s.trim()).filter(Boolean);
-}
 
 export default function StudioSummariser() {
   const [file, setFile] = useState(null);
@@ -35,12 +28,24 @@ export default function StudioSummariser() {
   const addHeader = (doc) => { const pw = doc.internal.pageSize.getWidth(); try { if (logoDataRef.current) doc.addImage(logoDataRef.current, 'PNG', (pw - 18) / 2, 6, 18, 18, undefined, 'FAST'); } catch {} try { doc.setFont('helvetica','normal'); } catch {} };
   const addFooter = (doc) => { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
 
+  const cleanSentencesForSummary = (rawText) => {
+    const sentences = splitSentences(rawText);
+    const filtered = sentences.filter(s => !looksLikeHeadingStrong(s) && !isAuthorish(s));
+    return filtered.length ? filtered : sentences;
+  };
+
+  const pickTitle = (rawText) => {
+    const lines = normalizeText(rawText).split(/\n+/).map(l => l.trim());
+    const candidate = lines.find(l => l && !looksLikeHeadingStrong(l) && !isAuthorish(l)) || lines.find(Boolean) || "Untitled";
+    return candidate.slice(0, 120);
+  };
+
   const summarise = async (text, n) => {
-    const sentences = splitSentencesLight(text).filter(s => s.length >= 40);
+    const sentences = cleanSentencesForSummary(text);
     if (sentences.length === 0) return [];
     let picks = [];
     try {
-      const vecs = await embedSentences(sentences, 140);
+      const vecs = await embedSentences(sentences, 160);
       if (vecs && Array.isArray(vecs) && vecs.length === sentences.length) {
         const scores = centralityRank(vecs);
         const idxs = scores.map((s, i) => [s, i]).sort((a, b) => b[0] - a[0]).slice(0, n).map(x => x[1]).sort((a, b) => a - b);
@@ -48,10 +53,12 @@ export default function StudioSummariser() {
       }
     } catch {}
     if (!picks.length) {
-      const pool = sentences.slice(0, Math.min(12, sentences.length));
-      picks = pool.filter((s, i) => i % Math.ceil(pool.length / n) === 0).slice(0, n);
+      const pool = sentences.slice(0, Math.min(14, sentences.length));
+      const step = Math.max(1, Math.ceil(pool.length / n));
+      for (let i = 0; i < pool.length && picks.length < n; i += step) picks.push(pool[i]);
     }
-    return picks;
+    // Final sanitize: remove author-ish fragments if any slipped, trim
+    return picks.map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
   };
 
   const handleSummarise = async () => {
@@ -59,11 +66,12 @@ export default function StudioSummariser() {
     setLoading(true);
     try {
       const text = await extractTextFromPDF(file);
-      const title = (String(text).split(/\n+/).map(l => l.trim()).find(Boolean)) || "Untitled";
-      setSourceTitle(title.slice(0, 120));
+      setSourceTitle(pickTitle(text));
       const n = lengthPref === 'short' ? 3 : (lengthPref === 'long' ? 8 : 5);
       const bullets = await summarise(text, n);
       setSummary(bullets);
+    } catch (e) {
+      setSummary([]);
     } finally { setLoading(false); }
   };
 

@@ -60,7 +60,8 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      const extracted = await extractTextFromPDF(file);
+      // Force high-quality OCR for handwriting, with larger render scale
+      const extracted = await extractTextFromPDF(file, { forceOCR: true, ocrScale: 1.9 });
       setText(extracted || "");
     } finally { setLoading(false); }
   };
@@ -122,6 +123,7 @@ export default function StudioHandwriting() {
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
+                    <li>Enhanced OCR is now applied for handwriting (higher accuracy).</li>
                     <li>Scanned pages are OCR’d on‑device (no upload).</li>
                     <li>Complex layouts may reduce accuracy.</li>
                   </ul>
