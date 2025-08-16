@@ -77,7 +77,7 @@ export async function extractTextFromPDF(file, options = {}) {
     const startTs = Date.now();
     let ocrCount = 0;
     // Defaults for summariser; handwriting tool will pass forceOCR to override
-    const OCR_MAX_PAGES = forceOCR ? 8 : 2;
+    const OCR_MAX_PAGES = forceOCR ? 8 : 0;
     const OCR_TIME_BUDGET_MS = forceOCR ? 20000 : 6000;
 
     // simple binarization preprocessor for better OCR on handwriting
