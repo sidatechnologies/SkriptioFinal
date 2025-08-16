@@ -15,7 +15,7 @@ export default function StudioSummariser() {
   const [file, setFile] = useState(null);
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [lengthPref, setLengthPref] = useState("medium");
+  const [lengthPref, setLengthPref] = useState("short");
   const [sourceTitle, setSourceTitle] = useState("");
   const fileRef = useRef();
 
