@@ -18,6 +18,10 @@ import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
 import StudioHandwriting from "./pages/StudioHandwriting";
 import StudioSummariser from "./pages/StudioSummariser";
+import KitRoute from "./pages/KitRoute";
+import StudioHub from "./pages/StudioHub";
+import StudioHandwriting from "./pages/StudioHandwriting";
+import StudioSummariser from "./pages/StudioSummariser";
 import FloatingMenu from "./components/FloatingMenu";
 import { fromB64Url, b64uEncodeObject as b64uEncode } from "./utils/b64url";
 
