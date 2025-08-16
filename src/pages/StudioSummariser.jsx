@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Upload, Download } from "lucide-react";
+import { Loader2, Upload, Download, FileText } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -152,7 +152,7 @@ export default function StudioSummariser() {
                   </div>
                 </div>
                 <Button disabled={!file || loading} onClick={handleSummarise} className="w-full">
-                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Summarising...</> : <><Upload className="mr-2 h-4 w-4"/> Summarise PDF</>}
+                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Summarising...</> : <><FileText className="mr-2 h-4 w-4"/> Summarise PDF</>}
                 </Button>
               </CardContent>
             </Card>

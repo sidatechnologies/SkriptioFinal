@@ -26,7 +26,7 @@ const LATEX_PATTERNS = [
   /\\\((.+?)\\\)/gs
 ];
 
-const FORMULA_LINE_REGEX = /([A-Za-zα-ωΑ-Ω0-9\)\(\[\]\\{\\]+\s*)[=≈≃≅≡≤≥±∓×÷∝∑∏√∫∂∞\^].+/;
+const FORMULA_LINE_REGEX = /([A-Za-zα-ωΑ-Ω0-9\)\(\[\\{\\]+\s*)[=≈≃≅≡≤≥±∓×÷∝∑∏√∫∂∞\^].+/;
 
 function extractFormulasFromText(text) {
   const formulas = new Set();
@@ -104,6 +104,16 @@ export async function extractTextFromPDF(file, options = {}) {
       return canvas;
     };
 
+    const withTimeout = async (promise, ms) => {
+      let timeoutId;
+      const timeout = new Promise((resolve) => {
+        timeoutId = setTimeout(() => resolve(null), ms);
+      });
+      const result = await Promise.race([promise, timeout]).catch(() => null);
+      clearTimeout(timeoutId);
+      return result;
+    };
+
     const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
     for (let i = 1; i <= limitPages; i++) {
       const page = await pdf.getPage(i);
@@ -136,14 +146,15 @@ export async function extractTextFromPDF(file, options = {}) {
               const mod = await import('tesseract.js');
               Tesseract = mod.default || mod;
             }
-            const ocr = await Tesseract.recognize(canvas, 'eng', {
+            const ocrPromise = Tesseract.recognize(canvas, 'eng', {
               // configs that help with handwriting-ish docs
               tessedit_pageseg_mode: 1, // automatic page segmentation
               preserve_interword_spaces: '1',
               // whitelist commons to reduce gibberish
               tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' 
             });
-            if (ocr?.data?.text) {
+            const ocr = await withTimeout(ocrPromise, forceOCR ? 7000 : 5000);
+            if (ocr && ocr?.data?.text) {
               const otext = ocr.data.text.replace(/\s+\n/g, '\n').trim();
               if (otext.length > collected.length) {
                 collected = collected ? collected + '\n' + otext : otext; // prefer OCR when stronger
@@ -309,7 +320,7 @@ export function splitSentences(text) {
   const merged = clean.replace(/\s+/g, ' ').trim();
   if (!merged) return [];
   // Safari-safe splitter: do not use lookbehind
-  const parts = merged.split(/([.!?])\s+/).reduce((acc, cur, idx, arr) => {
+  const parts = merged.split(/([\.!?])\s+/).reduce((acc, cur, idx, arr) => {
     if (idx % 2 === 1) {
       // punctuation token
       const prev = acc.pop() || '';
@@ -322,7 +333,7 @@ export function splitSentences(text) {
   }, []);
   const res = parts
     .map(s => s.trim())
-    .filter(s => s.length >= 50 && /[.!?]$/.test(s) && !isAllCaps(s))
+    .filter(s => s.length >= 50 && /[\.!?]$/.test(s) && !isAllCaps(s))
     .slice(0, 2000);
   // Deduplicate near exact
   const seen = new Set();
@@ -607,4 +618,180 @@ export function buildFlashcards(sentences, phrases, total = 12, docTitle = '') {
   return cards.slice(0, total);
 }
 
-// ... rest of file remains unchanged (buildStudyPlan, generateArtifacts, etc.)
+// === Appended: Missing helpers and generators ===
+function ensureCaseAndPeriod(prefix = 'A.', text = '') {
+  let t = String(text || '').trim();
+  if (!t) return `${prefix}`.trim();
+  t = fixMidwordSpaces(fixSpacing(t));
+  if (!/[.!?]$/.test(t)) t += '.';
+  // Capitalize first letter of body
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  return `${prefix} ${t}`.trim();
+}
+function detIndex(str, n) { let h = 0; const s = String(str || ''); for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return n ? (h % n) : h; }
+function placeDeterministically(choices, correct, seed = 0) {
+  const n = choices.length;
+  const idx = Math.min(n - 1, (detIndex(String(correct), n) + seed) % n);
+  const others = choices.filter(c => c !== correct);
+  const arranged = new Array(n);
+  arranged[idx] = correct;
+  let oi = 0;
+  for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; }
+  return { arranged, idx };
+}
+function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
+  const selected = [String(correct || '').trim()];
+  const seen = new Set([selected[0].toLowerCase()]);
+  const addIf = (opt) => {
+    if (!opt) return false; const norm = String(opt).trim(); if (!norm) return false;
+    if (seen.has(norm.toLowerCase())) return false; for (const s of selected) { if (tooSimilar(s, norm) || lexicalJaccard(s, norm) >= 0.7) return false; }
+    selected.push(norm); seen.add(norm.toLowerCase()); return true;
+  };
+  for (const c of (pool || [])) { if (selected.length >= needed) break; addIf(c); }
+  if (selected.length < needed) { for (const c of (fallbackPool || [])) { if (selected.length >= needed) break; addIf(c); } }
+  if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (String(c).trim().toLowerCase() === selected[0].toLowerCase()) continue; addIf(c); } }
+  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+  let gi = 0; while (selected.length < needed && gi < generics.length) { addIf(generics[gi++]); }
+  return selected.slice(0, needed);
+}
+
+function inferDocTitle(text, fallback = 'Study Kit') {
+  const lines = normalizeText(text).split(/\n+/).map(l => l.trim());
+  const first = lines.find(Boolean) || '';
+  return first.slice(0, 80) || fallback;
+}
+
+function buildConceptQuestion(phrase, sentences, phrases, qi = 0, explain = false) {
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
+  const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || '';
+  const correct = summarizeSentence(s, 180);
+  const distractPool = sentences.filter(x => x !== s && !hasPhrase(phrase, x)).slice(0, 40).map(z => summarizeSentence(z, 160));
+  const opts = distinctFillOptions(correct, distractPool, [], phrases, 4);
+  const placed = placeDeterministically(opts, correct, qi % 4);
+  return {
+    id: `c-${qi}-${detIndex(phrase)}`,
+    type: 'concept',
+    question: `Which statement best describes "${phrase}"?`,
+    options: placed.arranged,
+    answer_index: placed.idx,
+    explanation: explain ? `The correct statement mentions "${phrase}" in context.` : ''
+  };
+}
+
+function buildFormulaQuestion(formula, formulas, qi = 0, explain = false) {
+  const others = (formulas || []).filter(f => f !== formula).slice(0, 6);
+  const opts = distinctFillOptions(formula, others, [], [], 4);
+  const placed = placeDeterministically(opts, formula, (qi + 1) % 4);
+  return {
+    id: `f-${qi}-${detIndex(formula)}`,
+    type: 'formula',
+    question: `Which formula appears in the material?`,
+    options: placed.arranged,
+    answer_index: placed.idx,
+    explanation: explain ? 'This exact formula string was detected in the text/PDF.' : ''
+  };
+}
+
+function buildClozeQuestion(phrase, sentences, phrases, qi = 0, explain = false) {
+  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
+  const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || '';
+  const stem = removePhraseOnce(s, phrase);
+  const question = `Fill in the blank: ${summarizeSentence(stem, 150)}`;
+  const correct = phrase;
+  const distractPool = phrases.filter(p => p !== phrase).slice(0, 12);
+  const opts = distinctFillOptions(correct, distractPool, [], phrases, 4);
+  const placed = placeDeterministically(opts, correct, (qi + 2) % 4);
+  return {
+    id: `z-${qi}-${detIndex(phrase)}`,
+    type: 'cloze',
+    question,
+    options: placed.arranged,
+    answer_index: placed.idx,
+    explanation: explain ? `The blank corresponds to the key term "${phrase}" from the material.` : ''
+  };
+}
+
+function buildQuiz(text, phrases, formulas, opts = {}) {
+  const sentences = splitSentences(text || '');
+  const { difficulty = 'balanced', includeFormulas = true, explain = false } = opts;
+  const out = [];
+  const uniquePhrases = [];
+  const seen = new Set();
+  for (const p of phrases) { const key = normalizeEquivalents(p); if (seen.has(key)) continue; seen.add(key); uniquePhrases.push(p); }
+
+  // Decide counts
+  const total = 10;
+  let wantFormula = includeFormulas ? (difficulty === 'balanced' ? 2 : 3) : 0;
+  wantFormula = Math.min(wantFormula, (formulas || []).length);
+
+  // Add formula questions
+  for (let i = 0; i < wantFormula && out.length < total; i++) {
+    out.push(buildFormulaQuestion(formulas[i], formulas, i, explain));
+  }
+  // Add concept and cloze alternating
+  let qi = 0;
+  for (const p of uniquePhrases) {
+    if (out.length >= total) break;
+    const builder = (qi % 2 === 0) ? buildConceptQuestion : buildClozeQuestion;
+    out.push(builder(p, sentences, uniquePhrases, qi, explain));
+    qi++;
+  }
+  // Backfill if needed from sentences as statements
+  let si = 0;
+  while (out.length < total && si < sentences.length) {
+    const s = sentences[si++];
+    const correct = summarizeSentence(s, 160);
+    const distract = sentences.filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 150));
+    const opts = distinctFillOptions(correct, distract, [], phrases, 4);
+    const placed = placeDeterministically(opts, correct, (out.length + 1) % 4);
+    out.push({ id: `s-${out.length}-${detIndex(s)}`, type: 'statement', question: `Which statement is supported by the material?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? 'This statement is derived from the provided content.' : '' });
+  }
+
+  return out.slice(0, total);
+}
+
+function buildStudyPlan(phrases, sentences, k = 7) {
+  const days = [];
+  const topics = phrases.slice(0, Math.max(k, 7));
+  for (let i = 0; i < Math.min(k, topics.length || k); i++) {
+    const p = topics[i] || `Focus ${i + 1}`;
+    const sen = sentences.find(s => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s)) || '';
+    const one = summarizeSentence(sen || `Study ${p} with examples from the material.`, 140);
+    days.push({
+      title: `Day ${i + 1}: ${p}`,
+      objectives: [
+        `Review the core idea behind ${p}.`,
+        one,
+        `Practice: write a 2–3 sentence explanation of ${p}.`
+      ]
+    });
+  }
+  // guarantee 7 days
+  while (days.length < 7) {
+    const n = days.length + 1;
+    days.push({ title: `Day ${n}: Practice`, objectives: [ 'Review previous mistakes', 'Revisit tough flashcards', 'Take the quiz again and track score' ] });
+  }
+  return days.slice(0, 7);
+}
+
+export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
+  try { prewarmML(); } catch {}
+  const text = String(rawText || '');
+  const sentences = splitSentences(text);
+  // Key phrases with refinement
+  const draftPhrases = extractKeyPhrases(text, 24);
+  const phrases = refineKeyPhrases(draftPhrases, sentences, providedTitle || '');
+  const formulas = extractFormulasFromText(text);
+
+  const quiz = buildQuiz(text, phrases, formulas, opts);
+  const flashcards = buildFlashcards(sentences, phrases, 12, providedTitle || '');
+  const plan = buildStudyPlan(phrases, sentences, 7);
+  const title = (providedTitle && providedTitle.trim()) || inferDocTitle(text, 'Study Kit');
+
+  const kit = { title, quiz, flashcards, plan };
+  // Attempt a quick enhancement pass; if model isn't ready, returns original kit
+  try {
+    const enhanced = await tryEnhanceArtifacts(kit, sentences, phrases, 140, opts);
+    return enhanced || kit;
+  } catch { return kit; }
+}

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Upload, Download } from "lucide-react";
+import { Loader2, Upload, Download, Type } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -60,7 +60,7 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      // Force high-quality OCR for handwriting, with larger render scale
+      // Force high-quality OCR for handwriting, with larger render scale and safe timeouts
       const extracted = await extractTextFromPDF(file, { forceOCR: true, ocrScale: 1.9 });
       setText(extracted || "");
     } finally { setLoading(false); }
@@ -118,7 +118,7 @@ export default function StudioHandwriting() {
                 {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
 
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
-                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Upload className="mr-2 h-4 w-4"/> Convert to typed text</>}
+                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
                 <div className="text-xs text-foreground/70">
                   Notes:
