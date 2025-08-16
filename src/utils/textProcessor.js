@@ -253,6 +253,43 @@ function despeckle(canvas) {
   return canvas;
 }
 
+// Detect a conservative two-column layout using vertical projection on a preprocessed image
+function detectColumnSplit(canvas) {
+  try {
+    const { width: W, height: H } = canvas;
+    if (W < 500 || H < 400) return null; // unlikely to be 2-column
+    const ctx = ctx2d(canvas);
+    const img = ctx.getImageData(0, 0, W, H);
+    const d = img.data;
+    const colSum = new Array(W).fill(0);
+    const y0 = Math.floor(H * 0.12);
+    const y1 = Math.floor(H * 0.88);
+    for (let x = 0; x < W; x++) {
+      let s = 0;
+      for (let y = y0; y < y1; y++) {
+        const i = (y * W + x) * 4;
+        if (d[i] < 128) s++; // black
+      }
+      colSum[x] = s;
+    }
+    const midL = Math.floor(W * 0.32);
+    const midR = Math.floor(W * 0.68);
+    let bestX = -1, bestVal = Infinity;
+    for (let x = midL; x <= midR; x++) {
+      if (colSum[x] < bestVal) { bestVal = colSum[x]; bestX = x; }
+    }
+    if (bestX <= 0) return null;
+    const leftDensity = colSum.slice(0, bestX).reduce((a, b) => a + b, 0) / Math.max(1, bestX);
+    const rightDensity = colSum.slice(bestX).reduce((a, b) => a + b, 0) / Math.max(1, W - bestX);
+    const valley = bestVal;
+    const minDensity = 3;
+    if (leftDensity > minDensity && rightDensity > minDensity && valley < Math.min(leftDensity, rightDensity) * 0.20) {
+      return bestX;
+    }
+    return null;
+  } catch { return null; }
+}
+
 // Utility for quick binary projection on downscaled candidates
 function quickBinarizeForMetric(canvas) {
   const ctx = ctx2d(canvas);
