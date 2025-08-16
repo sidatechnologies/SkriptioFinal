@@ -11,6 +11,18 @@ export default function StudioHub() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const CardCommon = ({ icon, title, desc, onOpen }) => (
+    <Card className="bg-card border border-black/70 dark:border-white/60">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">{icon} {title}</CardTitle>
+        <CardDescription>{desc}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={onOpen} className="bg-primary text-primary-foreground hover:bg-primary/90">Open <ArrowRight size={16} className="ml-1"/></Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <FloatingMenu />
@@ -34,52 +46,29 @@ export default function StudioHub() {
         <StudioNav />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Study Kit Generator */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText size={18}/> Study Kit Generator</CardTitle>
-              <CardDescription>Turn your notes or PDFs into a quiz, flashcards, and a 7‑day plan — in your browser.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <Button onClick={() => navigate('/studio/kit')} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Open <ArrowRight size={16} className="ml-1"/>
-                </Button>
-                <Link to="/studio/kit" className="text-sm text-foreground/80 hover:underline">Learn more</Link>
-              </div>
-            </CardContent>
-          </Card>
+          <CardCommon
+            icon={<FileText size={18}/>} 
+            title="Study Kit Generator"
+            desc="Turn your notes or PDFs into a quiz, flashcards, and a 7‑day plan — in your browser."
+            onOpen={() => navigate('/studio/kit')}
+          />
 
-          {/* Handwriting to Typed */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><PenLine size={18}/> Handwriting → Typed</CardTitle>
-              <CardDescription>Upload a handwritten text PDF and download a clean typed‑text PDF.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <Button onClick={() => navigate('/studio/handwriting')} variant="outline">Try</Button>
-                <Link to="/studio/handwriting" className="text-sm text-foreground/80 hover:underline">How it works</Link>
-              </div>
-            </CardContent>
-          </Card>
+          <CardCommon
+            icon={<PenLine size={18}/>} 
+            title="Handwriting → Typed"
+            desc="Upload a handwritten text PDF and download a clean typed‑text PDF."
+            onOpen={() => navigate('/studio/handwriting')}
+          />
 
-          {/* AI PDF Summariser */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Sparkles size={18}/> AI PDF Summariser</CardTitle>
-              <CardDescription>On‑device extractive summary of your PDF. Download as a neatly formatted PDF.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <Button onClick={() => navigate('/studio/summariser')} variant="outline">Summarise</Button>
-                <Link to="/studio/summariser" className="text-sm text-foreground/80 hover:underline">Details</Link>
-              </div>
-            </CardContent>
-          </Card>
+          <CardCommon
+            icon={<Sparkles size={18}/>} 
+            title="AI PDF Summariser"
+            desc="On‑device extractive summary of your PDF. Download as a formatted PDF."
+            onOpen={() => navigate('/studio/summariser')}
+          />
 
           {/* Coming soon */}
-          <Card className="bg-card border-border relative overflow-hidden">
+          <Card className="bg-card border border-black/70 dark:border-white/60 relative overflow-hidden">
             <div className="absolute inset-0 backdrop-blur-[2px] opacity-70 pointer-events-none" />
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><EyeOff size={18}/> Coming soon</CardTitle>

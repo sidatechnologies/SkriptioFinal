@@ -1,8 +1,10 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function StudioNav() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   const isActive = (to) => {
     if (to === "/studio") return pathname === "/studio";
     if (to === "/studio/handwriting") return pathname === "/studio/handwriting" || pathname.startsWith("/studio/handwriting/");
@@ -14,25 +16,47 @@ export default function StudioNav() {
     }
     return pathname.startsWith(to);
   };
+
   const items = [
-    { to: "/studio", label: "Hub" },
+    { to: "/studio", label: "Studio" },
     { to: "/studio/kit", label: "Study Kit" },
     { to: "/studio/handwriting", label: "Handwriting → Typed" },
     { to: "/studio/summariser", label: "PDF Summariser" },
   ];
+
+  const current = items.find((i) => isActive(i.to)) || items[0];
+
   return (
-    <div className="w-full overflow-x-auto">
-      <nav className="inline-flex rounded-md overflow-hidden border border-border">
-        {items.map((it, idx) => (
-          <Link
-            key={it.to}
-            to={it.to}
-            className={`px-3 py-1.5 text-sm whitespace-nowrap ${isActive(it.to) ? 'bg-white text-black' : 'bg-transparent text-foreground/80'} ${idx !== 0 ? 'border-l border-border' : ''}`}
+    <div className="w-full">
+      {/* Mobile: dropdown */}
+      <div className="md:hidden">
+        <div className="relative inline-block">
+          <select
+            className="text-sm rounded-md px-3 py-2 border border-border bg-background"
+            value={current.to}
+            onChange={(e) => navigate(e.target.value)}
           >
-            {it.label}
-          </Link>
-        ))}
-      </nav>
+            {items.map((it) => (
+              <option key={it.to} value={it.to}>{it.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Desktop: segmented control */}
+      <div className="hidden md:block overflow-x-visible">
+        <nav className="inline-flex rounded-md overflow-hidden border border-border bg-card">
+          {items.map((it, idx) => (
+            <Link
+              key={it.to}
+              to={it.to}
+              className={`px-3 py-1.5 text-sm whitespace-nowrap ${isActive(it.to) ? 'bg-white text-black' : 'bg-transparent text-foreground/80'} ${idx !== 0 ? 'border-l border-border' : ''}`}
+            >
+              {it.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }
