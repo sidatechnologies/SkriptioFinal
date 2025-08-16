@@ -66,7 +66,7 @@ function rotateCanvas(srcCanvas, deg) {
   const h2 = Math.abs(Math.round(w * s)) + Math.abs(Math.round(h * c));
   const out = document.createElement('canvas');
   out.width = w2; out.height = h2;
-  const ctx = out.getContext('2d');
+  const ctx = out.getContext('2d', { willReadFrequently: true });
   ctx.translate(w2 / 2, h2 / 2);
   ctx.rotate(rad);
   ctx.drawImage(srcCanvas, -w / 2, -h / 2);
@@ -75,7 +75,7 @@ function rotateCanvas(srcCanvas, deg) {
 
 function estimateBackgroundBrightness(canvas) {
   try {
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = img.data; let sum = 0; let n = 0;
     const step = Math.max(4, Math.floor((data.length / 4) / 50000));
@@ -91,7 +91,7 @@ function invertCanvasIfNeeded(canvas) {
   try {
     const bg = estimateBackgroundBrightness(canvas);
     if (bg < 110) {
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
@@ -210,7 +210,7 @@ export async function extractTextFromPDF(file, options = {}) {
 
     const preprocessCanvasForOCR = (canvas) => {
       try {
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.imageSmoothingEnabled = false;
         const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = img.data;
@@ -244,7 +244,6 @@ export async function extractTextFromPDF(file, options = {}) {
         { psm: 11, scale: 2.2, whitelist: null },
         { psm: 6,  scale: 2.4, whitelist: null },
         { psm: 4,  scale: 2.0, whitelist: null },
-        { psm: 3,  scale: 2.8, whitelist: null },
       ] : [
         { psm: 11, scale: isHandwriting ? Math.max(ocrScale, 1.9) : ocrScale, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
         { psm: 6,  scale: isHandwriting ? 2.1 : ocrScale + 0.2, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
@@ -259,7 +258,7 @@ export async function extractTextFromPDF(file, options = {}) {
           if (msLeft <= 400) return best.text;
 
           const pageCanvas = document.createElement('canvas');
-          const ctx = pageCanvas.getContext('2d');
+          const ctx = pageCanvas.getContext('2d', { willReadFrequently: true });
           const src = rotateCanvas(baseCanvas, rot);
           pageCanvas.width = Math.ceil(src.width * (cfg.scale || 1));
           pageCanvas.height = Math.ceil(src.height * (cfg.scale || 1));
@@ -271,7 +270,10 @@ export async function extractTextFromPDF(file, options = {}) {
           const ocrOpts = {
             tessedit_pageseg_mode: cfg.psm,
             tessedit_ocr_engine_mode: '1', // LSTM only
-            preserve_interword_spaces: '1'
+            preserve_interword_spaces: '1',
+            user_defined_dpi: '300',
+            tessjs_create_hocr: '0',
+            tessjs_create_tsv: '0'
           };
           if (cfg.whitelist) ocrOpts.tessedit_char_whitelist = cfg.whitelist;
 
@@ -289,7 +291,54 @@ export async function extractTextFromPDF(file, options = {}) {
           if ((Date.now() - tStart) > OCR_TIME_BUDGET_MS) return best.text;
         }
       }
+
+      // Stripe-based fallback for stubborn handwriting scans
+      const msLeftAfter = OCR_TIME_BUDGET_MS - (Date.now() - tStart);
+      if (msLeftAfter > 1500 && best.score < (betterAccuracy ? 0.5 : 0.42)) {
+        const fb = await recognizeByStripes(baseCanvas, isHandwriting, Math.min(6000, msLeftAfter));
+        if (fb && fb.text && fb.score > best.score) return fb.text;
+      }
       return best.text;
+    };
+
+    const recognizeByStripes = async (baseCanvas, isHandwriting, budgetMs = 4000) => {
+      if (!Tesseract) { const mod = await import('tesseract.js'); Tesseract = mod.default || mod; }
+      const start = Date.now();
+      const stripes = Math.max(4, Math.min(10, Math.floor(baseCanvas.height / 260)));
+      const stripeH = Math.max(80, Math.floor(baseCanvas.height / stripes));
+      let out = '';
+      for (let i = 0; i < stripes; i++) {
+        const now = Date.now();
+        if ((now - start) > budgetMs) break;
+        const y0 = i * stripeH;
+        const h = Math.min(stripeH + 6, baseCanvas.height - y0);
+        if (h < 6) continue;
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        const scale = isHandwriting ? 2.4 : 2.0;
+        c.width = Math.ceil(baseCanvas.width * scale);
+        c.height = Math.ceil(h * scale);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(baseCanvas, 0, y0, baseCanvas.width, h, 0, 0, c.width, c.height);
+        preprocessCanvasForOCR(c);
+        const ocrOpts = {
+          tessedit_pageseg_mode: isHandwriting ? 7 : 6,
+          tessedit_ocr_engine_mode: '1',
+          preserve_interword_spaces: '1',
+          user_defined_dpi: '300',
+          tessjs_create_hocr: '0',
+          tessjs_create_tsv: '0'
+        };
+        const perStripe = Math.min(1200, Math.max(600, budgetMs - (Date.now() - start)));
+        const rec = await withTimeout(Tesseract.recognize(c, 'eng', ocrOpts), perStripe);
+        if (rec && rec.data && rec.data.text) {
+          out += (out ? '\n' : '') + rec.data.text;
+        }
+      }
+      let t = cleanOCROutput(out);
+      t = fixOCRConfusions(t);
+      t = correctWithRules(t);
+      return { text: t, score: measureOcrQuality(t) };
     };
 
     for (let i = 1; i <= limitPages; i++) {
@@ -307,7 +356,7 @@ export async function extractTextFromPDF(file, options = {}) {
       if (needOCR) {
         const viewport = page.getViewport({ scale: ocrScale });
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         canvas.width = Math.ceil(viewport.width);
         canvas.height = Math.ceil(viewport.height);
         await page.render({ canvasContext: ctx, viewport }).promise;
@@ -419,7 +468,7 @@ function summarizeSentence(s, targetLen = 180) {
   t = t.replace(/\[[^\]]*\]/g, '');
   t = t.replace(/\b(such as|including|like)\b.*?([\.!?]|$)/i, '.');
   if (t.length > targetLen * 0.9 && t.includes(':')) { const before = t.split(':')[0]; if (before.length > 40) t = before + '.'; }
-  if (t.length > targetLen * 1.1) { const parts = t.split(/[,;](?=\s)/); if (parts[0].length > 40) t = parts.slice(0, 2).join(','); }
+  if (t.length > targetLen * 1.1) { const parts = t.split(/[;,](?=\s)/); if (parts[0].length > 40) t = parts.slice(0, 2).join(','); }
   if (t.length > targetLen) t = cutToWordBoundary(t, targetLen);
   return repairDanglingEnd(t);
 }

@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Upload, Download, FileText } from "lucide-react";
+import { Loader2, Upload, Download, FileText, Brain } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -9,7 +9,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF, splitSentences, looksLikeHeadingStrong, isAuthorish, normalizeText } from "../utils/textProcessor";
 import { getJsPDF } from "../utils/pdf";
-import { embedSentences, centralityRank } from "../utils/ml";
+import { embedSentences, centralityRank, prewarmML } from "../utils/ml";
 
 export default function StudioSummariser() {
   const [file, setFile] = useState(null);
@@ -17,7 +17,10 @@ export default function StudioSummariser() {
   const [loading, setLoading] = useState(false);
   const [lengthPref, setLengthPref] = useState("short");
   const [sourceTitle, setSourceTitle] = useState("");
+  const [aiUsed, setAiUsed] = useState(false);
   const fileRef = useRef();
+
+  useEffect(() => { try { prewarmML(); } catch {} }, []);
 
   const LOGO_URL = "/assets/aceel-logo.png";
   const logoDataRef = useRef(null);
@@ -45,8 +48,9 @@ export default function StudioSummariser() {
 
   const summarise = async (text, n) => {
     const sentences = cleanSentencesForSummary(text);
-    if (sentences.length === 0) return [];
+    if (sentences.length === 0) { setAiUsed(false); return []; }
     let picks = [];
+    let usedAI = false;
     // Skip ML on very large pools to avoid heavy CPU / GPU usage
     const tryML = sentences.length <= 140;
     try {
@@ -56,6 +60,7 @@ export default function StudioSummariser() {
           const scores = centralityRank(vecs);
           const idxs = scores.map((s, i) => [s, i]).sort((a, b) => b[0] - a[0]).slice(0, n).map(x => x[1]).sort((a, b) => a - b);
           picks = idxs.map(i => sentences[i]);
+          usedAI = true;
         }
       }
     } catch {}
@@ -64,6 +69,7 @@ export default function StudioSummariser() {
       const step = Math.max(1, Math.ceil(pool.length / n));
       for (let i = 0; i < pool.length && picks.length < n; i += step) picks.push(pool[i]);
     }
+    setAiUsed(usedAI);
     // Final sanitize: remove author-ish fragments if any slipped, trim
     return picks.map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
   };
@@ -80,6 +86,7 @@ export default function StudioSummariser() {
       setSummary(bullets);
     } catch (e) {
       setSummary([]);
+      setAiUsed(false);
     } finally { setLoading(false); }
   };
 
@@ -151,6 +158,10 @@ export default function StudioSummariser() {
                     <button type="button" className={`px-3 py-1 text-sm border-l border-border ${lengthPref === 'long' ? 'bg-white text-black' : 'bg-transparent text-foreground/80'}`} onClick={() => setLengthPref('long')}>Long</button>
                   </div>
                 </div>
+                <div className="text-xs text-foreground/70 flex items-center gap-2">
+                  <Brain size={14} />
+                  <span>AI summarisation runs on-device. If the lightweight model can’t load, a fast fallback is used.</span>
+                </div>
                 <Button disabled={!file || loading} onClick={handleSummarise} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Summarising...</> : <><FileText className="mr-2 h-4 w-4"/> Summarise PDF</>}
                 </Button>
@@ -165,6 +176,7 @@ export default function StudioSummariser() {
                 <CardDescription>Review the bullet points and download as a PDF.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="text-xs text-foreground/70">AI mode: {aiUsed ? 'On-device (Universal Sentence Encoder)' : 'Fallback (non-AI heuristic)'} • Private — runs locally</div>
                 {summary.length ? (
                   <ul className="list-disc pl-5 text-sm space-y-2">
                     {summary.map((s, i) => <li key={i}>{s}</li>)}
