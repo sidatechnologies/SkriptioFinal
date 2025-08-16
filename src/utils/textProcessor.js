@@ -535,7 +535,7 @@ export async function extractTextFromPDF(file, options = {}) {
       const pre = preprocessCanvasForOCR(pageCanvas);
 
       // Optionally split into columns
-      const splitX = detectColumnSplit(pre);
+      const splitX = (typeof detectColumnSplit === 'function') ? detectColumnSplit(pre) : null;
 
       const tBudget = Math.min(14000, OCR_TIME_BUDGET_MS - (Date.now() - tStart));
       if (tBudget <= 600) return '';
