@@ -1,6 +1,6 @@
 import React from "react";
 import StudioNav from "../components/StudioNav";
-import Studio from "../App";
+import { Studio } from "../App";
 
 // KitRoute renders the existing Studio (Study Kit Generator) and overlays StudioNav
 // without modifying the Studio component itself.
