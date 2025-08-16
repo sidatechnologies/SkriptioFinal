@@ -341,6 +341,9 @@
     - working: "NA"
       agent: "main"
       comment: "TabsList now supports flex-wrap + gap; TabsContent hides inactive panels via data-[state=inactive]:hidden; added CSS grid wrap for tablist on <=767px."
+  - agent: "main"
+    message: "Shipped fixes: mobile Study Kit tabs wrap + hide inactive panels; summariser stability + author filtering; handwriting OCR quality via on-device Tesseract with preprocessing. Requesting frontend validation across three scopes."
+
 - task: "Summariser: prevent crashes and drop author/institution lines; better title"
   implemented: true
   working: "NA"
