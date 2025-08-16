@@ -369,9 +369,9 @@
 
 ## test_plan:
   current_focus:
-    - "Mobile tabs on /studio/kit wrap 2x2 and only active content shows"
-    - "Summariser: Short/Medium/Long do not crash; no author/institution lines in bullets"
-    - "Handwriting OCR: forceOCR path produces readable text (not gibberish)"
+    - "Mobile tabs on /studio/kit wrap 2x2 and only active content shows; no overflow of Planner/Theory tabs"
+    - "Summariser: Short/Medium/Long do not crash or hang; no author/institution lines in bullets; default Short; requires file selection before run"
+    - "Handwriting OCR: forceOCR path produces readable text (not gibberish); no endless converting"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
