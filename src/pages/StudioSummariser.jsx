@@ -33,7 +33,8 @@ export default function StudioSummariser() {
     const disclaimRx = /(professional advice|appropriate professional|no (liability|warranty)|for informational purposes|disclaimer)/i;
     const sentences = splitSentences(rawText);
     const filtered = sentences.filter(s => !looksLikeHeadingStrong(s) && !isAuthorish(s) && !metaRx.test(s) && !disclaimRx.test(s));
-    return (filtered.length ? filtered : sentences).slice(0, 220);
+    // Hard-cap sentence pool to keep it fast on large PDFs
+    return (filtered.length ? filtered : sentences).slice(0, 120);
   };
 
   const pickTitle = (rawText) => {
@@ -46,12 +47,16 @@ export default function StudioSummariser() {
     const sentences = cleanSentencesForSummary(text);
     if (sentences.length === 0) return [];
     let picks = [];
+    // Skip ML on very large pools to avoid heavy CPU / GPU usage
+    const tryML = sentences.length <= 140;
     try {
-      const vecs = await embedSentences(sentences, 160);
-      if (vecs && Array.isArray(vecs) && vecs.length === sentences.length) {
-        const scores = centralityRank(vecs);
-        const idxs = scores.map((s, i) => [s, i]).sort((a, b) => b[0] - a[0]).slice(0, n).map(x => x[1]).sort((a, b) => a - b);
-        picks = idxs.map(i => sentences[i]);
+      if (tryML) {
+        const vecs = await embedSentences(sentences, 160);
+        if (vecs && Array.isArray(vecs) && vecs.length === sentences.length) {
+          const scores = centralityRank(vecs);
+          const idxs = scores.map((s, i) => [s, i]).sort((a, b) => b[0] - a[0]).slice(0, n).map(x => x[1]).sort((a, b) => a - b);
+          picks = idxs.map(i => sentences[i]);
+        }
       }
     } catch {}
     if (!picks.length) {
@@ -67,7 +72,8 @@ export default function StudioSummariser() {
     if (!file) return;
     setLoading(true);
     try {
-      const text = await extractTextFromPDF(file);
+      // Limit pages to avoid freezes on very long docs
+      const text = await extractTextFromPDF(file, { maxPages: 24 });
       setSourceTitle(pickTitle(text));
       const n = lengthPref === 'short' ? 3 : (lengthPref === 'long' ? 8 : 5);
       const bullets = await summarise(text.slice(0, 120000), n);
