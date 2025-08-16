@@ -148,14 +148,16 @@ export async function extractTextFromPDF(file, options = {}) {
             }
             const ocrPromise = Tesseract.recognize(canvas, 'eng', {
               // configs that help with handwriting-ish docs
-              tessedit_pageseg_mode: 1, // automatic page segmentation
+              tessedit_pageseg_mode: forceOCR ? 11 : 1, // 11: sparse text works better for handwriting scans; 1: with OSD
+              tessedit_ocr_engine_mode: '1', // LSTM only
               preserve_interword_spaces: '1',
               // whitelist commons to reduce gibberish
               tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' 
             });
-            const ocr = await withTimeout(ocrPromise, forceOCR ? 7000 : 5000);
+            const ocr = await withTimeout(ocrPromise, forceOCR ? 8000 : 5000);
             if (ocr && ocr?.data?.text) {
-              const otext = ocr.data.text.replace(/\s+\n/g, '\n').trim();
+              let otext = ocr.data.text.replace(/\s+\n/g, '\n').trim();
+              otext = cleanOCROutput(otext);
               if (otext.length > collected.length) {
                 collected = collected ? collected + '\n' + otext : otext; // prefer OCR when stronger
               }
