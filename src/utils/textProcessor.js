@@ -59,7 +59,7 @@ function containsFormula(s) {
 
 // Extract text from PDF using pdf.js with optional OCR for image/diagram pages
 export async function extractTextFromPDF(file, options = {}) {
-  const { forceOCR = false, ocrScale = 1.6 } = options;
+  const { forceOCR = false, ocrScale = 1.6, maxPages = 60, charLimit = 90000 } = options;
   try {
     // Use legacy bundle to avoid nested ESM imports in worker
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
