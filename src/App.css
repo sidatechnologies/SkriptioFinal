@@ -40,7 +40,7 @@ input[type=file] { display: none; }
 
 /* Custom select control (used for mobile StudioNav + difficulty) */
 .select-wrap { position: relative; display: inline-block; }
-.select-control { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #fff; color: #000; border: 1px solid #000; padding-right: 1.75rem; }
+.select-control { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #fff; color: #000; border: 1.5px solid #000; padding-right: 1.75rem; }
 .dark .select-control { background-color: #000; color: #fff; border-color: #fff; }
 .select-arrow { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.9; color: #000; }
 .dark .select-arrow { color: #fff; }
