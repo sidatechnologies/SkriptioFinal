@@ -320,6 +320,9 @@
       - working: true
         agent: "testing"
         comment: "✅ PASS: Studio Hub renders with 4 cards (Study Kit Generator, Handwriting → Typed, AI PDF Summariser, Coming soon). Navigation works: Hub→Study Kit opens /studio/kit with original Studio interface (textarea, difficulty toggle, PDF buttons). Handwriting tool has upload control, Convert button, typed text area, Download PDF button. Summariser has upload control, length toggle (Short/Medium/Long), Summarise button, Summary section. StudioNav active tab styling works for all routes except /studio/kit (minor issue). Header shows Aceel AI pill text. Footer has proper branding. No console errors. Screenshots captured."
+      - working: true
+        agent: "testing"
+        comment: "Re-tested Studio flows: ✅ StudioNav shows 'Studio' label (not 'Hub'). Study Kit navigation routes correctly to /studio/kit with StudioNav overlay (fixed position, top:64px, z-index:30). All first 3 cards have consistent design with 'Open' buttons. Fourth card shows 'Coming soon' and is properly blurred. Upload PDF inputs enabled on handwriting/summariser tools with buttons correctly disabled when no file selected. Mobile viewport renders StudioNav as dropdown without horizontal scroll. Light theme shows stronger black borders (Cards 2-3: rgba(0,0,0,0.7)). All requirements met successfully."
 
 ## metadata:
   created_by: "main_agent"
