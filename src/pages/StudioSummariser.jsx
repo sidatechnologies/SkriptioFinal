@@ -70,7 +70,7 @@ export default function StudioSummariser() {
       const text = await extractTextFromPDF(file);
       setSourceTitle(pickTitle(text));
       const n = lengthPref === 'short' ? 3 : (lengthPref === 'long' ? 8 : 5);
-      const bullets = await summarise(text, n);
+      const bullets = await summarise(text.slice(0, 120000), n);
       setSummary(bullets);
     } catch (e) {
       setSummary([]);
