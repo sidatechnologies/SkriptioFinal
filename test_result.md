@@ -332,9 +332,9 @@
 
 ## test_plan:
   current_focus:
-    - "Floating menu: Toggle visibility; Feedback opens external form; Merch navigates to /merch"
-    - "Merch page: Verify logo preview, download works, placeholders render; Theme adherence"
-    - "Landing navbar: Merch link visible on desktop & mobile menu; navigation works"
+    - "Mobile tabs on /studio/kit wrap 2x2 and only active content shows"
+    - "Summariser: Short/Medium/Long do not crash; no author/institution lines in bullets"
+    - "Handwriting OCR: forceOCR path produces readable text (not gibberish)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
