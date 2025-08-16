@@ -309,6 +309,17 @@
       - working: "NA"
         agent: "main"
         comment: "Added /merch route. Column 1 shows glass preview card with Aceel AI logo and a small bottom-right download button, title on left in header. Columns 2/3 are glass placeholders with 'Coming soon'. Added Merch link to landing navbar (desktop and mobile)."
+  - task: "Studio Hub with 4 cards and navigation between tools"
+    implemented: true
+    working: true
+    file: "/app/src/pages/StudioHub.jsx, /app/src/pages/StudioHandwriting.jsx, /app/src/pages/StudioSummariser.jsx, /app/src/components/StudioNav.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASS: Studio Hub renders with 4 cards (Study Kit Generator, Handwriting → Typed, AI PDF Summariser, Coming soon). Navigation works: Hub→Study Kit opens /studio/kit with original Studio interface (textarea, difficulty toggle, PDF buttons). Handwriting tool has upload control, Convert button, typed text area, Download PDF button. Summariser has upload control, length toggle (Short/Medium/Long), Summarise button, Summary section. StudioNav active tab styling works for all routes except /studio/kit (minor issue). Header shows Aceel AI pill text. Footer has proper branding. No console errors. Screenshots captured."
 
 ## metadata:
   created_by: "main_agent"
