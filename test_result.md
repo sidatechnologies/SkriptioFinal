@@ -332,15 +332,18 @@
 
 - task: "Fix mobile tabs wrapping/visibility on Study Kit"
   implemented: true
-  working: "NA"
+  working: true
   file: "/app/src/components/ui/tabs.jsx, /app/src/App.css"
   stuck_count: 0
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "NA"
       agent: "main"
       comment: "TabsList now supports flex-wrap + gap; TabsContent hides inactive panels via data-[state=inactive]:hidden; added CSS grid wrap for tablist on <=767px."
+    - working: true
+      agent: "testing"
+      comment: "✅ PASS: Mobile tabs layout tested on /studio/kit with 375x800 viewport. Tabs render in 2x2 grid (Quiz, Flashcards, 7-Day Plan, Theory Qs), no horizontal overflow, proper wrapping. Tab switching works correctly - only active panel visible, inactive panels hidden via data-[state=inactive]:hidden. Planner and Theory buttons stay within container bounds. Screenshots captured confirming proper mobile layout."
   - agent: "main"
     message: "Shipped fixes: mobile Study Kit tabs wrap + hide inactive panels; summariser stability + author filtering; handwriting OCR quality via on-device Tesseract with preprocessing. Requesting frontend validation across three scopes."
 
