@@ -122,7 +122,7 @@ export default function StudioSummariser() {
                 <CardDescription>Extract a concise, readable summary — all in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} />
+                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} />
                 {file && <div className="text-xs text-foreground/80 truncate">{file.name}</div>}
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Length</div>
