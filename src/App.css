@@ -97,8 +97,25 @@ input[type=file] { display: none; }
 /* Study Kit tabs: force wrapping grid on small screens and allow text to wrap */
 @media (max-width: 767px) {
   .studio-tabs-wrap { overflow: hidden; }
-  .studio-tabs-wrap [role="tablist"] { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; width: 100% !important; overflow: hidden !important; }
-  .studio-tabs-wrap [role="tab"] { width: 100% !important; max-width: 100% !important; box-sizing: border-box; white-space: normal !important; line-height: 1.2 !important; padding: 8px 10px !important; min-width: 0 !important; }
+  .studio-tabs-wrap [role="tablist"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+  .studio-tabs-wrap [role="tab"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    padding: 8px 10px !important;
+    min-width: 0 !important;
+  }
 }
 /* Extra narrow devices: stack tabs in a single column to avoid overflow once content is generated */
 @media (max-width: 360px) {
