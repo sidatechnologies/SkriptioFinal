@@ -375,6 +375,17 @@
     - working: true
       agent: "testing"
       comment: "✅ PASS: Handwriting tool UI tested on /studio/handwriting. Convert button properly disabled without file selection. Typed text area visible and functional. Upload control present and working. Page loads without crashes. Note: Actual OCR functionality not tested due to test environment limitations, but UI behavior is correct."
+- task: "Fix dropdown styling in light theme"
+  implemented: false
+  working: false
+  file: "/app/src/App.css, /app/src/components/StudioNav.jsx"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: false
+      agent: "testing"
+      comment: "❌ CRITICAL ISSUE: Dropdown styling broken in light theme. StudioNav mobile dropdown and difficulty selects show dark styling (black background rgb(0,0,0), white text rgb(255,255,255), white arrow) instead of expected light theme styling (white background, black text, black arrow). CSS classes .select-control and .select-arrow not respecting light theme. Affects mobile navigation usability."
 
 ## test_plan:
   current_focus:
