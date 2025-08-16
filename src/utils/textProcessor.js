@@ -43,7 +43,6 @@ function extractFormulasFromText(text) {
   for (const line of lines) {
     const t = line.trim();
     if (FORMULA_LINE_REGEX.test(t)) {
-      // keep exact as given
       formulas.add(t);
     }
   }
@@ -57,7 +56,7 @@ function containsFormula(s) {
   return false;
 }
 
-// Basic canvas helpers
+// Canvas helpers
 function rotateCanvas(srcCanvas, deg) {
   if (!deg) return srcCanvas;
   const rad = (deg * Math.PI) / 180;
@@ -131,9 +130,69 @@ function measureOcrQuality(text) {
   return Math.max(0, Math.min(1, score));
 }
 
-// Extract text from PDF using pdf.js with optional OCR for image/diagram pages
+// OCR post-processing corrections
+function fixOCRConfusions(text) {
+  let t = text;
+  // character-level
+  t = t.replace(/(?<=[A-Za-z])0(?=[A-Za-z])/g, 'o');
+  t = t.replace(/(?<=[A-Za-z])[1I](?=[A-Za-z])/g, 'l');
+  t = t.replace(/(?<=[A-Za-z])vv(?=[A-Za-z])/g, 'w');
+  t = t.replace(/(?<=[A-Za-z])rn(?=[A-Za-z])/g, 'm');
+  t = t.replace(/(?<=[A-Za-z])cl(?=[A-Za-z])/g, 'd');
+  t = t.replace(/\b[GgFf]e\b/g, 'the');
+  t = t.replace(/\bwi[ln]e?ry\b/gi, 'while');
+  t = t.replace(/\bprobl[e]?m\b/gi, 'problem');
+  return t;
+}
+
+const OCR_RULES = [
+  [/\balg[0o]r[i1]t[e3]m\b/gi, 'algorithm'],
+  [/\balgo[ri][rt][it][hmn]\b/gi, 'algorithm'],
+  [/\balg[eo]r[ti][tf]m(s)?\b/gi, 'algorithm$1'],
+  [/\bdetermin[1i]stic\b/gi, 'deterministic'],
+  [/\bnon[- ]?determin[1i]stic\b/gi, 'non-deterministic'],
+  [/\bgro?ph\b/gi, 'graph'],
+  [/\bcl[gq]u[e3]\b/gi, 'clique'],
+  [/\bham[1i]lton[i1]an\b/gi, 'hamiltonian'],
+  [/\bver[rt]ex\b/gi, 'vertex'],
+  [/\bsat[1i]sfiab[1i]l[1i]ty\b/gi, 'satisfiability'],
+  [/\bpol[ygh]nom[1i]al\b/gi, 'polynomial'],
+  [/\bdec[1l]s[1i]on\b/gi, 'decision'],
+  [/\bboo[1l]ean\b/gi, 'boolean'],
+  [/\bcomp[1l][e3]t[e3]\b/gi, 'complete'],
+  [/\bmp[- ]?[ch]\b/g, 'NP-complete'],
+  [/\bmp[- ]?h\b/g, 'NP-hard'],
+];
+
+function correctWithRules(text) {
+  let t = text;
+  for (const [rx, rep] of OCR_RULES) t = t.replace(rx, rep);
+  return t;
+}
+
+function sentenceShape(text) {
+  // Join lines and re-split into sentences for readability
+  const merged = text.replace(/\s+\n/g, '\n').replace(/\n{2,}/g, '\n\n');
+  const paras = merged.split(/\n\n+/).map(p => p.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim()).filter(Boolean);
+  const out = [];
+  for (const p of paras) {
+    const parts = p.split(/(?<=[\.!?])\s+/); // simple splitter
+    for (let s of parts) {
+      s = s.trim();
+      if (s.length < 20) continue;
+      // drop sentences with suspiciously few vowels
+      const letters = s.replace(/[^A-Za-z]/g, '');
+      const vowels = (letters.match(/[aeiouy]/gi) || []).length;
+      if (letters.length >= 10 && vowels / Math.max(1, letters.length) < 0.2) continue;
+      out.push(s.replace(/\s{2,}/g, ' '));
+    }
+  }
+  return out.join('\n');
+}
+
+// Extract text from PDF with optional aggressive OCR
 export async function extractTextFromPDF(file, options = {}) {
-  const { forceOCR = false, ocrScale = 1.8, maxPages = 60 } = options;
+  const { forceOCR = false, betterAccuracy = false, ocrScale = 1.8, maxPages = 60 } = options;
   try {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -145,8 +204,7 @@ export async function extractTextFromPDF(file, options = {}) {
     let Tesseract = null;
 
     const tStart = Date.now();
-    const OCR_TIME_BUDGET_MS = forceOCR ? 25000 : 7000; // overall budget
-    let timeSpent = 0;
+    const OCR_TIME_BUDGET_MS = forceOCR ? (betterAccuracy ? 35000 : 22000) : (betterAccuracy ? 12000 : 7000);
 
     const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
 
@@ -162,7 +220,7 @@ export async function extractTextFromPDF(file, options = {}) {
           sum += v; n++;
         }
         const avg = sum / Math.max(1, n);
-        const thr = Math.min(205, Math.max(108, avg));
+        const thr = Math.min(208, Math.max(108, avg));
         for (let i = 0; i < data.length; i += 4) {
           const v = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
           const b = v > thr ? 255 : 0;
@@ -175,28 +233,31 @@ export async function extractTextFromPDF(file, options = {}) {
     };
 
     const withTimeout = async (promise, ms) => {
-      let timeoutId;
-      const timeout = new Promise((resolve) => { timeoutId = setTimeout(() => resolve(null), ms); });
+      let timeoutId; const timeout = new Promise((resolve) => { timeoutId = setTimeout(() => resolve(null), ms); });
       const result = await Promise.race([promise, timeout]).catch(() => null);
-      clearTimeout(timeoutId);
-      return result;
+      clearTimeout(timeoutId); return result;
     };
 
     const recognizeWithConfigs = async (baseCanvas, isHandwriting) => {
       if (!Tesseract) { const mod = await import('tesseract.js'); Tesseract = mod.default || mod; }
-      const configs = [
-        { psm: 11, scale: isHandwriting ? Math.max(ocrScale, 1.9) : ocrScale },
-        { psm: 11, scale: isHandwriting ? 2.1 : ocrScale + 0.2 },
-        { psm: 6,  scale: isHandwriting ? 1.9 : ocrScale },
-        { psm: 4,  scale: isHandwriting ? 2.0 : ocrScale }
+      const configs = betterAccuracy ? [
+        { psm: 11, scale: 2.2, whitelist: null },
+        { psm: 6,  scale: 2.4, whitelist: null },
+        { psm: 4,  scale: 2.0, whitelist: null },
+        { psm: 3,  scale: 2.8, whitelist: null },
+      ] : [
+        { psm: 11, scale: isHandwriting ? Math.max(ocrScale, 1.9) : ocrScale, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
+        { psm: 6,  scale: isHandwriting ? 2.1 : ocrScale + 0.2, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
+        { psm: 4,  scale: isHandwriting ? 2.0 : ocrScale, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
       ];
-      const rotations = isHandwriting ? [0, 270] : [0];
+      const rotations = betterAccuracy ? [0, 270, 90] : (isHandwriting ? [0, 270] : [0]);
 
       let best = { text: '', score: 0 };
       for (const rot of rotations) {
         for (const cfg of configs) {
           const msLeft = OCR_TIME_BUDGET_MS - (Date.now() - tStart);
-          if (msLeft <= 500) return best.text;
+          if (msLeft <= 400) return best.text;
+
           const pageCanvas = document.createElement('canvas');
           const ctx = pageCanvas.getContext('2d');
           const src = rotateCanvas(baseCanvas, rot);
@@ -206,20 +267,24 @@ export async function extractTextFromPDF(file, options = {}) {
           ctx.drawImage(src, 0, 0, pageCanvas.width, pageCanvas.height);
 
           preprocessCanvasForOCR(pageCanvas);
-          const t0 = Date.now();
-          const rec = await withTimeout(Tesseract.recognize(pageCanvas, 'eng', {
+
+          const ocrOpts = {
             tessedit_pageseg_mode: cfg.psm,
             tessedit_ocr_engine_mode: '1', // LSTM only
-            preserve_interword_spaces: '1',
-            tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' 
-          }), isHandwriting ? 8000 : 5000);
-          const dt = Date.now() - t0; timeSpent += dt;
+            preserve_interword_spaces: '1'
+          };
+          if (cfg.whitelist) ocrOpts.tessedit_char_whitelist = cfg.whitelist;
+
+          const perPass = Math.min(msLeft, betterAccuracy ? 10000 : (isHandwriting ? 8000 : 5000));
+          const rec = await withTimeout(Tesseract.recognize(pageCanvas, 'eng', ocrOpts), perPass);
           if (rec && rec.data && rec.data.text) {
-            let candidate = cleanOCROutput(rec.data.text);
-            candidate = charCleanupLight(candidate);
+            let candidate = rec.data.text;
+            candidate = cleanOCROutput(candidate);
+            candidate = fixOCRConfusions(candidate);
+            candidate = correctWithRules(candidate);
             const score = measureOcrQuality(candidate);
             if (score > best.score) best = { text: candidate, score };
-            if (score >= 0.45) return best.text; // early stop if good enough
+            if (score >= (betterAccuracy ? 0.52 : 0.45)) return best.text; // early stop if good enough
           }
           if ((Date.now() - tStart) > OCR_TIME_BUDGET_MS) return best.text;
         }
@@ -230,7 +295,6 @@ export async function extractTextFromPDF(file, options = {}) {
     for (let i = 1; i <= limitPages; i++) {
       const page = await pdf.getPage(i);
 
-      // Try text layer first unless handwriting mode is forced
       let collected = '';
       if (!forceOCR) {
         const textContent = await page.getTextContent().catch(() => null);
@@ -241,7 +305,6 @@ export async function extractTextFromPDF(file, options = {}) {
 
       const needOCR = forceOCR || collected.length < 80;
       if (needOCR) {
-        // Render page to canvas and run multi-pass OCR within budget
         const viewport = page.getViewport({ scale: ocrScale });
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -257,35 +320,31 @@ export async function extractTextFromPDF(file, options = {}) {
 
       fullText += (collected || '') + '\n';
       if (i % 2 === 0) await tick();
-      if ((Date.now() - tStart) > (forceOCR ? OCR_TIME_BUDGET_MS + 2000 : 30000)) break; // hard cap for very large PDFs
+      if ((Date.now() - tStart) > (forceOCR ? OCR_TIME_BUDGET_MS + 2500 : 30000)) break; // hard cap for very large PDFs
     }
 
-    return cleanOCROutput(fullText);
+    // Final polish for readability
+    let out = cleanOCROutput(fullText);
+    out = fixOCRConfusions(out);
+    out = correctWithRules(out);
+    out = sentenceShape(out);
+    return out;
   } catch (error) {
     throw new Error(`Failed to read PDF: ${error.message}`);
   }
 }
 
-// OCR post-processing: remove scanner watermarks, collapse broken words, drop noisy lines
+// Basic cleanup (watermarks, hyphen breaks, noise lines)
 function cleanOCROutput(text) {
   if (!text) return text;
   let t = String(text);
-  // Remove common scanner watermarks
   t = t.replace(/\bScanned with CamScanner\b/gi, "");
   t = t.replace(/\bCamScanner\b/gi, "");
   t = t.replace(/\bScanned with Adobe Scan\b/gi, "");
-  // Remove decorative separators like '- 12 -'
   t = t.replace(/\n?\s*-+\s*\d+\s*-+\s*\n?/g, "\n");
-  // Normalize odd unicode punctuation
   t = charCleanupLight(t);
-  // Merge hyphenated line breaks and mid-word splits
   t = t.replace(/([A-Za-z]{2,})-\n([A-Za-z]{2,})/g, "$1$2");
-  // Fix common intra-word splits like "re sults" -> "results"
-  t = t.replace(/\b([A-Za-z]{3,})\s+([a-z]{2,})\b/g, (m, a, b) => {
-    if ((a + b).length <= 12) return a + b;
-    return m;
-  });
-  // Remove lines that are mostly noise (no vowels or too much punctuation)
+  t = t.replace(/\b([A-Za-z]{3,})\s+([a-z]{2,})\b/g, (m, a, b) => { if ((a + b).length <= 12) return a + b; return m; });
   const lines = t.split(/\n+/).map(l => l.trim());
   const kept = [];
   for (const l of lines) {
@@ -298,7 +357,6 @@ function cleanOCROutput(text) {
     kept.push(l);
   }
   t = kept.join("\n");
-  // Normalize spaces and collapse excessive blank lines
   t = t.replace(/[ \t]{2,}/g, ' ');
   t = t.replace(/\n{3,}/g, "\n\n");
   return t.trim();
@@ -380,27 +438,9 @@ export function splitSentences(text) {
 
 export function tokenize(text) { const tokenRegex = /[A-Za-z][A-Za-z\-']+/g; const matches = text.match(tokenRegex) || []; return matches.map(token => token.toLowerCase()); }
 
-function refineKeyPhrases(candidates, sentences, docTitle) {
-  const BAN = new Set(['used', 'reduce', 'model', 'models', 'like', 'models like', 'used reduce', 'work', 'process', 'one process', 'ongoing process']);
-  const ok = []; const seen = new Set();
-  for (const p of candidates) {
-    const key = p.toLowerCase().trim(); const tokens = key.split(' ');
-    if (tokens.some(t => t.length < 3)) continue; if (BAN.has(key)) continue; if (key === 'data') continue; if (key.includes(' like')) continue; if (key.startsWith('used')) continue;
-    const s = sentences.find(sen => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(sen)); if (!s) continue; if (looksLikeHeadingStrong(s, docTitle)) continue;
-    if ([...seen].some(k => k.includes(key) || key.includes(k))) continue; ok.push(p); seen.add(key);
-  }
-  return ok;
-}
+function refineKeyPhrases(candidates, sentences, docTitle) { const BAN = new Set(['used', 'reduce', 'model', 'models', 'like', 'models like', 'used reduce', 'work', 'process', 'one process', 'ongoing process']); const ok = []; const seen = new Set(); for (const p of candidates) { const key = p.toLowerCase().trim(); const tokens = key.split(' '); if (tokens.some(t => t.length < 3)) continue; if (BAN.has(key)) continue; if (key === 'data') continue; if (key.includes(' like')) continue; if (key.startsWith('used')) continue; const s = sentences.find(sen => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(sen)); if (!s) continue; if (looksLikeHeadingStrong(s, docTitle)) continue; if ([...seen].some(k => k.includes(key) || key.includes(k))) continue; ok.push(p); seen.add(key); } return ok; }
 
-export function extractKeyPhrases(text, k = 18) {
-  const tokens = tokenize(text).filter(t => !STOPWORDS.has(t));
-  const counts = new Map(); for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
-  const addNgrams = (n) => { for (let i = 0; i + n <= tokens.length; i++) { const gram = tokens.slice(i, i + n); if (STOPWORDS.has(gram[0]) || STOPWORDS.has(gram[gram.length - 1])) continue; const phrase = gram.join(' '); counts.set(phrase, (counts.get(phrase) || 0) + 1); } };
-  addNgrams(2); addNgrams(3);
-  const scored = Array.from(counts.entries()).filter(([w]) => /[a-z]/.test(w) && w.length >= 4).map(([w, c]) => [w, c * Math.log(1 + c)]).sort((a, b) => b[1] - a[1]).map(([w]) => w);
-  const multi = scored.filter(w => w.includes(' ')); const uni = scored.filter(w => !w.includes(' '));
-  return [...multi.slice(0, Math.min(k - 4, multi.length)), ...uni].slice(0, k);
-}
+export function extractKeyPhrases(text, k = 18) { const tokens = tokenize(text).filter(t => !STOPWORDS.has(t)); const counts = new Map(); for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1); const addNgrams = (n) => { for (let i = 0; i + n <= tokens.length; i++) { const gram = tokens.slice(i, i + n); if (STOPWORDS.has(gram[0]) || STOPWORDS.has(gram[gram.length - 1])) continue; const phrase = gram.join(' '); counts.set(phrase, (counts.get(phrase) || 0) + 1); } }; addNgrams(2); addNgrams(3); const scored = Array.from(counts.entries()).filter(([w]) => /[a-z]/.test(w) && w.length >= 4).map(([w, c]) => [w, c * Math.log(1 + c)]).sort((a, b) => b[1] - a[1]).map(([w]) => w); const multi = scored.filter(w => w.includes(' ')); const uni = scored.filter(w => !w.includes(' ')); return [...multi.slice(0, Math.min(k - 4, multi.length)), ...uni].slice(0, k); }
 
 function optionTokens(str) { const raw = (str || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean); const map = { v: 'variable', var: 'variable', vars: 'variables', feat: 'feature', feats: 'features', cls: 'class', prob: 'probability', pred: 'prediction', reg: 'regression', rnd: 'random' }; return raw.map(w => map[w] || w); }
 function jaccard(a, b) { const A = new Set(optionTokens(a)); const B = new Set(optionTokens(b)); if (A.size === 0 && B.size === 0) return 1; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni === 0 ? 0 : inter / uni; }
@@ -409,7 +449,7 @@ function normalizeMorphology(s) { return (s || '').toLowerCase().replace(/[^a-z0
 function normalizeEquivalents(s) { if (!s) return ''; let t = s.toLowerCase(); t = t.replace(/\bnumerical\s*v\b/g, 'numerical variable').replace(/\bnumerical\s*var(iable)?s?\b/g, 'numerical variable').replace(/\bclass\s*lbl\b/g, 'class label').replace(/\bpca\b/g, 'principal component analysis'); t = normalizeMorphology(t); return t.trim(); }
 function tooSimilar(a, b) { if (!a || !b) return false; const A = normalizeEquivalents(a); const B = normalizeEquivalents(b); if (A === B) return true; return jaccard(A, B) >= 0.7; }
 
-function removePhraseOnce(sentence, phrase) { const rx = new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'i'); return sentence.replace(rx, '_____').replace(/\s{2,}/g, ' ').trim(); }
+function removePhraseOnce(sentence, phrase) { const rx = new RegExp(`\b${escapeRegExp(phrase)}\b`, 'i'); return sentence.replace(rx, '_____').replace(/\s{2,}/g, ' ').trim(); }
 
 function cutToWordBoundary(text, maxLen) { if (!text) return text; if (maxLen < 20) maxLen = 20; if (text.length <= maxLen) return text; const cut = text.slice(0, Math.max(0, maxLen - 1)); const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'), cut.lastIndexOf(':')); const base = idx > 20 ? cut.slice(0, idx).trim() : cut.trim(); return base.replace(/[,.-:;]+$/, '') + '.'; }
 function fixMidwordSpaces(s) { if (!s) return s; const patterns = [/([A-Za-z]{3,})\s+(ability|ibility|sibility|ality|ments?|ness|ship|hood|ation|ization|cation|fully|ically|ances?|tages?|gories|curity|label|linear|regression|control|bottleneck|responsibility)/gi]; let t = s; for (const rx of patterns) t = t.replace(rx, '$1$2'); t = t.replace(/\b([A-Z])\s+([a-z]{5,})\b/g, '$1$2'); t = t.replace(/\b([A-Za-z]{3,})\s+(ment|ments|tion|tions|sion|sions|ness|ship|hood|able|ible|ally|ically)\b/gi, '$1$2'); t = t.replace(/\bthebottleneck\b/gi, 'the bottleneck'); t = t.replace(/\bprocessbottleneck\b/gi, 'process bottleneck'); t = t.replace(/\bcontinuousbottleneck\b/gi, 'continuous bottleneck'); t = t.replace(/\bworkin\s+progress\b/gi, 'work in progress'); t = t.replace(/\b([a-z]{5,})(bottleneck)\b/gi, '$1 $2'); return t; }
@@ -424,26 +464,9 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
   const multi = phrases.filter(p => p && p.includes(' ') && !BAN.has(p.toLowerCase()));
   const uni = phrases.filter(p => p && !p.includes(' ') && !BAN.has(p.toLowerCase()));
   const pool = [...multi, ...uni];
-  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(s);
   const pickSentence = (p) => { const s = sents.find(ss => hasPhrase(p, ss) && !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50); return s || sents.find(ss => !looksLikeHeadingStrong(ss, docTitle) && ss.length >= 50) || sents[0] || ''; };
-  const templates = {
-    balanced: [
-      (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`,
-      (p, s) => `Describe how "${p}" affects workflow efficiency. Refer to the material and outline at least two concrete impacts.`,
-      (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`,
-      (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`
-    ],
-    harder: [
-      (p, s) => `Analyze "${p}" in context. Using the material, identify root causes, consequences, and two mitigation strategies.`,
-      (p, s) => `Compare and contrast "${p}" with a related concept from the material. Discuss similarities, differences, and when each applies.`,
-      (p, s) => `Given the following context, explain how it illustrates "${p}": ${summarizeSentence(s || pickSentence(p), 140)}`
-    ],
-    expert: [
-      (p, s) => `Synthesize a detailed explanation of "${p}" that connects principles, trade‑offs, and constraints. Support your answer with material‑based examples.`,
-      (p, s) => `Develop a step‑by‑step approach or checklist to diagnose and address issues related to "${p}" in practice, grounded in the material.`,
-      (p, s) => `Critically evaluate the role of "${p}" within a broader system. Discuss metrics, failure modes, and improvement levers with evidence from the text.`
-    ]
-  };
+  const templates = { balanced: [ (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`, (p, s) => `Describe how "${p}" affects workflow efficiency. Refer to the material and outline at least two concrete impacts.`, (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`, (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.` ], harder: [ (p, s) => `Analyze "${p}" in context. Using the material, identify root causes, consequences, and two mitigation strategies.`, (p, s) => `Compare and contrast "${p}" with a related concept from the material. Discuss similarities, differences, and when each applies.`, (p, s) => `Given the following context, explain how it illustrates "${p}": ${summarizeSentence(s || pickSentence(p), 140)}` ], expert: [ (p, s) => `Synthesize a detailed explanation of "${p}" that connects principles, trade‑offs, and constraints. Support your answer with material‑based examples.`, (p, s) => `Develop a step‑by‑step approach or checklist to diagnose and address issues related to "${p}" in practice, grounded in the material.`, (p, s) => `Critically evaluate the role of "${p}" within a broader system. Discuss metrics, failure modes, and improvement levers with evidence from the text.` ] };
   const list = templates[difficulty] || templates.balanced;
   const out = []; const used = new Set(); let i = 0;
   while (out.length < total && i < pool.length + 20) {
@@ -461,7 +484,7 @@ export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
 
 export function buildFlashcards(sentences, phrases, total = 12, docTitle = '') {
   const cards = []; const used = new Set();
-  const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s);
+  const hasPhrase = (p, s) => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(s);
   const validateFlash = (s) => { if (!s) return null; if (isAuthorish(s)) return null; if (looksLikeHeadingStrong(s, docTitle)) return null; const t = repairDanglingEnd(s); if (t.length < 60 || t.length > 400) return null; if (!hasVerb(t)) return null; if (/(which\s+(has|is))\s*\.$/i.test(t)) return null; if (/(using\s+only|for)\s*\.$/i.test(t)) return null; if (/end\s+carry|\br\s*m\b/i.test(t)) return null; return t; };
   for (const p of phrases) { if (cards.length >= total) break; const sen = sentences.find(sen => hasPhrase(p, sen) && validateFlash(sen)); const v = validateFlash(sen); if (!v || used.has(p)) continue; used.add(p); const front = `Define: ${p}`; const back = ensureCaseAndPeriod('A.', v.length <= 280 ? v : v.slice(0, 277) + '.'); cards.push({ front, back }); }
   if (cards.length < total) { const pool = sentences.map(validateFlash).filter(Boolean); let i = 0; while (cards.length < total && i < pool.length) { const v = pool[i++]; const back = ensureCaseAndPeriod('A.', v.length <= 280 ? v : v.slice(0, 277) + '.'); cards.push({ front: 'Key idea?', back }); } }
@@ -475,11 +498,11 @@ function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4
 
 function inferDocTitle(text, fallback = 'Study Kit') { const lines = normalizeText(text).split(/\n+/).map(l => l.trim()); const first = lines.find(Boolean) || ''; return first.slice(0, 80) || fallback; }
 
-function buildConceptQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const correct = summarizeSentence(s, 180); const distractPool = sentences.filter(x => x !== s && !hasPhrase(phrase, x)).slice(0, 40).map(z => summarizeSentence(z, 160)); const opts = distinctFillOptions(correct, distractPool, [], phrases, 4); const placed = placeDeterministically(opts, correct, qi % 4); return { id: `c-${qi}-${detIndex(phrase)}`, type: 'concept', question: `Which statement best describes "${phrase}"?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? `The correct statement mentions "${phrase}" in context.` : '' }; }
+function buildConceptQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const correct = summarizeSentence(s, 180); const distractPool = sentences.filter(x => x !== s && !hasPhrase(phrase, x)).slice(0, 40).map(z => summarizeSentence(z, 160)); const opts = distinctFillOptions(correct, distractPool, [], phrases, 4); const placed = placeDeterministically(opts, correct, qi % 4); return { id: `c-${qi}-${detIndex(phrase)}`, type: 'concept', question: `Which statement best describes "${phrase}"?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? `The correct statement mentions "${phrase}" in context.` : '' }; }
 
 function buildFormulaQuestion(formula, formulas, qi = 0, explain = false) { const others = (formulas || []).filter(f => f !== formula).slice(0, 6); const opts = distinctFillOptions(formula, others, [], [], 4); const placed = placeDeterministically(opts, formula, (qi + 1) % 4); return { id: `f-${qi}-${detIndex(formula)}`, type: 'formula', question: `Which formula appears in the material?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? 'This exact formula string was detected in the text/PDF.' : '' }; }
 
-function buildClozeQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const stem = removePhraseOnce(s, phrase); const question = `Fill in the blank: ${summarizeSentence(stem, 150)}`; const correct = phrase; const distractPool = phrases.filter(p => p !== phrase).slice(0, 12); const opts = distinctFillOptions(correct, distractPool, [], phrases, 4); const placed = placeDeterministically(opts, correct, (qi + 2) % 4); return { id: `z-${qi}-${detIndex(phrase)}`, type: 'cloze', question, options: placed.arranged, answer_index: placed.idx, explanation: explain ? `The blank corresponds to the key term "${phrase}" from the material.` : '' }; }
+function buildClozeQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\b${escapeRegExp(p)}\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const stem = removePhraseOnce(s, phrase); const question = `Fill in the blank: ${summarizeSentence(stem, 150)}`; const correct = phrase; const distractPool = phrases.filter(p => p !== phrase).slice(0, 12); const opts = distinctFillOptions(correct, distractPool, [], phrases, 4); const placed = placeDeterministically(opts, correct, (qi + 2) % 4); return { id: `z-${qi}-${detIndex(phrase)}`, type: 'cloze', question, options: placed.arranged, answer_index: placed.idx, explanation: explain ? `The blank corresponds to the key term "${phrase}" from the material.` : '' }; }
 
 function buildQuiz(text, phrases, formulas, opts = {}) {
   const sentences = splitSentences(text || '');

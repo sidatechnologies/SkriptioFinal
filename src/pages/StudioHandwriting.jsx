@@ -15,6 +15,7 @@ export default function StudioHandwriting() {
   const [file, setFile] = useState(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [betterAccuracy, setBetterAccuracy] = useState(true);
   const fileRef = useRef();
 
   const LOGO_URL = "/assets/aceel-logo.png";
@@ -60,8 +61,7 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      // Force high-quality OCR for handwriting, with larger render scale and safe timeouts
-      const extracted = await extractTextFromPDF(file, { forceOCR: true, ocrScale: 1.9 });
+      const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy, ocrScale: betterAccuracy ? 2.2 : 1.9 });
       setText(extracted || "");
     } finally { setLoading(false); }
   };
@@ -110,12 +110,19 @@ export default function StudioHandwriting() {
                 <CardDescription>Handwritten text PDFs work best. Processing happens in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Hidden native input + clear button trigger for better visibility */}
                 <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="hidden" />
                 <Button type="button" variant="secondary" className="button-upload bg-white hover:bg-white/90 text-black border border-black/60" onClick={() => fileRef.current?.click()} disabled={loading}>
                   <Upload className="mr-2 h-4 w-4"/> Choose PDF
                 </Button>
                 {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
+
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Better accuracy (slower)</div>
+                  <label className="text-sm flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={betterAccuracy} onChange={e => setBetterAccuracy(e.target.checked)} />
+                    <span className="text-foreground/80">{betterAccuracy ? 'On' : 'Off'}</span>
+                  </label>
+                </div>
 
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}
@@ -123,9 +130,9 @@ export default function StudioHandwriting() {
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
-                    <li>Enhanced OCR is now applied for handwriting (higher accuracy).</li>
-                    <li>Scanned pages are OCR’d on‑device (no upload).</li>
-                    <li>Complex layouts may reduce accuracy.</li>
+                    <li>High-accuracy OCR tries multiple rotations and settings.</li>
+                    <li>On-device only. No upload to servers.</li>
+                    <li>If it’s very scribbled/low-contrast, results may still vary.</li>
                   </ul>
                 </div>
               </CardContent>
