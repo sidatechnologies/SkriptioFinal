@@ -49,7 +49,7 @@ export default function StudioHub() {
           <CardCommon
             icon={<FileText size={18}/>} 
             title="Study Kit Generator"
-            desc="Turn your notes or PDFs into a quiz, flashcards, and a 7‑day plan — in your browser."
+            desc="Notes or PDFs into quizzes, flashcards, theory, and a 7-day study planner."
             onOpen={() => navigate('/studio/kit')}
           />
 
