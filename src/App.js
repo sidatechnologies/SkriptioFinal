@@ -1014,7 +1014,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       {/* Studio routes: Hub + tools + legacy kit */}
       <Route path="/studio" element={<StudioHub />} />
-      <Route path="/studio/kit/*" element={<Studio />} />
+      <Route path="/studio/kit/*" element={<KitRoute />} />
       {/* Legacy shared links support */}
       <Route path="/studio/:title/:code" element={<Studio />} />
       <Route path="/studio/handwriting" element={<StudioHandwriting />} />
