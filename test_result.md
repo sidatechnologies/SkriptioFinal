@@ -330,6 +330,40 @@
   test_sequence: 7
   run_ui: false
 
+- task: "Fix mobile tabs wrapping/visibility on Study Kit"
+  implemented: true
+  working: "NA"
+  file: "/app/src/components/ui/tabs.jsx, /app/src/App.css"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "TabsList now supports flex-wrap + gap; TabsContent hides inactive panels via data-[state=inactive]:hidden; added CSS grid wrap for tablist on <=767px."
+- task: "Summariser: prevent crashes and drop author/institution lines; better title"
+  implemented: true
+  working: "NA"
+  file: "/app/src/pages/StudioSummariser.jsx, /app/src/utils/textProcessor.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Rewired summariser to use splitSentences + author/heading filters; Safari-safe splitter; improved title selection; stable Short/Medium/Long."
+- task: "Handwriting OCR quality: force OCR + preprocessing"
+  implemented: true
+  working: "NA"
+  file: "/app/src/pages/StudioHandwriting.jsx, /app/src/utils/textProcessor.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Added forceOCR path with higher render scale, simple binarization and Tesseract configs to reduce gibberish; no external APIs."
+
 ## test_plan:
   current_focus:
     - "Mobile tabs on /studio/kit wrap 2x2 and only active content shows"
