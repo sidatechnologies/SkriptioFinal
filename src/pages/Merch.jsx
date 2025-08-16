@@ -9,7 +9,7 @@ export default function Merch() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const assetUrl = "/assets/aceel-logo.png";
-  const posterUrl = "https://customer-assets.emergentagent.com/job_footer-dismiss/artifacts/lwt16b59_Skriptio%20Poster.png";
+  const posterUrl = "/assets/skriptio-poster.png"; // local copy for reliable download
 
   const downloadFile = async (url, filename) => {
     try {
@@ -40,12 +40,8 @@ export default function Merch() {
           <div className="flex items-center gap-2">
             <nav className="hidden lg:flex items-center gap-6 text-sm text-foreground/80 mr-2">
               <Link to="/">Home</Link>
-              <a href="/#how">How it works</a>
-              <a href="/#features">Features</a>
-              <a href="/#usecases">Use cases</a>
-              <a href="/#faq">FAQ</a>
+              <Link to="/studio">Studio</Link>
               <Link to="/merch" className="hover:text-foreground">Merch</Link>
-              <span className="px-3 py-1 rounded-full gold-pill hidden lg:inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full gold-dot"/>A product by Aceel AI</span>
             </nav>
             <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button></div>
             {/* Mobile/Tablet controls */}
