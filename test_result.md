@@ -328,3 +328,5 @@
 ## agent_communication:
   - agent: "main"
     message: "Implemented floating expandable menu (Feedback + Merch), created /merch page with freebies and placeholders, and added Merch link to landing header (desktop + mobile). Requesting UI validation when convenient."
+  - agent: "testing"
+    message: "Studio Hub testing completed successfully. ✅ PASS: All 4 cards render correctly (Study Kit Generator, Handwriting → Typed, AI PDF Summariser, Coming soon). Navigation works perfectly - Study Kit opens at /studio/kit with original Studio interface intact (textarea, difficulty toggle, PDF buttons). Handwriting tool at /studio/handwriting has all required UI elements (upload control, Convert button, typed text area, Download PDF button). Summariser at /studio/summariser has upload control, length toggle (Short/Medium/Long), Summarise button, and Summary section. StudioNav active tab styling works correctly for all routes except /studio/kit (minor styling issue). Header shows 'Aceel AI' pill text correctly. Footer contains proper branding. No console errors detected. Screenshots captured for all routes as requested."
