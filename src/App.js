@@ -1015,6 +1015,8 @@ export default function App() {
       {/* Studio routes: Hub + tools + legacy kit */}
       <Route path="/studio" element={<StudioHub />} />
       <Route path="/studio/kit/*" element={<Studio />} />
+      {/* Legacy shared links support */}
+      <Route path="/studio/:title/:code" element={<Studio />} />
       <Route path="/studio/handwriting" element={<StudioHandwriting />} />
       <Route path="/studio/summariser" element={<StudioSummariser />} />
       <Route path="/merch" element={<Merch />} />
