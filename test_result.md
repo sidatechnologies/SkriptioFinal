@@ -349,15 +349,18 @@
 
 - task: "Summariser: prevent crashes and drop author/institution lines; better title"
   implemented: true
-  working: "NA"
+  working: false
   file: "/app/src/pages/StudioSummariser.jsx, /app/src/utils/textProcessor.js"
-  stuck_count: 0
+  stuck_count: 1
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "NA"
       agent: "main"
       comment: "Rewired summariser to use splitSentences + author/heading filters; Safari-safe splitter; improved title selection; stable Short/Medium/Long."
+    - working: false
+      agent: "testing"
+      comment: "❌ FAIL: Summariser default state incorrect - Medium is highlighted as default instead of Short. Expected Short to be active (bg-white text-black classes) but found Medium has these classes. Summarise button correctly disabled without file selection. Page loads without crashes and UI is stable."
 - task: "Handwriting OCR quality: force OCR + preprocessing"
   implemented: true
   working: "NA"
