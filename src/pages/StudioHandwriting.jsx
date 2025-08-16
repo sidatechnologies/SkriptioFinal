@@ -20,43 +20,43 @@ export default function StudioHandwriting() {
   const LOGO_URL = "/assets/aceel-logo.png";
   const logoDataRef = useRef(null);
 
-  const fetchAsDataURL = async (url) =&gt; {
+  const fetchAsDataURL = async (url) => {
     try {
       const res = await fetch(url);
       const blob = await res.blob();
-      return await new Promise((resolve) =&gt; {
+      return await new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = () =&gt; resolve(reader.result);
+        reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(blob);
       });
     } catch { return null; }
   };
-  const ensureAssetsLoaded = async () =&gt; {
+  const ensureAssetsLoaded = async () => {
     if (!logoDataRef.current) logoDataRef.current = await fetchAsDataURL(LOGO_URL);
   };
-  const addHeader = (doc) =&gt; {
+  const addHeader = (doc) => {
     const pw = doc.internal.pageSize.getWidth();
     const topY = 12;
     try { if (logoDataRef.current) doc.addImage(logoDataRef.current, 'PNG', (pw - 18) / 2, topY - 6, 18, 18, undefined, 'FAST'); } catch {}
     try { doc.setFont('helvetica', 'normal'); } catch {}
   };
-  const addFooter = (doc) =&gt; {
+  const addFooter = (doc) => {
     const ph = doc.internal.pageSize.getHeight();
     const pw = doc.internal.pageSize.getWidth();
     doc.setFontSize(10);
     doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" });
   };
-  const lineWrap = (doc, text, x, y, maxWidth) =&gt; {
+  const lineWrap = (doc, text, x, y, maxWidth) => {
     const lines = doc.splitTextToSize(text, maxWidth);
-    lines.forEach((ln) =&gt; {
+    lines.forEach((ln) => {
       const ph = doc.internal.pageSize.getHeight();
-      if (y &gt; ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; }
+      if (y > ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; }
       doc.text(ln, x, y); y += 7;
     });
     return y;
   };
 
-  const handleConvert = async () =&gt; {
+  const handleConvert = async () => {
     if (!file) return;
     setLoading(true);
     try {
@@ -65,7 +65,7 @@ export default function StudioHandwriting() {
     } finally { setLoading(false); }
   };
 
-  const downloadTypedPDF = async () =&gt; {
+  const downloadTypedPDF = async () => {
     if (!text.trim()) return;
     setLoading(true);
     try {
@@ -109,10 +109,10 @@ export default function StudioHandwriting() {
                 <CardDescription>Handwritten text PDFs work best. Processing happens in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e =&gt; setFile(e.target.files?.[0] || null)} disabled={loading} className="file-input-reset" />
-                {file &amp;&amp; &lt;div className="text-xs text-foreground/80 truncate"&gt;{file.name}&lt;/div&gt;}
+                <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="file-input-reset" />
+                {file && <div className="text-xs text-foreground/80 truncate">{file.name}</div>}
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
-                  {loading ? &lt;&gt;&lt;Loader2 className="mr-2 h-4 w-4 animate-spin"/&gt; Converting...&lt;/&gt; : &lt;&gt;&lt;Upload className="mr-2 h-4 w-4"/&gt; Convert to typed text&lt;/&gt;}
+                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Upload className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
                 <div className="text-xs text-foreground/70">
                   Notes:
@@ -132,9 +132,9 @@ export default function StudioHandwriting() {
                 <CardDescription>Edit if needed, then download as PDF.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Textarea rows={18} value={text} onChange={e =&gt; setText(e.target.value)} placeholder="Your typed text will appear here..." className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
+                <Textarea rows={18} value={text} onChange={e => setText(e.target.value)} placeholder="Your typed text will appear here..." className="bg-white/10 border-white/10 placeholder:text-foreground/60" />
                 <Button onClick={downloadTypedPDF} disabled={!text.trim() || loading} variant="outline">
-                  {loading ? &lt;&gt;&lt;Loader2 className="mr-2 h-4 w-4 animate-spin"/&gt; Preparing PDF...&lt;/&gt; : &lt;&gt;&lt;Download className="mr-2 h-4 w-4"/&gt; Download PDF&lt;/&gt;}
+                  {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Preparing PDF...</> : <><Download className="mr-2 h-4 w-4"/> Download PDF</>}
                 </Button>
               </CardContent>
             </Card>
