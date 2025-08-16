@@ -267,7 +267,7 @@ function Landing() {
   );
 }
 
-function Studio() {
+export function Studio() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
