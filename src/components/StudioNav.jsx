@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 
 export default function StudioNav() {
   const { pathname } = useLocation();
@@ -28,11 +29,11 @@ export default function StudioNav() {
 
   return (
     <div className="w-full">
-      {/* Mobile: dropdown */}
+      {/* Mobile: custom dropdown to control arrow spacing */}
       <div className="md:hidden">
-        <div className="relative inline-block">
+        <div className="relative inline-block select-wrap">
           <select
-            className="text-sm rounded-md px-3 pr-9 py-2 border border-border bg-background"
+            className="select-control text-sm rounded-md px-3 pr-7 py-2 border border-border bg-background"
             value={current.to}
             onChange={(e) => navigate(e.target.value)}
           >
@@ -40,6 +41,7 @@ export default function StudioNav() {
               <option key={it.to} value={it.to}>{it.label}</option>
             ))}
           </select>
+          <span className="select-arrow"><ChevronDown size={16} /></span>
         </div>
       </div>
 

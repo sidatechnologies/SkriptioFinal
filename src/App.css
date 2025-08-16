@@ -5,116 +5,49 @@ body { font-family: 'Figtree', sans-serif; }
 
 /***** Subtle grain background *****/
 .min-h-screen { position: relative; }
-.min-h-screen::after {
-  content: "";
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: var(--noise);
-}
+.min-h-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: var(--noise); }
 
 /* Buttons and inputs micro-interactions */
 button, .btn { transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease; }
 
 /* Quiz option selected styling (light and dark) */
-.quiz-option {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.1);
-}
+.quiz-option { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
 .quiz-option:hover { background: rgba(255,255,255,0.2); }
-.quiz-option--selected, .quiz-option.quiz-option--selected {
-  background: #000 !important; color: #fff !important; border-color: transparent !important;
-}
+.quiz-option--selected, .quiz-option.quiz-option--selected { background: #000 !important; color: #fff !important; border-color: transparent !important; }
 .dark .quiz-option--selected, .dark .quiz-option.quiz-option--selected { background: #fff !important; color: #000 !important; }
-/* Ensure the letter stays visible when selected */
 .quiz-option .quiz-letter { color: inherit; opacity: 0.9; }
 .quiz-option--selected .quiz-letter { color: inherit !important; opacity: 0.95; }
 
-/* Ensure plan objectives wrap fully */
 .plan-objective { white-space: normal; word-break: break-word; }
 input, textarea, select { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
-/* Prominent input outlines in light theme */
-input[type="text"], textarea {
-  border: 1.5px solid rgba(0,0,0,0.6);
-  background: #fff;
-}
-.dark input[type="text"], .dark textarea {
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.04);
-}
-/* Upload button to look more prominent in light theme */
-.button-upload, .btn-upload {
-  border: 1.5px solid rgba(0,0,0,0.6) !important;
-}
+input[type="text"], textarea { border: 1.5px solid rgba(0,0,0,0.6); background: #fff; }
+.dark input[type="text"], .dark textarea { border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.04); }
+.button-upload, .btn-upload { border: 1.5px solid rgba(0,0,0,0.6) !important; }
 
 /* Checkboxes styling */
-input[type="checkbox"] {
-  width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff;
-}
-input[type="checkbox"]:checked::after {
-  content: ""; position: absolute; left: 3px; top: 1px; width: 8px; height: 12px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg);
-}
-.dark input[type="checkbox"] {
-  background: #000; border-color: #fff; box-shadow: 0 0 0 1px #fff inset;
-}
-.dark input[type="checkbox"]:checked::after {
-  border-color: #fff;
-}
+input[type="checkbox"] { width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff; }
+input[type="checkbox"]:checked::after { content: ""; position: absolute; left: 3px; top: 1px; width: 8px; height: 12px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.dark input[type="checkbox"] { background: #000; border-color: #fff; box-shadow: 0 0 0 1px #fff inset; }
+.dark input[type="checkbox"]:checked::after { border-color: #fff; }
 
 /* Hide default file input globally (override with .file-input-reset) */
 input[type=file] { display: none; }
 .file-input-reset[type=file] { display: block !important; }
 
 /* Light theme input outline visibility for title and textarea */
-.studio-input-title, .studio-textarea-notes {
-  border: 1.5px solid rgba(0,0,0,0.6) !important;
-  background: #fff !important;
-}
-.dark .studio-input-title, .dark .studio-textarea-notes {
-  border: 1px solid rgba(255,255,255,0.35) !important;
-  background: rgba(255,255,255,0.04) !important;
-}
+.studio-input-title, .studio-textarea-notes { border: 1.5px solid rgba(0,0,0,0.6) !important; background: #fff !important; }
+.dark .studio-input-title, .dark .studio-textarea-notes { border: 1px solid rgba(255,255,255,0.35) !important; background: rgba(255,255,255,0.04) !important; }
 
-/* Custom select control for mobile difficulty */
+/* Custom select control (used for mobile StudioNav + difficulty) */
 .select-wrap { position: relative; display: inline-block; }
-.select-control {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-color: #000; /* black bg */
-  color: #fff;            /* white text */
-  border: 1px solid #fff; /* white outline */
-  padding-right: 2.5rem;  /* more space for arrow */
-}
-.dark .select-control {
-  background-color: #000; /* black stays in dark */
-  color: #fff;
-  border-color: #fff;
-}
-.select-arrow {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  pointer-events: none; opacity: 0.9; color: #fff;
-}
+.select-control { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #000; color: #fff; border: 1px solid #fff; padding-right: 1.75rem; }
+.dark .select-control { background-color: #000; color: #fff; border-color: #fff; }
+.select-arrow { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.9; color: #fff; }
 
 /* Hero gradient wrapper with warm gold accent */
 :root { --gold-hex: #F5C542; }
-
-.hero-gradient {
-  background-color: hsl(var(--background));
-  background-image:
-    linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--background)) 88px, rgba(0,0,0,0) 220px),
-    radial-gradient(900px 360px at 20% 0%, rgba(255,255,255,0.08), transparent),
-    radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
-    radial-gradient(900px 380px at 80% 10%, rgba(255,255,255,0.05), transparent);
-  overflow-x: hidden;
-}
-.dark .hero-gradient {
-  background-color: hsl(var(--background));
-  background-image:
-    linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--background)) 88px, rgba(0,0,0,0) 220px),
-    radial-gradient(1100px 420px at 18% -10%, rgba(255,255,255,0.06), transparent),
-    radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent),
-    radial-gradient(1100px 420px at 75% 0%, rgba(255,255,255,0.05), transparent);
-  overflow-x: hidden;
-}
+.hero-gradient { background-color: hsl(var(--background)); background-image: linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--background)) 88px, rgba(0,0,0,0) 220px), radial-gradient(900px 360px at 20% 0%, rgba(255,255,255,0.08), transparent), radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent), radial-gradient(900px 380px at 80% 10%, rgba(255,255,255,0.05), transparent); overflow-x: hidden; }
+.dark .hero-gradient { background-color: hsl(var(--background)); background-image: linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--background)) 88px, rgba(0,0,0,0) 220px), radial-gradient(1100px 420px at 18% -10%, rgba(255,255,255,0.06), transparent), radial-gradient(800px 300px at 20% 0%, rgba(255,255,255,0.06), transparent), radial-gradient(1100px 420px at 75% 0%, rgba(255,255,255,0.05), transparent); overflow-x: hidden; }
 
 /* Gold accents */
 .gold-pill { background: rgba(245,197,66,0.08); color: #F5C542; border: 1px solid rgba(245,197,66,0.6); box-shadow: 0 0 0 1px rgba(245,197,66,0.08) inset; }
@@ -123,34 +56,20 @@ input[type=file] { display: none; }
 .gold-dot { background: var(--gold-hex); }
 .gold-link { color: var(--gold-hex); }
 .gold-link:hover { opacity: .9; }
-
-/* Subtle gold glow for hero cards */
 .hero-card { border-color: rgba(245,197,66,0.18) !important; }
 .hero-card:hover { box-shadow: 0 10px 40px rgba(245,197,66,0.15), 0 8px 30px rgba(0,0,0,0.25); }
-
-/* Hover gold utility */
 .hover-gold:hover { color: var(--gold-hex); }
 
-/* Floating animated cards (legacy) */
-@keyframes floaty {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
-}
+@keyframes floaty { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
 .float-slow { animation: floaty 6s ease-in-out infinite; }
 .float-med { animation: floaty 7.5s ease-in-out infinite; }
 .float-fast { animation: floaty 5.5s ease-in-out infinite; }
 .float-delay-1 { animation-delay: .6s; }
 .float-delay-2 { animation-delay: 1.2s; }
 
-/* Hero preview animations */
-@keyframes fadeSlideUp {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeSlideUp { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
 .fade-slide-in { animation: fadeSlideUp .5s ease both; }
 
-/* Atom animation */
 .hero-atom { position: relative; width: 320px; height: 320px; margin: 0; transform: translateX(0); }
 .hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 30px rgba(245,197,66,0.4); }
 .hero-atom .orbit { position: absolute; inset: 0; margin: auto; border: 1px dashed rgba(0,0,0,0.18); border-radius: 9999px; transform: rotate(0deg); }
@@ -164,42 +83,20 @@ input[type=file] { display: none; }
 .orbit-4 { width: 300px; height: 300px; animation: spinOrbit 15s linear infinite; }
 .orbit-5 { width: 320px; height: 320px; animation: spinOrbit 18s linear infinite; }
 .hero-atom .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
-/* ensure electrons path is centered even when orbit sizes differ */
 .hero-atom .orbit .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
 @media (max-width: 1024px) { .hero-atom { display: none; } }
 
-
-
-.card-glow {
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-}
-.dark .card-glow {
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-
-/* Section titles */
-.section-title {
-  letter-spacing: -0.02em;
-}
-
-/* Golden outline text for hero heading and nav brand */
-.gold-outline {
-  color: #F5C542;
-  text-shadow:
-    0 0 12px rgba(245,197,66,0.25),
-    0 0 2px rgba(245,197,66,0.65);
-}
+.card-glow { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.dark .card-glow { box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+.section-title { letter-spacing: -0.02em; }
+.gold-outline { color: #F5C542; text-shadow: 0 0 12px rgba(245,197,66,0.25), 0 0 2px rgba(245,197,66,0.65); }
 
 .w_full{width:100%}
 
-/* Study Kit tabs: force wrapping grid on small screens */
+/* Study Kit tabs: force wrapping grid on small screens and allow text to wrap */
 @media (max-width: 767px) {
-  .studio-tabs-wrap [role="tablist"] {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-  }
-  .studio-tabs-wrap [role="tab"] { width: 100% !important; }
+  .studio-tabs-wrap [role="tablist"] { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .studio-tabs-wrap [role="tab"] { width: 100% !important; white-space: normal !important; line-height: 1.2 !important; padding: 8px 10px !important; }
 }
 
 /* Ensure light theme uses strong black borders for Studio cards/buttons */
