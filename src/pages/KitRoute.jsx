@@ -13,6 +13,8 @@ export default function KitRoute() {
           <StudioNav />
         </div>
       </div>
+      {/* Spacer so the fixed StudioNav doesn't overlap Studio content */}
+      <div style={{ height: 52 }} />
       {/* Render the original Studio UI as-is */}
       <Studio />
     </>

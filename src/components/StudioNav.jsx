@@ -32,7 +32,7 @@ export default function StudioNav() {
       <div className="md:hidden">
         <div className="relative inline-block">
           <select
-            className="text-sm rounded-md px-3 py-2 border border-border bg-background"
+            className="text-sm rounded-md px-3 pr-9 py-2 border border-border bg-background"
             value={current.to}
             onChange={(e) => navigate(e.target.value)}
           >
