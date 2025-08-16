@@ -57,6 +57,7 @@ function containsFormula(s) {
 }
 
 // Canvas helpers
+function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
 function rotateCanvas(srcCanvas, deg) {
   if (!deg) return srcCanvas;
   const rad = (deg * Math.PI) / 180;
@@ -66,7 +67,7 @@ function rotateCanvas(srcCanvas, deg) {
   const h2 = Math.abs(Math.round(w * s)) + Math.abs(Math.round(h * c));
   const out = document.createElement('canvas');
   out.width = w2; out.height = h2;
-  const ctx = out.getContext('2d', { willReadFrequently: true });
+  const ctx = ctx2d(out);
   ctx.translate(w2 / 2, h2 / 2);
   ctx.rotate(rad);
   ctx.drawImage(srcCanvas, -w / 2, -h / 2);
@@ -75,7 +76,7 @@ function rotateCanvas(srcCanvas, deg) {
 
 function estimateBackgroundBrightness(canvas) {
   try {
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const ctx = ctx2d(canvas);
     const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = img.data; let sum = 0; let n = 0;
     const step = Math.max(4, Math.floor((data.length / 4) / 50000));
@@ -91,7 +92,7 @@ function invertCanvasIfNeeded(canvas) {
   try {
     const bg = estimateBackgroundBrightness(canvas);
     if (bg < 110) {
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const ctx = ctx2d(canvas);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
@@ -103,6 +104,124 @@ function invertCanvasIfNeeded(canvas) {
     }
   } catch {}
   return canvas;
+}
+
+// Basic grayscale conversion
+function toGray(data) {
+  const out = new Uint8ClampedArray(data.length / 4);
+  for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+    out[j] = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+  }
+  return out;
+}
+
+// Adaptive (tile-based) binarization with soft blending across tiles
+function adaptiveBinarize(canvas, tile = 32, C = 6) {
+  const ctx = ctx2d(canvas);
+  const { width: W, height: H } = canvas;
+  const img = ctx.getImageData(0, 0, W, H);
+  const data = img.data;
+  const gray = toGray(data);
+  const tw = Math.max(1, Math.floor(W / tile));
+  const th = Math.max(1, Math.floor(H / tile));
+  const means = new Array(tw * th).fill(0);
+  const counts = new Array(tw * th).fill(0);
+
+  // Compute mean per tile
+  for (let y = 0; y < H; y++) {
+    const ty = Math.min(th - 1, Math.floor(y / tile));
+    for (let x = 0; x < W; x++) {
+      const tx = Math.min(tw - 1, Math.floor(x / tile));
+      const tIdx = ty * tw + tx;
+      means[tIdx] += gray[y * W + x];
+      counts[tIdx]++;
+    }
+  }
+  for (let i = 0; i < means.length; i++) means[i] = means[i] / Math.max(1, counts[i]);
+
+  // Apply local threshold with soft blend to neighbors
+  const getMean = (tx, ty) => means[Math.min(th - 1, Math.max(0, ty)) * tw + Math.min(tw - 1, Math.max(0, tx))] || 127;
+  for (let y = 0; y < H; y++) {
+    const ty = Math.floor(y / tile);
+    for (let x = 0; x < W; x++) {
+      const tx = Math.floor(x / tile);
+      // Bilinear blend of surrounding tile means
+      const fx = (x % tile) / tile;
+      const fy = (y % tile) / tile;
+      const m00 = getMean(tx, ty);
+      const m10 = getMean(tx + 1, ty);
+      const m01 = getMean(tx, ty + 1);
+      const m11 = getMean(tx + 1, ty + 1);
+      const m0 = m00 * (1 - fx) + m10 * fx;
+      const m1 = m01 * (1 - fx) + m11 * fx;
+      const m = m0 * (1 - fy) + m1 * fy;
+      const thr = m - C; // small bias
+      const idx = (y * W + x) * 4;
+      const v = gray[y * W + x] > thr ? 255 : 0;
+      data[idx] = data[idx + 1] = data[idx + 2] = v;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+// Light despeckle for binary image (removes tiny isolated dots)
+function despeckle(canvas) {
+  const ctx = ctx2d(canvas);
+  const { width: W, height: H } = canvas;
+  const img = ctx.getImageData(0, 0, W, H);
+  const d = img.data;
+  const get = (x, y) => d[(y * W + x) * 4];
+  const set = (x, y, v) => { const i = (y * W + x) * 4; d[i] = d[i + 1] = d[i + 2] = v; };
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const v = get(x, y);
+      if (v === 0) continue; // white pixel
+      // Count black neighbors in 3x3
+      let blacks = 0;
+      for (let yy = -1; yy <= 1; yy++)
+        for (let xx = -1; xx <= 1; xx++)
+          if (!(xx === 0 && yy === 0) && get(x + xx, y + yy) === 0) blacks++;
+      if (blacks <= 1) set(x, y, 255); // remove lonely black
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+// Detect a conservative two-column layout using vertical projection on binarized image
+function detectColumnSplit(canvas) {
+  const { width: W, height: H } = canvas;
+  if (W < 400 || H < 300) return null; // too small to be 2-column
+  const ctx = ctx2d(canvas);
+  const img = ctx.getImageData(0, 0, W, H);
+  const d = img.data;
+  const colSum = new Array(W).fill(0);
+  for (let x = 0; x < W; x++) {
+    let s = 0;
+    for (let y = Math.floor(H * 0.1); y < Math.floor(H * 0.9); y++) {
+      const i = (y * W + x) * 4;
+      // black text pixels -> 0
+      if (d[i] < 128) s++;
+    }
+    colSum[x] = s;
+  }
+  const midL = Math.floor(W * 0.35);
+  const midR = Math.floor(W * 0.65);
+  let bestX = -1, bestVal = Infinity;
+  for (let x = midL; x <= midR; x++) {
+    if (colSum[x] < bestVal) { bestVal = colSum[x]; bestX = x; }
+  }
+  // Validate both sides have enough text
+  if (bestX <= 0) return null;
+  const leftDensity = colSum.slice(0, bestX).reduce((a, b) => a + b, 0) / Math.max(1, bestX);
+  const rightDensity = colSum.slice(bestX).reduce((a, b) => a + b, 0) / Math.max(1, W - bestX);
+  const edgeDensity = Math.max(...colSum.slice(0, 10), ...colSum.slice(W - 10));
+  const minDensity = 4; // require some text density
+  if (leftDensity > minDensity && rightDensity > minDensity && bestVal < Math.min(leftDensity, rightDensity) * 0.25 && edgeDensity < Math.max(leftDensity, rightDensity) * 1.5) {
+    return bestX;
+  }
+  return null;
 }
 
 function charCleanupLight(t) {
@@ -133,12 +252,12 @@ function measureOcrQuality(text) {
 // OCR post-processing corrections
 function fixOCRConfusions(text) {
   let t = text;
-  // character-level
-  t = t.replace(/(?<=[A-Za-z])0(?=[A-Za-z])/g, 'o');
-  t = t.replace(/(?<=[A-Za-z])[1I](?=[A-Za-z])/g, 'l');
-  t = t.replace(/(?<=[A-Za-z])vv(?=[A-Za-z])/g, 'w');
-  t = t.replace(/(?<=[A-Za-z])rn(?=[A-Za-z])/g, 'm');
-  t = t.replace(/(?<=[A-Za-z])cl(?=[A-Za-z])/g, 'd');
+  // character-level (inside words only)
+  t = t.replace(/(?<=\p{L})0(?=\p{L})/gu, 'o');
+  t = t.replace(/(?<=\p{L})[1I](?=\p{L})/gu, 'l');
+  t = t.replace(/(?<=\p{L})vv(?=\p{L})/gu, 'w');
+  t = t.replace(/(?<=\p{L})rn(?=\p{L})/gu, 'm');
+  t = t.replace(/(?<=\p{L})cl(?=\p{L})/gu, 'd');
   t = t.replace(/\b[GgFf]e\b/g, 'the');
   t = t.replace(/\bwi[ln]e?ry\b/gi, 'while');
   t = t.replace(/\bprobl[e]?m\b/gi, 'problem');
@@ -160,8 +279,11 @@ const OCR_RULES = [
   [/\bdec[1l]s[1i]on\b/gi, 'decision'],
   [/\bboo[1l]ean\b/gi, 'boolean'],
   [/\bcomp[1l][e3]t[e3]\b/gi, 'complete'],
-  [/\bmp[- ]?[ch]\b/g, 'NP-complete'],
-  [/\bmp[- ]?h\b/g, 'NP-hard'],
+  [/\bnp[- ]?[ch]\b/gi, 'NP-complete'],
+  [/\bnp[- ]?h\b/gi, 'NP-hard'],
+  [/\bpolynomial\s*time\b/gi, 'polynomial time'],
+  [/\breduction\b/gi, 'reduction'],
+  [/\bhamiltonian\s*cycle\b/gi, 'Hamiltonian cycle'],
 ];
 
 function correctWithRules(text) {
@@ -190,9 +312,9 @@ function sentenceShape(text) {
   return out.join('\n');
 }
 
-// Extract text from PDF with optional aggressive OCR
+// Extract text from PDF with automatic aggressive OCR + layout handling
 export async function extractTextFromPDF(file, options = {}) {
-  const { forceOCR = false, betterAccuracy = false, ocrScale = 1.8, maxPages = 60 } = options;
+  const { forceOCR = false, betterAccuracy = true, ocrScale = 2.0, maxPages = 60 } = options;
   try {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -204,29 +326,17 @@ export async function extractTextFromPDF(file, options = {}) {
     let Tesseract = null;
 
     const tStart = Date.now();
-    const OCR_TIME_BUDGET_MS = forceOCR ? (betterAccuracy ? 35000 : 22000) : (betterAccuracy ? 12000 : 7000);
+    const OCR_TIME_BUDGET_MS = forceOCR ? 35000 : 22000; // default to aggressive
 
     const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
 
     const preprocessCanvasForOCR = (canvas) => {
       try {
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = ctx2d(canvas);
         ctx.imageSmoothingEnabled = false;
-        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = img.data;
-        let sum = 0; let n = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          const v = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          sum += v; n++;
-        }
-        const avg = sum / Math.max(1, n);
-        const thr = Math.min(208, Math.max(108, avg));
-        for (let i = 0; i < data.length; i += 4) {
-          const v = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          const b = v > thr ? 255 : 0;
-          data[i] = data[i + 1] = data[i + 2] = b;
-        }
-        ctx.putImageData(img, 0, 0);
+        // Adaptive binarization + despeckle
+        adaptiveBinarize(canvas, 32, 6);
+        despeckle(canvas);
       } catch {}
       invertCanvasIfNeeded(canvas);
       return canvas;
@@ -238,102 +348,106 @@ export async function extractTextFromPDF(file, options = {}) {
       clearTimeout(timeoutId); return result;
     };
 
-    const recognizeWithConfigs = async (baseCanvas, isHandwriting) => {
+    const ocrCanvasBlock = async (c, perPass) => {
       if (!Tesseract) { const mod = await import('tesseract.js'); Tesseract = mod.default || mod; }
-      const configs = betterAccuracy ? [
-        { psm: 11, scale: 2.2, whitelist: null },
-        { psm: 6,  scale: 2.4, whitelist: null },
-        { psm: 4,  scale: 2.0, whitelist: null },
-      ] : [
-        { psm: 11, scale: isHandwriting ? Math.max(ocrScale, 1.9) : ocrScale, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
-        { psm: 6,  scale: isHandwriting ? 2.1 : ocrScale + 0.2, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
-        { psm: 4,  scale: isHandwriting ? 2.0 : ocrScale, whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()-%' },
-      ];
-      const rotations = betterAccuracy ? [0, 270, 90] : (isHandwriting ? [0, 270] : [0]);
+      const ocrOpts = {
+        tessedit_pageseg_mode: 6,
+        tessedit_ocr_engine_mode: '1',
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300',
+        tessjs_create_hocr: '0',
+        tessjs_create_tsv: '0'
+      };
+      const rec = await withTimeout(Tesseract.recognize(c, 'eng', ocrOpts), perPass);
+      if (rec && rec.data && rec.data.text) {
+        let t = rec.data.text;
+        t = cleanOCROutput(t);
+        t = fixOCRConfusions(t);
+        t = correctWithRules(t);
+        return { text: t, score: measureOcrQuality(t) };
+      }
+      return { text: '', score: 0 };
+    };
 
-      let best = { text: '', score: 0 };
-      for (const rot of rotations) {
-        for (const cfg of configs) {
-          const msLeft = OCR_TIME_BUDGET_MS - (Date.now() - tStart);
-          if (msLeft <= 400) return best.text;
+    const recognizeWithConfigs = async (baseCanvas, isHandwriting) => {
+      // Build a high-res working canvas
+      const pageCanvas = document.createElement('canvas');
+      const scale = Math.max(ocrScale, isHandwriting ? 2.0 : 1.8);
+      const srcW = Math.max(20, Math.ceil(baseCanvas.width * scale));
+      const srcH = Math.max(20, Math.ceil(baseCanvas.height * scale));
+      pageCanvas.width = srcW; pageCanvas.height = srcH;
+      const pctx = ctx2d(pageCanvas);
+      pctx.imageSmoothingEnabled = false;
+      pctx.drawImage(baseCanvas, 0, 0, srcW, srcH);
 
-          const pageCanvas = document.createElement('canvas');
-          const ctx = pageCanvas.getContext('2d', { willReadFrequently: true });
-          const src = rotateCanvas(baseCanvas, rot);
-          pageCanvas.width = Math.ceil(src.width * (cfg.scale || 1));
-          pageCanvas.height = Math.ceil(src.height * (cfg.scale || 1));
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(src, 0, 0, pageCanvas.width, pageCanvas.height);
+      // Preprocess
+      preprocessCanvasForOCR(pageCanvas);
 
-          preprocessCanvasForOCR(pageCanvas);
+      // Optionally split into columns
+      const splitX = detectColumnSplit(pageCanvas);
 
-          const ocrOpts = {
-            tessedit_pageseg_mode: cfg.psm,
-            tessedit_ocr_engine_mode: '1', // LSTM only
-            preserve_interword_spaces: '1',
-            user_defined_dpi: '300',
-            tessjs_create_hocr: '0',
-            tessjs_create_tsv: '0'
-          };
-          if (cfg.whitelist) ocrOpts.tessedit_char_whitelist = cfg.whitelist;
+      const tBudget = Math.min(10000, OCR_TIME_BUDGET_MS - (Date.now() - tStart));
+      if (tBudget <= 600) return '';
 
-          const perPass = Math.min(msLeft, betterAccuracy ? 10000 : (isHandwriting ? 8000 : 5000));
-          const rec = await withTimeout(Tesseract.recognize(pageCanvas, 'eng', ocrOpts), perPass);
-          if (rec && rec.data && rec.data.text) {
-            let candidate = rec.data.text;
-            candidate = cleanOCROutput(candidate);
-            candidate = fixOCRConfusions(candidate);
-            candidate = correctWithRules(candidate);
-            const score = measureOcrQuality(candidate);
-            if (score > best.score) best = { text: candidate, score };
-            if (score >= (betterAccuracy ? 0.52 : 0.45)) return best.text; // early stop if good enough
-          }
-          if ((Date.now() - tStart) > OCR_TIME_BUDGET_MS) return best.text;
-        }
+      const tryBlocks = [];
+      const pushBlock = (sx, sy, sw, sh) => {
+        if (sw < 30 || sh < 30) return; // avoid tiny blocks that trigger tesseract warnings
+        const c = document.createElement('canvas');
+        c.width = sw; c.height = sh;
+        const ctx = ctx2d(c);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(pageCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+        tryBlocks.push(c);
+      };
+
+      if (splitX) {
+        pushBlock(0, 0, splitX, pageCanvas.height);
+        pushBlock(splitX, 0, pageCanvas.width - splitX, pageCanvas.height);
+      } else {
+        pushBlock(0, 0, pageCanvas.width, pageCanvas.height);
       }
 
-      // Stripe-based fallback for stubborn handwriting scans
-      const msLeftAfter = OCR_TIME_BUDGET_MS - (Date.now() - tStart);
-      if (msLeftAfter > 1500 && best.score < (betterAccuracy ? 0.5 : 0.42)) {
-        const fb = await recognizeByStripes(baseCanvas, isHandwriting, Math.min(6000, msLeftAfter));
-        if (fb && fb.text && fb.score > best.score) return fb.text;
+      // OCR each block within budget
+      const perPass = Math.max(1200, Math.floor(tBudget / tryBlocks.length));
+      let best = { text: '', score: 0 };
+      for (const blk of tryBlocks) {
+        const r = await ocrCanvasBlock(blk, perPass);
+        if (r.score > best.score) best = r;
+      }
+
+      // If still weak, stripe fallback
+      if (best.score < 0.5) {
+        const fb = await recognizeByStripes(pageCanvas, isHandwriting, Math.min(6000, OCR_TIME_BUDGET_MS - (Date.now() - tStart)));
+        if (fb && fb.score > best.score) best = fb;
       }
       return best.text;
     };
 
     const recognizeByStripes = async (baseCanvas, isHandwriting, budgetMs = 4000) => {
+      let Tess;
       if (!Tesseract) { const mod = await import('tesseract.js'); Tesseract = mod.default || mod; }
+      Tess = Tesseract;
       const start = Date.now();
-      const stripes = Math.max(4, Math.min(10, Math.floor(baseCanvas.height / 260)));
+      const stripes = Math.max(4, Math.min(12, Math.floor(baseCanvas.height / 240)));
       const stripeH = Math.max(80, Math.floor(baseCanvas.height / stripes));
       let out = '';
       for (let i = 0; i < stripes; i++) {
-        const now = Date.now();
-        if ((now - start) > budgetMs) break;
+        if ((Date.now() - start) > budgetMs) break;
         const y0 = i * stripeH;
         const h = Math.min(stripeH + 6, baseCanvas.height - y0);
-        if (h < 6) continue;
+        if (h < 30) continue;
         const c = document.createElement('canvas');
-        const ctx = c.getContext('2d', { willReadFrequently: true });
-        const scale = isHandwriting ? 2.4 : 2.0;
-        c.width = Math.ceil(baseCanvas.width * scale);
-        c.height = Math.ceil(h * scale);
+        const ctx = ctx2d(c);
+        const scale = isHandwriting ? 2.2 : 1.9;
+        c.width = Math.ceil(baseCanvas.width);
+        c.height = Math.ceil(h);
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(baseCanvas, 0, y0, baseCanvas.width, h, 0, 0, c.width, c.height);
-        preprocessCanvasForOCR(c);
-        const ocrOpts = {
-          tessedit_pageseg_mode: isHandwriting ? 7 : 6,
-          tessedit_ocr_engine_mode: '1',
-          preserve_interword_spaces: '1',
-          user_defined_dpi: '300',
-          tessjs_create_hocr: '0',
-          tessjs_create_tsv: '0'
-        };
-        const perStripe = Math.min(1200, Math.max(600, budgetMs - (Date.now() - start)));
-        const rec = await withTimeout(Tesseract.recognize(c, 'eng', ocrOpts), perStripe);
-        if (rec && rec.data && rec.data.text) {
-          out += (out ? '\n' : '') + rec.data.text;
-        }
+        // No extra preprocess here – baseCanvas already preprocessed
+        const ocrOpts = { tessedit_pageseg_mode: 6, tessedit_ocr_engine_mode: '1', preserve_interword_spaces: '1', user_defined_dpi: '300', tessjs_create_hocr: '0', tessjs_create_tsv: '0' };
+        const perStripe = Math.min(1500, Math.max(600, budgetMs - (Date.now() - start)));
+        const rec = await withTimeout(Tess.recognize(c, 'eng', ocrOpts), perStripe);
+        if (rec && rec.data && rec.data.text) out += (out ? '\n' : '') + rec.data.text;
       }
       let t = cleanOCROutput(out);
       t = fixOCRConfusions(t);
@@ -356,12 +470,12 @@ export async function extractTextFromPDF(file, options = {}) {
       if (needOCR) {
         const viewport = page.getViewport({ scale: ocrScale });
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = ctx2d(canvas);
         canvas.width = Math.ceil(viewport.width);
         canvas.height = Math.ceil(viewport.height);
         await page.render({ canvasContext: ctx, viewport }).promise;
 
-        const textOcr = await recognizeWithConfigs(canvas, !!forceOCR);
+        const textOcr = await recognizeWithConfigs(canvas, true);
         if (textOcr && textOcr.length > collected.length) {
           collected = collected ? collected + '\n' + textOcr : textOcr;
         }
@@ -369,7 +483,7 @@ export async function extractTextFromPDF(file, options = {}) {
 
       fullText += (collected || '') + '\n';
       if (i % 2 === 0) await tick();
-      if ((Date.now() - tStart) > (forceOCR ? OCR_TIME_BUDGET_MS + 2500 : 30000)) break; // hard cap for very large PDFs
+      if ((Date.now() - tStart) > (OCR_TIME_BUDGET_MS + 2500)) break; // cap for very large PDFs
     }
 
     // Final polish for readability

@@ -24,9 +24,9 @@ input[type="text"], textarea { border: 1.5px solid rgba(0,0,0,0.6); background: 
 .dark input[type="text"], .dark textarea { border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.04); }
 .button-upload, .btn-upload { border: 1.5px solid rgba(0,0,0,0.6) !important; }
 
-/* Checkboxes styling */
-input[type="checkbox"] { width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff; }
-input[type="checkbox"]:checked::after { content: ""; position: absolute; left: 3px; top: 1px; width: 8px; height: 12px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+/* Checkboxes styling - minimalistic tick (avoid stretching) */
+input[type="checkbox"] { width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff; box-sizing: content-box; }
+input[type="checkbox"]:checked::after { content: ""; position: absolute; left: 4px; top: 3px; width: 6px; height: 9px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .dark input[type="checkbox"] { background: #000; border-color: #fff; box-shadow: 0 0 0 1px #fff inset; }
 .dark input[type="checkbox"]:checked::after { border-color: #fff; }
 
@@ -61,7 +61,7 @@ input[type=file] { display: none; }
 .hero-card:hover { box-shadow: 0 10px 40px rgba(245,197,66,0.15), 0 8px 30px rgba(0,0,0,0.25); }
 .hover-gold:hover { color: var(--gold-hex); }
 
-@keyframes floaty { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+@keyframes floaty { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
 .float-slow { animation: floaty 6s ease-in-out infinite; }
 .float-med { animation: floaty 7.5s ease-in-out infinite; }
 .float-fast { animation: floaty 5.5s ease-in-out infinite; }

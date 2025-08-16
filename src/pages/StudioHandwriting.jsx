@@ -15,7 +15,6 @@ export default function StudioHandwriting() {
   const [file, setFile] = useState(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [betterAccuracy, setBetterAccuracy] = useState(true);
   const fileRef = useRef();
 
   const LOGO_URL = "/assets/aceel-logo.png";
@@ -32,9 +31,7 @@ export default function StudioHandwriting() {
       });
     } catch { return null; }
   };
-  const ensureAssetsLoaded = async () => {
-    if (!logoDataRef.current) logoDataRef.current = await fetchAsDataURL(LOGO_URL);
-  };
+  const ensureAssetsLoaded = async () => { if (!logoDataRef.current) logoDataRef.current = await fetchAsDataURL(LOGO_URL); };
   const addHeader = (doc) => {
     const pw = doc.internal.pageSize.getWidth();
     const topY = 12;
@@ -61,7 +58,8 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy, ocrScale: betterAccuracy ? 2.2 : 1.9 });
+      // Automatic aggressive OCR + preprocessing (no toggle)
+      const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
       setText(extracted || "");
     } finally { setLoading(false); }
   };
@@ -116,23 +114,15 @@ export default function StudioHandwriting() {
                 </Button>
                 {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
 
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Better accuracy (slower)</div>
-                  <label className="text-sm flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={betterAccuracy} onChange={e => setBetterAccuracy(e.target.checked)} />
-                    <span className="text-foreground/80">{betterAccuracy ? 'On' : 'Off'}</span>
-                  </label>
-                </div>
-
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
-                    <li>High-accuracy OCR tries multiple rotations and settings.</li>
+                    <li>Automatic high-accuracy OCR with adaptive thresholding and denoising.</li>
                     <li>On-device only. No upload to servers.</li>
-                    <li>If it’s very scribbled/low-contrast, results may still vary.</li>
+                    <li>Very rough scans can still be imperfect due to stroke loss.</li>
                   </ul>
                 </div>
               </CardContent>
