@@ -29,9 +29,11 @@ export default function StudioSummariser() {
   const addFooter = (doc) => { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
 
   const cleanSentencesForSummary = (rawText) => {
+    const metaRx = /(acm|ieee|elsevier|isbn|copyright|\bdept\.?\b|department|institute|university|college|affiliation|acknowledg(e)?ments?|biography|biographical|author|editor|edited by|prof\.|professor|dr\.|ph\.?d\.|m\.?tech|b\.?tech)/i;
+    const disclaimRx = /(professional advice|appropriate professional|no (liability|warranty)|for informational purposes|disclaimer)/i;
     const sentences = splitSentences(rawText);
-    const filtered = sentences.filter(s => !looksLikeHeadingStrong(s) && !isAuthorish(s));
-    return filtered.length ? filtered : sentences;
+    const filtered = sentences.filter(s => !looksLikeHeadingStrong(s) && !isAuthorish(s) && !metaRx.test(s) && !disclaimRx.test(s));
+    return (filtered.length ? filtered : sentences).slice(0, 220);
   };
 
   const pickTitle = (rawText) => {
