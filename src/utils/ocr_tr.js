@@ -120,7 +120,7 @@ function invertCanvasIfNeeded(canvas) {
       const ctx = ctx2d(canvas);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
-      for (let i = 0; i &lt; d.length; i += 4) {
+      for (let i = 0; i < d.length; i += 4) {
         d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2];
       }
       ctx.putImageData(img, 0, 0);
