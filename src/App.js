@@ -232,7 +232,7 @@ export function Studio() {
   const [theory, setTheory] = useState([]);
 
   useEffect(() => { prewarmPDF(); prewarmML(); }, []);
-  useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth &gt;= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
+  useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth >= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
 
   const ensureJsPDF = async () => { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
   const addHeader = (doc) => { try { doc.setFont('helvetica', 'normal'); } catch {} };
