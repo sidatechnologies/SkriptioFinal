@@ -412,3 +412,5 @@
 ## agent_communication:
   - agent: "main"
     message: "Added optional High‑accuracy OCR using Transformers.js TrOCR (on-device). Default stays fast Tesseract; toggle enables TrOCR. Please UI-validate: model loads on first run, conversion completes, and app remains responsive. Also pending: light-theme dropdown styling and summariser default state."
+  - agent: "main"
+    message: "SEO embedded using react-helmet-async for Landing, Studio Hub, Study Kit, Handwriting, Summariser, and Merch. Added robots.txt and sitemap.xml. Fixed TrOCR init by avoiding env.localModelPath=null and guarding wasmPaths. Added user-facing toast on failure. Requesting retest of High‑accuracy OCR toggle and verify SEO tags in page source."
