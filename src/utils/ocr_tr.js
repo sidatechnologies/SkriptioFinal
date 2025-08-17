@@ -22,6 +22,25 @@ function withTimeout(promise, ms, label = 'operation') {
   });
 }
 
+function silenceOrtLogsTemporarily() {
+  const origWarn = console.warn;
+  const origLog = console.log;
+  const filter = (method) => (...args) => {
+    try {
+      const msg = args && args[0];
+      if (typeof msg === 'string') {
+        if ((msg.includes('onnxruntime') || msg.includes('ort-wasm')) && msg.includes('CleanUnusedInitializersAndNodeArgs')) {
+          return; // drop this noisy warning
+        }
+      }
+    } catch {}
+    method(...args);
+  };
+  console.warn = filter(origWarn);
+  console.log = filter(origLog);
+  return () => { console.warn = origWarn; console.log = origLog; };
+}
+
 async function getTrocrPipeline() {
   if (trocrPipeline) return trocrPipeline;
   const { pipeline, env } = await loadTransformers();
