@@ -127,7 +127,7 @@ function Landing() {
               {/* Minimalistic icons for hero badges */}
               <div className="inline-flex items-center gap-2"><Zap size={14} className="opacity-80"/> Fast &amp; minimal</div>
               <div className="inline-flex items-center gap-2"><Shield size={14} className="opacity-80"/> Private (runs in your browser)</div>
-              <div className="inline-flex items-center gap-2"><span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/70"/> Saves hours of prep</div>
+              <div className="inline-flex items-center gap-2"><Clock size={14} className="opacity-80"/> Saves hours of prep</div>
             </div>
           </div>
           <div className="relative flex justify-center lg:justify-end">
