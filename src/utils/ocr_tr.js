@@ -57,6 +57,8 @@ async function getTrocrPipeline() {
     // Prefer loading ORT wasm binaries from local /public/ort (copied at build/postinstall)
     env.backends.onnx.wasm.wasmPaths = '/ort/';
   } catch {}
+  // Reduce ONNX Runtime verbosity if accessible globally (best-effort, harmless if missing)
+  try { if (globalThis.ort?.env) { globalThis.ort.env.logLevel = 'error'; } } catch {}
 
   const loadWithFallbacks = async () => {
     try {
