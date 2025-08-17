@@ -27,7 +27,18 @@ async function getTrocrPipeline() {
   const { pipeline, env } = await loadTransformers();
   try { env.allowLocalModels = false; } catch {}
   try { env.useBrowserCache = true; } catch {}
-  // Do not force wasmPaths; allow library to resolve the right build for the environment
+  // Configure onnxruntime-web for restricted environments (no cross-origin isolation)
+  try {
+    if (!env.backends) env.backends = {};
+    if (!env.backends.onnx) env.backends.onnx = {};
+    if (!env.backends.onnx.wasm) env.backends.onnx.wasm = {};
+    // Force single-threaded, no web-worker (proxy) to avoid SharedArrayBuffer requirement
+    env.backends.onnx.wasm.numThreads = 1;
+    env.backends.onnx.wasm.proxy = false;
+    // Use a stable CDN for ORT wasm binaries
+    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
+  } catch {}
+
 
   const loadWithFallbacks = async () => {
     try {
