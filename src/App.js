@@ -271,11 +271,6 @@ export function Studio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Helmet>
-        <title>Skriptio — Study Kit Generator</title>
-        <meta name="description" content="Generate quizzes, flashcards, theory questions, and a 7‑day study plan from your notes or PDFs. Runs entirely in your browser." />
-        <link rel="canonical" href="https://skriptio.sidahq.com/studio/kit" />
-      </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -428,4 +423,70 @@ export function Studio() {
 
                   <TabsContent value="flashcards">
                     {!result ? (<EmptyState label="Your flashcards will appear here once generated."/>) : (
-                      <div className="grid gap-3">{result.flashcards?.map((c, i) => (<Card key={i} className="bg-card border-border"><CardContent className="p-5"><div className="font-medium mb-2">Card {i + 1}</div><div className="text-sm">Q: {c.front}</div><div className="text-sm text-
+                      <div className="grid gap-3">
+                        {result.flashcards?.map((c, i) => (
+                          <Card key={i} className="bg-card border-border">
+                            <CardContent className="p-5 space-y-1">
+                              <div className="font-medium mb-2">Card {i + 1}</div>
+                              <div className="text-sm">Q: {c.front}</div>
+                              <div className="text-sm text-foreground/70">A: {c.back}</div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="plan">
+                    {!result ? (<EmptyState label="Your 7-day plan will appear here once generated."/>) : (
+                      <div className="grid gap-3">
+                        {result.plan?.map((d, i) => (
+                          <Card key={i} className="bg-card border-border">
+                            <CardContent className="p-5 space-y-2">
+                              <div className="font-medium">{d.title}</div>
+                              <ul className="list-disc pl-5 space-y-1">
+                                {d.objectives?.map((o, j) => (<li key={j} className="plan-objective">{o}</li>))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="theory">
+                    {!theory?.length ? (<EmptyState label="Theory questions will appear here."/>) : (
+                      <div className="grid gap-3">
+                        {theory.map((t, i) => (
+                          <Card key={i} className="bg-card border-border">
+                            <CardContent className="p-5">
+                              <div className="text-sm">Q{i + 1}: {t}</div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/studio" element={<StudioHub />} />
+      <Route path="/studio/kit/*" element={<KitRoute />} />
+      <Route path="/studio/:title/:code" element={<Studio />} />
+      <Route path="/studio/handwriting" element={<StudioHandwriting />} />
+      <Route path="/studio/summariser" element={<StudioSummariser />} />
+      <Route path="/merch" element={<Merch />} />
+    </Routes>
+  );
+}
