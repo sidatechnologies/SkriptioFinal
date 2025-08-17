@@ -9,12 +9,15 @@ import ThemeToggle from "../components/ThemeToggle";
 import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF } from "../utils/textProcessor";
+import { extractTextFromPDFHighAcc } from "../utils/ocr_tr";
 import { getJsPDF } from "../utils/pdf";
+import { Switch } from "../components/ui/switch";
 
 export default function StudioHandwriting() {
   const [file, setFile] = useState(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [highAcc, setHighAcc] = useState(false);
   const fileRef = useRef();
 
   const LOGO_URL = "/assets/aceel-logo.png";
@@ -58,9 +61,14 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      // Automatic aggressive OCR + preprocessing (no toggle)
-      const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
-      setText(extracted || "");
+      // Choose engine based on toggle
+      if (highAcc) {
+        const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 40 });
+        setText(extracted || "");
+      } else {
+        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
+        setText(extracted || "");
+      }
     } finally { setLoading(false); }
   };
 
@@ -114,15 +122,23 @@ export default function StudioHandwriting() {
                 </Button>
                 {file && <div className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</div>}
 
+                <div className="flex items-center justify-between py-2 px-3 rounded-md border border-border/70 bg-background/40">
+                  <div className="text-sm">
+                    <div className="font-medium">Experimental: High‑accuracy OCR</div>
+                    <div className="text-xs text-foreground/70">TrOCR on-device. First run may download ~50MB model. Faster off, more accurate on.</div>
+                  </div>
+                  <Switch checked={highAcc} onCheckedChange={setHighAcc} disabled={loading} />
+                </div>
+
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
-                    <li>Automatic high-accuracy OCR with adaptive thresholding and denoising.</li>
-                    <li>On-device only. No upload to servers.</li>
-                    <li>Very rough scans can still be imperfect due to stroke loss.</li>
+                    <li>Default path is fast OCR with advanced preprocessing.</li>
+                    <li>High‑accuracy mode uses a neural model (on‑device, private) for tougher handwriting.</li>
+                    <li>No uploads. Everything runs in your browser.</li>
                   </ul>
                 </div>
               </CardContent>
