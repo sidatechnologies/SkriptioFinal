@@ -111,7 +111,7 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
   const lowCount = total * lowPct;
   const highCount = total * (1 - highPct);
   let lo = 0, hi = 255, sum = 0;
-  for (let i = 0; i &lt; 256; i++) { sum += hist[i]; if (sum &gt;= lowCount) { lo = i; break; } }
+  for (let i = 0; i < 256; i++) { sum += hist[i]; if (sum >= lowCount) { lo = i; break; } }
   sum = 0;
   for (let i = 255; i &gt;= 0; i--) { sum += hist[i]; if (sum &gt;= highCount) { hi = i; break; } }
   const scale = hi &gt; lo ? 255 / (hi - lo) : 1;
