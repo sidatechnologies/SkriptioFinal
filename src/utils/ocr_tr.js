@@ -219,18 +219,31 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  // Feed a data URL string to the pipeline (safest across browsers)
-  const dataUrl = work.toDataURL('image/png', 0.94);
+  // Primary: pass ImageData (most stable across browsers)
   let out;
   try {
-    out = await withTimeout(pipe(dataUrl), 20000, 'trocr inference (data url)');
+    const id = wctx.getImageData(0, 0, work.width, work.height);
+    out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
   } catch (e) {
-    // Last resort: ImageData
+    // Fallback 1: HTMLImageElement
     try {
-      const id = wctx.getImageData(0, 0, work.width, work.height);
-      out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
+      const dataUrl = work.toDataURL('image/png', 0.94);
+      const img = await new Promise((resolve, reject) => {
+        const im = new Image();
+        try { im.crossOrigin = 'anonymous'; } catch {}
+        im.onload = () => resolve(im);
+        im.onerror = (err) => reject(err);
+        im.src = dataUrl;
+      });
+      out = await withTimeout(pipe(img), 20000, 'trocr inference (img)');
     } catch (e2) {
-      throw e2 || e;
+      // Fallback 2: string data URL
+      try {
+        const dataUrl = work.toDataURL('image/png', 0.94);
+        out = await withTimeout(pipe(dataUrl), 20000, 'trocr inference (data url)');
+      } catch (e3) {
+        throw e3 || e2 || e;
+      }
     }
   }
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
