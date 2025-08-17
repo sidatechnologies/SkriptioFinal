@@ -78,7 +78,12 @@ async function getTrocrPipeline() {
     }
   };
 
-  trocrPipeline = await loadWithFallbacks();
+  const restoreLogs = silenceOrtLogsTemporarily();
+  try {
+    trocrPipeline = await loadWithFallbacks();
+  } finally {
+    if (restoreLogs) restoreLogs();
+  }
   return trocrPipeline;
 }
 
