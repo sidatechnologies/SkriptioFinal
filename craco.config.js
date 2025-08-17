@@ -1,4 +1,7 @@
 // Load configuration from environment or config file
+// Force polling to avoid inotify watcher limits in constrained preview environments
+process.env.WATCHPACK_POLLING = 'true';
+process.env.CHOKIDAR_USEPOLLING = 'true';
 const path = require('path');
 
 // Environment variable overrides
