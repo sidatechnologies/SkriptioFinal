@@ -219,12 +219,27 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  // Always feed the pipeline a Blob URL to avoid RawImage input type issues across browsers
+  // Feed an HTMLImageElement to the pipeline (safest across browsers)
   const blob = await new Promise((resolve) => work.toBlob(resolve, 'image/png', 0.94));
   let out;
   const url = URL.createObjectURL(blob);
   try {
-    out = await withTimeout(pipe(url), 20000, 'trocr inference (blob url)');
+    const img = await new Promise((resolve, reject) => {
+      const im = new Image();
+      try { im.crossOrigin = 'anonymous'; } catch {}
+      im.onload = () => resolve(im);
+      im.onerror = (e) => reject(e);
+      im.src = url;
+    });
+    out = await withTimeout(pipe(img), 20000, 'trocr inference (img)');
+  } catch (e) {
+    // As a last resort, fall back to ImageData
+    try {
+      const id = wctx.getImageData(0, 0, work.width, work.height);
+      out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
+    } catch (e2) {
+      throw e2 || e;
+    }
   } finally {
     URL.revokeObjectURL(url);
   }
