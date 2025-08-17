@@ -116,7 +116,7 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
 function invertCanvasIfNeeded(canvas) {
   try {
     const bg = estimateBackgroundBrightness(canvas);
-    if (bg &lt; 110) {
+    if (bg < 110) {
       const ctx = ctx2d(canvas);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
