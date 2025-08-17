@@ -394,6 +394,18 @@
       agent: "main"
       comment: "Integrated on-device TrOCR via @xenova/transformers with a toggle on /studio/handwriting. Default remains fast Tesseract path; High-accuracy mode downloads ~50MB model on first use and improves messy handwriting accuracy. No backend/APIs."
 
+- task: "Silence ONNX Runtime TrOCR warnings and keep handwriting OCR functional"
+  implemented: true
+  working: "NA"
+  file: "/app/src/utils/ocr_tr.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Scoped suppression: set ort.env.logLevel='error' if available and temporarily filter only CleanUnusedInitializersAndNodeArgs warnings during TrOCR pipeline load. No change to OCR logic."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
