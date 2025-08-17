@@ -219,26 +219,14 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  // Transformers.js prefers ImageData/HTMLImageElement/Canvas. Use ImageData for compatibility.
-  let input;
-  try {
-    input = wctx.getImageData(0, 0, work.width, work.height);
-  } catch (e) {
-    // Fallback to canvas if ImageData fails (should be rare)
-    input = work;
-  }
+  // Always feed the pipeline a Blob URL to avoid RawImage input type issues across browsers
+  const blob = await new Promise((resolve) => work.toBlob(resolve, 'image/png', 0.94));
   let out;
+  const url = URL.createObjectURL(blob);
   try {
-    out = await withTimeout(pipe(input), 20000, 'trocr inference');
-  } catch (e) {
-    // Fallback: use a blob URL string which RawImage can always decode
-    const blob = await new Promise((resolve) => work.toBlob(resolve, 'image/png', 0.92));
-    const url = URL.createObjectURL(blob);
-    try {
-      out = await withTimeout(pipe(url), 20000, 'trocr inference (blob url)');
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+    out = await withTimeout(pipe(url), 20000, 'trocr inference (blob url)');
+  } finally {
+    URL.revokeObjectURL(url);
   }
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
   return postClean(text || '');
