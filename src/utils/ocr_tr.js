@@ -25,14 +25,27 @@ async function getTrocrPipeline() {
   // Ensure onnxruntime-web assets resolve from CDN reliably
   try {
     if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
+      // Keep this on a stable CDN path; transformers will pick the correct files
+      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
     }
   } catch {}
   // Prefer Xenova quantized small handwritten model for faster load, good accuracy
   try {
     trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true });
-  } catch (e) {
-    trocrPipeline = await pipeline('text-recognition', 'Xenova/trocr-small-handwritten', { quantized: true });
+  } catch (e1) {
+    // Fallback to base handwritten model but KEEP the same supported task ('image-to-text')
+    try {
+      trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true });
+    } catch (e2) {
+      // Final fallback to printed small model (still image-to-text). This avoids unsupported 'text-recognition' task errors.
+      try {
+        trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true });
+      } catch (e3) {
+        const err = new Error('Failed to initialize TrOCR (image-to-text). Please check network access to model CDN and try again.');
+        err.cause = e3 || e2 || e1;
+        throw err;
+      }
+    }
   }
   return trocrPipeline;
 }
