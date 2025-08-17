@@ -156,7 +156,7 @@ function quickDeskew(srcCanvas) {
       for (let i = 0; i < d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
       const mean = sum / Math.max(1, cnt);
       for (let y = 0; y < H; y++) {
-        let s = 0; for (let x = 0; x &lt; W; x++) { const i = (y * W + x) * 4; if (d[i] &lt; mean) s++; }
+        let s = 0; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i] < mean) s++; }
         rows[y] = s;
       }
       const m = rows.reduce((a,b)=&gt;a+b,0) / Math.max(1, rows.length);
