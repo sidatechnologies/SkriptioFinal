@@ -35,20 +35,19 @@ async function getTrocrPipeline() {
     // Force single-threaded, no web-worker (proxy) to avoid SharedArrayBuffer requirement
     env.backends.onnx.wasm.numThreads = 1;
     env.backends.onnx.wasm.proxy = false;
-    // Use a stable CDN for ORT wasm binaries
-    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
+    // Prefer loading ORT wasm binaries from local /public/ort (copied at build/postinstall)
+    env.backends.onnx.wasm.wasmPaths = '/ort/';
   } catch {}
-
 
   const loadWithFallbacks = async () => {
     try {
-      return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true }), 25000, 'load trocr-small-handwritten');
+      return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true }), 20000, 'load trocr-small-handwritten');
     } catch (e1) {
       try {
-        return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true }), 25000, 'load trocr-base-handwritten');
+        return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true }), 20000, 'load trocr-base-handwritten');
       } catch (e2) {
         try {
-          return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true }), 25000, 'load trocr-small-printed');
+          return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true }), 20000, 'load trocr-small-printed');
         } catch (e3) {
           const err = new Error('Failed to initialize TrOCR (image-to-text). Please check network access to model CDN and try again.');
           err.cause = e3 || e2 || e1;
@@ -63,7 +62,7 @@ async function getTrocrPipeline() {
 }
 
 export async function prefetchTrocr() {
-  try { await withTimeout(getTrocrPipeline(), 20000, 'prefetch trocr'); } catch (e) { /* ignore prefetch errors */ }
+  try { await withTimeout(getTrocrPipeline(), 15000, 'prefetch trocr'); } catch (e) { /* ignore prefetch errors */ }
 }
 
 function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
@@ -112,11 +111,11 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
   const lowCount = total * lowPct;
   const highCount = total * (1 - highPct);
   let lo = 0, hi = 255, sum = 0;
-  for (let i = 0; i < 256; i++) { sum += hist[i]; if (sum >= lowCount) { lo = i; break; } }
+  for (let i = 0; i &lt; 256; i++) { sum += hist[i]; if (sum &gt;= lowCount) { lo = i; break; } }
   sum = 0;
-  for (let i = 255; i >= 0; i--) { sum += hist[i]; if (sum >= highCount) { hi = i; break; } }
-  const scale = hi > lo ? 255 / (hi - lo) : 1;
-  for (let i = 0; i < d.length; i += 4) {
+  for (let i = 255; i &gt;= 0; i--) { sum += hist[i]; if (sum &gt;= highCount) { hi = i; break; } }
+  const scale = hi &gt; lo ? 255 / (hi - lo) : 1;
+  for (let i = 0; i &lt; d.length; i += 4) {
     let v = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
     v = Math.max(0, Math.min(255, Math.round((v - lo) * scale)));
     d[i] = d[i + 1] = d[i + 2] = v;
@@ -127,11 +126,11 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
 function invertCanvasIfNeeded(canvas) {
   try {
     const bg = estimateBackgroundBrightness(canvas);
-    if (bg < 110) {
+    if (bg &lt; 110) {
       const ctx = ctx2d(canvas);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
-      for (let i = 0; i < d.length; i += 4) {
+      for (let i = 0; i &lt; d.length; i += 4) {
         d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2];
       }
       ctx.putImageData(img, 0, 0);
@@ -148,26 +147,26 @@ function quickDeskew(srcCanvas) {
     test.width = srcCanvas.width; test.height = srcCanvas.height;
     const tctx = ctx2d(test); tctx.drawImage(srcCanvas, 0, 0);
     contrastStretch(test, 0.02, 0.98);
-    const projVar = (c) => {
+    const projVar = (c) =&gt; {
       const ctx = ctx2d(c);
       const { width: W, height: H } = c;
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data; const rows = new Array(H).fill(0);
       let sum = 0, cnt = 0;
-      for (let i = 0; i < d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
+      for (let i = 0; i &lt; d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
       const mean = sum / Math.max(1, cnt);
-      for (let y = 0; y < H; y++) {
-        let s = 0; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i] < mean) s++; }
+      for (let y = 0; y &lt; H; y++) {
+        let s = 0; for (let x = 0; x &lt; W; x++) { const i = (y * W + x) * 4; if (d[i] &lt; mean) s++; }
         rows[y] = s;
       }
-      const m = rows.reduce((a,b)=>a+b,0) / Math.max(1, rows.length);
-      const v = rows.reduce((a,b)=>a+(b-m)*(b-m),0) / Math.max(1, rows.length);
+      const m = rows.reduce((a,b)=&gt;a+b,0) / Math.max(1, rows.length);
+      const v = rows.reduce((a,b)=&gt;a+(b-m)*(b-m),0) / Math.max(1, rows.length);
       return v;
     };
     for (const a of angles) {
       const rot = a === 0 ? test : rotateCanvas(test, a);
       const v = projVar(rot);
-      if (v > bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
+      if (v &gt; bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
     }
     return best;
   } catch { return srcCanvas; }
@@ -182,7 +181,7 @@ export async function recognizeCanvasTrocr(canvas) {
   contrastStretch(work, 0.02, 0.98);
   invertCanvasIfNeeded(work);
   const targetW = 1100;
-  if (work.width > targetW) {
+  if (work.width &gt; targetW) {
     const scale = targetW / work.width;
     const s = document.createElement('canvas');
     s.width = Math.max(1, Math.round(work.width * scale));
@@ -194,7 +193,7 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  const out = await withTimeout(pipe(work), 25000, 'trocr inference');
+  const out = await withTimeout(pipe(work), 20000, 'trocr inference');
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
   return postClean(text || '');
 }
@@ -221,7 +220,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
 
   const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
   let full = '';
-  for (let i = 1; i <= limitPages; i++) {
+  for (let i = 1; i &lt;= limitPages; i++) {
     const page = await pdf.getPage(i);
     const preview = page.getViewport({ scale: 1.0 });
     const scale = Math.max(1.0, Math.min(2.0, 1000 / Math.max(1, preview.width)));
@@ -237,7 +236,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
     invertCanvasIfNeeded(deskewed);
 
     const text = await recognizeCanvasTrocr(deskewed);
-    full += (full && text ? '\n' : '') + (text || '');
+    full += (full &amp;&amp; text ? '\n' : '') + (text || '');
   }
   return postClean(full);
 }

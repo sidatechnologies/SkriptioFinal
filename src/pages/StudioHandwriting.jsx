@@ -160,8 +160,11 @@ export default function StudioHandwriting() {
                     <div className="font-medium">Experimental: High‑accuracy OCR</div>
                     <div className="text-xs text-foreground/70">TrOCR on-device. First run downloads model in background; faster next time.</div>
                   </div>
-                  <Switch checked={highAcc} onCheckedChange={setHighAcc} disabled={loading} />
+                  <Switch checked={highAcc} onCheckedChange={setHighAcc} disabled={loading || !highAccAvailable} />
                 </div>
+                {!highAccAvailable && (
+                  <div className="text-xs text-foreground/60">High‑accuracy model not available right now. Please check your connection or try again later.</div>
+                )}
 
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}

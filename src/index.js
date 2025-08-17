@@ -20,3 +20,14 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>,
 );
+
+// Register a minimal service worker for PWA installability
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    try {
+      navigator.serviceWorker.register('/sw.js');
+    } catch (e) {
+      // ignore
+    }
+  });
+}
