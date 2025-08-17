@@ -210,7 +210,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
 
   const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
   let full = '';
-  for (let i = 1; i &lt;= limitPages; i++) {
+  for (let i = 1; i <= limitPages; i++) {
     const page = await pdf.getPage(i);
     const preview = page.getViewport({ scale: 1.0 });
     const scale = Math.max(1.0, Math.min(2.0, 1000 / Math.max(1, preview.width)));
