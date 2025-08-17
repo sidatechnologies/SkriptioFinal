@@ -143,7 +143,7 @@ function quickDeskew(srcCanvas) {
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data; const rows = new Array(H).fill(0);
       let sum = 0, cnt = 0;
-      for (let i = 0; i &lt; d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
+      for (let i = 0; i < d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
       const mean = sum / Math.max(1, cnt);
       for (let y = 0; y &lt; H; y++) {
         let s = 0; for (let x = 0; x &lt; W; x++) { const i = (y * W + x) * 4; if (d[i] &lt; mean) s++; }
