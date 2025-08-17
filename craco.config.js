@@ -57,6 +57,15 @@ module.exports = {
       ...devServerConfig.client,
       overlay: false,
     };
+    // IMPORTANT: Disable watching of the public/ directory to avoid ENOSPC in constrained environments
+    if (devServerConfig.static) {
+      devServerConfig.static = {
+        ...devServerConfig.static,
+        watch: false,
+      };
+    }
+    // Also prevent dev-server from watching any files explicitly
+    devServerConfig.watchFiles = [];
     return devServerConfig;
   },
 };
