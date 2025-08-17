@@ -124,7 +124,7 @@ function Landing() {
               <button onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm inline-flex items-center text-foreground/90 hover:underline">How it works <ArrowRight size={14} className="ml-1"/></button>
             </div>
             <div className="flex flex-wrap items-center gap-5 text-xs text-foreground/80 pt-1">
-              <div className="inline-flex items-center gap-2">Fast &amp; minimal</div>
+              <div className="inline-flex items-center gap-2"><span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/70"/> Fast &amp; minimal</div>
               <div className="inline-flex items-center gap-2">Private (runs in your browser)</div>
               <div className="inline-flex items-center gap-2">Saves hours of prep</div>
             </div>
