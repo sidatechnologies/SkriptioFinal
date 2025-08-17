@@ -219,7 +219,15 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  const out = await withTimeout(pipe(work), 20000, 'trocr inference');
+  // Transformers.js prefers ImageData/HTMLImageElement/Canvas. Use ImageData for compatibility.
+  let input;
+  try {
+    input = wctx.getImageData(0, 0, work.width, work.height);
+  } catch (e) {
+    // Fallback to canvas if ImageData fails (should be rare)
+    input = work;
+  }
+  const out = await withTimeout(pipe(input), 20000, 'trocr inference');
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
   return postClean(text || '');
 }
