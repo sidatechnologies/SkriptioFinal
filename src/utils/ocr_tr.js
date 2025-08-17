@@ -18,7 +18,15 @@ async function loadTransformers() {
 
 async function getTrocrPipeline() {
   if (trocrPipeline) return trocrPipeline;
-  const { pipeline } = await loadTransformers();
+  const { pipeline, env } = await loadTransformers();
+  // Ensure we never try to fetch local "/models/..." paths in the browser
+  env.allowLocalModels = false;
+  // Cache weights in IndexedDB for faster subsequent runs
+  env.useBrowserCache = true;
+  // Ensure onnxruntime-web assets resolve from CDN reliably
+  if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
+  }
   // Prefer Xenova quantized small handwritten model for faster load, good accuracy
   // Try image-to-text first; fall back to text-recognition for older task names
   try {
