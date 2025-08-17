@@ -236,7 +236,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
     invertCanvasIfNeeded(deskewed);
 
     const text = await recognizeCanvasTrocr(deskewed);
-    full += (full &amp;&amp; text ? '\n' : '') + (text || '');
+    full += (full && text ? '\n' : '') + (text || '');
   }
   return postClean(full);
 }
