@@ -137,7 +137,7 @@ function quickDeskew(srcCanvas) {
     test.width = srcCanvas.width; test.height = srcCanvas.height;
     const tctx = ctx2d(test); tctx.drawImage(srcCanvas, 0, 0);
     contrastStretch(test, 0.02, 0.98);
-    const projVar = (c) =&gt; {
+    const projVar = (c) => {
       const ctx = ctx2d(c);
       const { width: W, height: H } = c;
       const img = ctx.getImageData(0, 0, W, H);
