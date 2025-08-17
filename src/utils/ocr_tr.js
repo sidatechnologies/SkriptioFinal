@@ -149,8 +149,8 @@ function quickDeskew(srcCanvas) {
         let s = 0; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i] < mean) s++; }
         rows[y] = s;
       }
-      const m = rows.reduce((a,b)=&gt;a+b,0) / Math.max(1, rows.length);
-      const v = rows.reduce((a,b)=&gt;a+(b-m)*(b-m),0) / Math.max(1, rows.length);
+      const m = rows.reduce((a,b)=>a+b,0) / Math.max(1, rows.length);
+      const v = rows.reduce((a,b)=>a+(b-m)*(b-m),0) / Math.max(1, rows.length);
       return v;
     };
     for (const a of angles) {
