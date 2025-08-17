@@ -1,45 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, ShoppingBag, Smartphone, MonitorDown } from "lucide-react";
+import { MessageSquare, ShoppingBag } from "lucide-react";
 
 export default function FloatingMenu({ feedbackUrl = "https://forms.gle/jk7VCgX4UgMWzJjb9" }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const wrapRef = useRef(null);
-
-  // PWA install prompt state
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [installed, setInstalled] = useState(false);
-
-  useEffect(() => {
-    const handler = (e) => {
-      // Prevent the mini-infobar on mobile
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    const onInstalled = () => { setInstalled(true); };
-    window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', onInstalled);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  }, []);
-
-  const doInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      try { await deferredPrompt.userChoice; } catch {}
-      setDeferredPrompt(null);
-    } else {
-      // Show simple guidance when prompt not available (e.g., iOS Safari)
-      alert('To install: use your browser\'s menu and choose "Add to Home Screen" or "Install App".');
-    }
-  };
-
-  const isStandalone = () => (
-    window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true)
-  );
 
   // Close on outside click and ESC
   useEffect(() => {
@@ -86,28 +52,6 @@ export default function FloatingMenu({ feedbackUrl = "https://forms.gle/jk7VCgX4
             <ShoppingBag size={16} />
           </button>
           <span className="text-xs px-2 py-1 rounded-md bg-card border border-border text-foreground/80">Merch</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setOpen(false); doInstall(); }}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-full border shadow-sm bg-white text-black border-black/80 hover:bg-white/90 dark:bg-black dark:text-white dark:border-white/80"
-            aria-label="Add to Home Screen"
-            title={installed || isStandalone() ? 'Already installed' : 'Add to Home Screen'}
-          >
-            <Smartphone size={16} />
-          </button>
-          <span className="text-xs px-2 py-1 rounded-md bg-card border border-border text-foreground/80">Add to home</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setOpen(false); doInstall(); }}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-full border shadow-sm bg-white text-black border-black/80 hover:bg-white/90 dark:bg-black dark:text-white dark:border-white/80"
-            aria-label="Install Desktop App"
-            title={installed || isStandalone() ? 'Already installed' : 'Install on desktop'}
-          >
-            <MonitorDown size={16} />
-          </button>
-          <span className="text-xs px-2 py-1 rounded-md bg-card border border-border text-foreground/80">Install app</span>
         </div>
       </div>
       {/* Main toggle button */}

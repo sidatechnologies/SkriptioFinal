@@ -393,7 +393,6 @@
     - working: "NA"
       agent: "main"
       comment: "Integrated on-device TrOCR via @xenova/transformers with a toggle on /studio/handwriting. Default remains fast Tesseract path; High-accuracy mode downloads ~50MB model on first use and improves messy handwriting accuracy. No backend/APIs."
-
 - task: "Silence ONNX Runtime TrOCR warnings and keep handwriting OCR functional"
   implemented: true
   working: "NA"
@@ -405,11 +404,44 @@
     - working: "NA"
       agent: "main"
       comment: "Scoped suppression: set ort.env.logLevel='error' if available and temporarily filter only CleanUnusedInitializersAndNodeArgs warnings during TrOCR pipeline load. No change to OCR logic."
+- task: "Fix TrOCR input error: Unsupported input type: object"
+  implemented: true
+  working: "NA"
+  file: "/app/src/utils/ocr_tr.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Pass ImageData to Transformers.js pipeline and add blob URL fallback to avoid RawImage.read 'Unsupported input type'."
+- task: "Floating menu cleanup: remove install/download actions"
+  implemented: true
+  working: "NA"
+  file: "/app/src/components/FloatingMenu.jsx"
+  stuck_count: 0
+  priority: "medium"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Removed 'Add to home' and 'Install app' actions; kept Feedback and Merch only."
+- task: "Hero badges: add minimal icons to bullet points"
+  implemented: true
+  working: "NA"
+  file: "/app/src/App.js"
+  stuck_count: 0
+  priority: "low"
+  needs_retesting: true
+  status_history:
+    - working: "NA"
+      agent: "main"
+      comment: "Added subtle dot icons before 'Fast & minimal', 'Private (runs in your browser)', and 'Saves hours of prep'."
 
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 8
+  test_sequence: 9
   run_ui: false
 
 ## test_plan:
@@ -417,6 +449,8 @@
     - "Validate High‑accuracy OCR toggle loads model and produces text on sample page"
     - "Fix dropdown styling in light theme - StudioNav mobile dropdown and difficulty selects need white background, black text, black arrow"
     - "Fix Summariser default state - Short should be highlighted by default, not Medium"
+    - "Verify TrOCR input fix: upload handwritten PDF with High‑accuracy ON and ensure typed text appears with no console errors"
+    - "Verify FloatingMenu shows only Feedback and Merch"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
