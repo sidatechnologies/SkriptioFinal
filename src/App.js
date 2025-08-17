@@ -22,6 +22,7 @@ import StudioSummariser from "./pages/StudioSummariser";
 import KitRoute from "./pages/KitRoute";
 import FloatingMenu from "./components/FloatingMenu";
 import { fromB64Url, b64uEncodeObject as b64uEncode } from "./utils/b64url";
+import { Helmet } from "react-helmet-async";
 
 function Landing() {
   const navigate = useNavigate();
@@ -44,6 +45,32 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — Study kits from your notes &amp; PDFs | Aceel AI</title>
+        <meta name="description" content="Skriptio turns your PDFs and notes into a complete study kit in seconds: auto quiz, flashcards, and a 7‑day plan. Private and fast — runs in your browser." />
+        <meta name="keywords" content="Skriptio, Aceel AI, study app, flashcards, quiz generator, study planner, PDF to flashcards, active recall, spaced repetition" />
+        <link rel="canonical" href="https://skriptio.sidahq.com/" />
+        <meta property="og:title" content="Skriptio — Study kits from your notes &amp; PDFs" />
+        <meta property="og:description" content="Upload a PDF or paste notes and get a 10‑question quiz, flashcards, and a 7‑day plan. Built by Aceel AI." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skriptio.sidahq.com/" />
+        <meta property="og:image" content="/assets/aceel-logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "Skriptio",
+          applicationCategory: "EducationApplication",
+          operatingSystem: "Web",
+          url: "https://skriptio.sidahq.com/",
+          description: "Turn PDFs and notes into quizzes, flashcards, and a 7‑day plan in seconds.",
+          creator: {
+            "@type": "Organization",
+            name: "Aceel AI",
+            url: "https://skriptio.sidahq.com/"
+          }
+        })}</script>
+      </Helmet>
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
@@ -183,6 +210,8 @@ function Landing() {
   );
 }
 
+function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div>); }
+
 export function Studio() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
@@ -199,20 +228,20 @@ export function Studio() {
   const [difficulty, setDifficulty] = useState('balanced');
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth &gt;= 768 : true));
   const [theory, setTheory] = useState([]);
 
   useEffect(() => { prewarmPDF(); prewarmML(); }, []);
-  useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth >= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
+  useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth &gt;= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
 
   const ensureJsPDF = async () => { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
   const addHeader = (doc) => { try { doc.setFont('helvetica', 'normal'); } catch {} };
   const addFooter = (doc) => { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
-  const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y > ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
+  const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y &gt; ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
 
   const handleGenerate = async () => {
     if (loading) return;
-    const hasText = (text || '').trim().length > 0;
+    const hasText = (text || '').trim().length &gt; 0;
     if (!hasText && !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
     setLoading(true); setLoadingStep('Reading input');
     try {
@@ -242,6 +271,11 @@ export function Studio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — Study Kit Generator</title>
+        <meta name="description" content="Generate quizzes, flashcards, theory questions, and a 7‑day study plan from your notes or PDFs. Runs entirely in your browser." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/studio/kit" />
+      </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -318,7 +352,7 @@ export function Studio() {
 
           <div className="lg:col-span-2 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" disabled={!result?.quiz?.length || pdfBusy.quiz} onClick={async () => { if (!result?.quiz?.length) return; setPdfBusy(s => ({ ...s, quiz: true })); try { const jsPDF = await ensureJsPDF(); const doc = new jsPDF(); addHeader(doc); let y = 32; doc.setFontSize(13); y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180); doc.setFontSize(12); for (let i = 0; i < result.quiz.length; i++) { const q = result.quiz[i]; y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180); for (let oi = 0; oi < q.options.length; oi++) { const prefix = String.fromCharCode(65 + oi); y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170); } const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0)); y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170); if (showExplanations && q.explanation) { y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170); } y += 4; } addFooter(doc); doc.save("skriptio-quiz.pdf"); } finally { setPdfBusy(s => ({ ...s, quiz: false })); } }} aria-busy={pdfBusy.quiz}>{pdfBusy.quiz ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Quiz PDF'}</Button>
+              <Button variant="outline" disabled={!result?.quiz?.length || pdfBusy.quiz} onClick={async () => { if (!result?.quiz?.length) return; setPdfBusy(s => ({ ...s, quiz: true })); try { const jsPDF = await ensureJsPDF(); const doc = new jsPDF(); addHeader(doc); let y = 32; doc.setFontSize(13); y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180); doc.setFontSize(12); for (let i = 0; i &lt; result.quiz.length; i++) { const q = result.quiz[i]; y = lineWrap(doc, `Q${i + 1}. ${q.question}`, 15, y, 180); for (let oi = 0; oi &lt; q.options.length; oi++) { const prefix = String.fromCharCode(65 + oi); y = lineWrap(doc, `${prefix}) ${q.options[oi]}`, 20, y, 170); } const correctLetter = String.fromCharCode(65 + (q.answer_index ?? 0)); y = lineWrap(doc, `Correct: ${correctLetter}) ${q.options[q.answer_index]}`, 20, y + 2, 170); if (showExplanations && q.explanation) { y = lineWrap(doc, `Why: ${q.explanation}`, 20, y + 2, 170); } y += 4; } addFooter(doc); doc.save("skriptio-quiz.pdf"); } finally { setPdfBusy(s => ({ ...s, quiz: false })); } }} aria-busy={pdfBusy.quiz}>{pdfBusy.quiz ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Quiz PDF'}</Button>
               <Button variant="outline" disabled={!result?.flashcards?.length || pdfBusy.cards} onClick={async () => { if (!result?.flashcards?.length) return; setPdfBusy(s => ({ ...s, cards: true })); try { const jsPDF = await ensureJsPDF(); const doc = new jsPDF(); addHeader(doc); let y = 32; doc.setFontSize(13); y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180); doc.setFontSize(12); result.flashcards.forEach((c, idx) => { y = lineWrap(doc, `Card ${idx + 1}:`, 15, y, 180); y = lineWrap(doc, `Q: ${c.front}`, 20, y, 170); y = lineWrap(doc, `A: ${c.back}`, 20, y, 170); y += 4; }); addFooter(doc); doc.save("skriptio-flashcards.pdf"); } finally { setPdfBusy(s => ({ ...s, cards: false })); } }} aria-busy={pdfBusy.cards}>{pdfBusy.cards ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Flashcards PDF'}</Button>
               <Button variant="outline" disabled={!theory?.length || pdfBusy.theory} onClick={async () => { if (!theory?.length) return; setPdfBusy(s => ({ ...s, theory: true })); try { const jsPDF = await ensureJsPDF(); const doc = new jsPDF(); addHeader(doc); let y = 32; doc.setFontSize(13); y = lineWrap(doc, `Title: ${result?.title || "Untitled"}`, 15, y, 180); doc.setFontSize(12); theory.forEach((t, idx) => { y = lineWrap(doc, `Q${idx + 1}: ${t}`, 15, y, 180); y += 4; }); addFooter(doc); doc.save("skriptio-theory.pdf"); } finally { setPdfBusy(s => ({ ...s, theory: false })); } }} aria-busy={pdfBusy.theory}>{pdfBusy.theory ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download Theory PDF'}</Button>
               <Button variant="outline" disabled={!result?.plan?.length || pdfBusy.plan} onClick={async () => { if (!result?.plan?.length) return; setPdfBusy(s => ({ ...s, plan: true })); try { const jsPDF = await ensureJsPDF(); const doc = new jsPDF(); addHeader(doc); let y = 32; doc.setFontSize(13); y = lineWrap(doc, `Title: ${result.title || "Untitled"}`, 15, y, 180); doc.setFontSize(12); result.plan.forEach((d) => { y = lineWrap(doc, `${d.title}`, 15, y, 180); d.objectives.forEach((o) => { y = lineWrap(doc, `• ${o}`, 20, y, 170); }); y += 4; }); addFooter(doc); doc.save("skriptio-plan.pdf"); } finally { setPdfBusy(s => ({ ...s, plan: false })); } }} aria-busy={pdfBusy.plan}>{pdfBusy.plan ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin"/> Generating...</> : 'Download 7-Day Plan PDF'}</Button>
@@ -348,8 +382,8 @@ export function Studio() {
                                   {(() => {
                                     const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                                     let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
-                                    displayOpts = displayOpts.filter(v => v.length > 0);
-                                    while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                    displayOpts = displayOpts.filter(v => v.length &gt; 0);
+                                    while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                     displayOpts = displayOpts.slice(0, 4);
                                     return displayOpts.map((opt, oi) => {
                                       const isSelected = answers[idx] === oi;
@@ -369,11 +403,11 @@ export function Studio() {
                                 {evaluated && (() => {
                                   const GENERICS = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
                                   let displayOpts = Array.isArray(q.options) ? q.options.map(o => (o ?? '').toString().trim()) : [];
-                                  displayOpts = displayOpts.filter(v => v.length > 0);
-                                  while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
+                                  displayOpts = displayOpts.filter(v => v.length &gt; 0);
+                                  while (displayOpts.length &lt; 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                   displayOpts = displayOpts.slice(0, 4);
                                   const correctText = ((q.options[q.answer_index] ?? '') + '').trim();
-                                  let correctIdx = displayOpts.indexOf(correctText); if (correctIdx < 0) correctIdx = 0;
+                                  let correctIdx = displayOpts.indexOf(correctText); if (correctIdx &lt; 0) correctIdx = 0;
                                   const userIdx = Number.isInteger(answers[idx]) ? Math.min(Math.max(0, answers[idx]), 3) : null;
                                   return (
                                     <div className="text-xs text-foreground/80 space-y-1">
@@ -394,43 +428,4 @@ export function Studio() {
 
                   <TabsContent value="flashcards">
                     {!result ? (<EmptyState label="Your flashcards will appear here once generated."/>) : (
-                      <div className="grid gap-3">{result.flashcards?.map((c, i) => (<Card key={i} className="bg-card border-border"><CardContent className="p-5"><div className="font-medium mb-2">Card {i + 1}</div><div className="text-sm">Q: {c.front}</div><div className="text-sm text-foreground/80 mt-1">A: {c.back}</div></CardContent></Card>))}</div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="plan">
-                    {!result ? (<EmptyState label="Your 7-day plan will appear here once generated."/>) : (
-                      <div className="grid gap-3">{result.plan?.map((d, i) => (<Card key={i} className="bg-card border-border"><CardContent className="p-5"><div className="font-medium mb-2">{d.title}</div><ul className="list-disc pl-5 text-sm">{d.objectives.map((o, oi) => (<li key={oi}>{o}</li>))}</ul></CardContent></Card>))}</div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="theory">
-                    {!result ? (<EmptyState label="Your Theory Questions will appear here once generated."/>) : (
-                      <div className="grid gap-3">{theory?.length ? theory.map((t, i) => (<Card key={i} className="bg-card border-border"><CardContent className="p-5"><div className="text-sm">Q{i + 1}: {t}</div></CardContent></Card>)) : <EmptyState label="Your Theory Questions will appear here once generated."/>}</div>
-                    )}
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div>); }
-
-export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/studio" element={<StudioHub />} />
-      <Route path="/studio/kit/*" element={<KitRoute />} />
-      <Route path="/studio/:title/:code" element={<Studio />} />
-      <Route path="/studio/handwriting" element={<StudioHandwriting />} />
-      <Route path="/studio/summariser" element={<StudioSummariser />} />
-      <Route path="/merch" element={<Merch />} />
-    </Routes>
-  );
-}
+                      <div className="grid gap-3">{result.flashcards?.map((c, i) => (<Card key={i} className="bg-card border-border"><CardContent className="p-5"><div className="font-medium mb-2">Card {i + 1}</div><div className="text-sm">Q: {c.front}</div><div className="text-sm text-

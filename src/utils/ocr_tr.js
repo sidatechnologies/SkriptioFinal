@@ -20,12 +20,13 @@ async function getTrocrPipeline() {
   const { pipeline, env } = await loadTransformers();
   // Ensure we never try to fetch local "/models/..." paths in the browser
   try { env.allowLocalModels = false; } catch {}
-  try { env.localModelPath = null; } catch {}
+  // DO NOT force null; some internal code may call .replace on this value
+  // Only override if it's a non-empty string to a valid local path (not our case)
+  // try { env.localModelPath = null; } catch {}
   try { env.useBrowserCache = true; } catch {}
   // Ensure onnxruntime-web assets resolve from CDN reliably
   try {
-    if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-      // Keep this on a stable CDN path; transformers will pick the correct files
+    if (env?.backends?.onnx?.wasm) {
       env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
     }
   } catch {}
@@ -33,11 +34,11 @@ async function getTrocrPipeline() {
   try {
     trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true });
   } catch (e1) {
-    // Fallback to base handwritten model but KEEP the same supported task ('image-to-text')
+    // Fallback to base handwritten model
     try {
       trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true });
     } catch (e2) {
-      // Final fallback to printed small model (still image-to-text). This avoids unsupported 'text-recognition' task errors.
+      // Final fallback to printed small model (still image-to-text)
       try {
         trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true });
       } catch (e3) {
@@ -100,11 +101,11 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
   const lowCount = total * lowPct;
   const highCount = total * (1 - highPct);
   let lo = 0, hi = 255, sum = 0;
-  for (let i = 0; i < 256; i++) { sum += hist[i]; if (sum >= lowCount) { lo = i; break; } }
+  for (let i = 0; i &lt; 256; i++) { sum += hist[i]; if (sum &gt;= lowCount) { lo = i; break; } }
   sum = 0;
-  for (let i = 255; i >= 0; i--) { sum += hist[i]; if (sum >= highCount) { hi = i; break; } }
-  const scale = hi > lo ? 255 / (hi - lo) : 1;
-  for (let i = 0; i < d.length; i += 4) {
+  for (let i = 255; i &gt;= 0; i--) { sum += hist[i]; if (sum &gt;= highCount) { hi = i; break; } }
+  const scale = hi &gt; lo ? 255 / (hi - lo) : 1;
+  for (let i = 0; i &lt; d.length; i += 4) {
     let v = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
     v = Math.max(0, Math.min(255, Math.round((v - lo) * scale)));
     d[i] = d[i + 1] = d[i + 2] = v;
@@ -115,11 +116,11 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
 function invertCanvasIfNeeded(canvas) {
   try {
     const bg = estimateBackgroundBrightness(canvas);
-    if (bg < 110) {
+    if (bg &lt; 110) {
       const ctx = ctx2d(canvas);
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = img.data;
-      for (let i = 0; i < d.length; i += 4) {
+      for (let i = 0; i &lt; d.length; i += 4) {
         d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2];
       }
       ctx.putImageData(img, 0, 0);
@@ -136,26 +137,26 @@ function quickDeskew(srcCanvas) {
     test.width = srcCanvas.width; test.height = srcCanvas.height;
     const tctx = ctx2d(test); tctx.drawImage(srcCanvas, 0, 0);
     contrastStretch(test, 0.02, 0.98);
-    const projVar = (c) => {
+    const projVar = (c) =&gt; {
       const ctx = ctx2d(c);
       const { width: W, height: H } = c;
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data; const rows = new Array(H).fill(0);
       let sum = 0, cnt = 0;
-      for (let i = 0; i < d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
+      for (let i = 0; i &lt; d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
       const mean = sum / Math.max(1, cnt);
-      for (let y = 0; y < H; y++) {
-        let s = 0; for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i] < mean) s++; }
+      for (let y = 0; y &lt; H; y++) {
+        let s = 0; for (let x = 0; x &lt; W; x++) { const i = (y * W + x) * 4; if (d[i] &lt; mean) s++; }
         rows[y] = s;
       }
-      const m = rows.reduce((a,b)=>a+b,0) / Math.max(1, rows.length);
-      const v = rows.reduce((a,b)=>a+(b-m)*(b-m),0) / Math.max(1, rows.length);
+      const m = rows.reduce((a,b)=&gt;a+b,0) / Math.max(1, rows.length);
+      const v = rows.reduce((a,b)=&gt;a+(b-m)*(b-m),0) / Math.max(1, rows.length);
       return v;
     };
     for (const a of angles) {
       const rot = a === 0 ? test : rotateCanvas(test, a);
       const v = projVar(rot);
-      if (v > bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
+      if (v &gt; bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
     }
     return best;
   } catch { return srcCanvas; }
@@ -170,7 +171,7 @@ export async function recognizeCanvasTrocr(canvas) {
   contrastStretch(work, 0.02, 0.98);
   invertCanvasIfNeeded(work);
   const targetW = 1100;
-  if (work.width > targetW) {
+  if (work.width &gt; targetW) {
     const scale = targetW / work.width;
     const s = document.createElement('canvas');
     s.width = Math.max(1, Math.round(work.width * scale));
@@ -209,7 +210,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
 
   const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
   let full = '';
-  for (let i = 1; i <= limitPages; i++) {
+  for (let i = 1; i &lt;= limitPages; i++) {
     const page = await pdf.getPage(i);
     const preview = page.getViewport({ scale: 1.0 });
     const scale = Math.max(1.0, Math.min(2.0, 1000 / Math.max(1, preview.width)));
@@ -225,7 +226,7 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
     invertCanvasIfNeeded(deskewed);
 
     const text = await recognizeCanvasTrocr(deskewed);
-    full += (full && text ? '\n' : '') + (text || '');
+    full += (full &amp;&amp; text ? '\n' : '') + (text || '');
   }
   return postClean(full);
 }

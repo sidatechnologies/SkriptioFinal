@@ -12,6 +12,8 @@ import { extractTextFromPDF } from "../utils/textProcessor";
 import { extractTextFromPDFHighAcc, prefetchTrocr } from "../utils/ocr_tr";
 import { getJsPDF } from "../utils/pdf";
 import { Switch } from "../components/ui/switch";
+import { Helmet } from "react-helmet-async";
+import { toast } from "../components/ui/use-toast";
 
 export default function StudioHandwriting() {
   const [file, setFile] = useState(null);
@@ -74,6 +76,9 @@ export default function StudioHandwriting() {
         const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
         setText(extracted || "");
       }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'High-accuracy OCR failed', description: 'We could not load the model from the CDN. Please try again, or switch off High‑accuracy.' });
     } finally { setLoading(false); }
   };
 
@@ -97,6 +102,17 @@ export default function StudioHandwriting() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — Handwriting to Typed Text (On-device OCR)</title>
+        <meta name="description" content="Convert handwritten PDFs into clean typed text using on-device OCR. Optional high-accuracy neural TrOCR. Private — everything runs in your browser." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/studio/handwriting" />
+        <meta property="og:title" content="Skriptio — Handwriting to Typed Text" />
+        <meta property="og:description" content="Upload a handwritten PDF and get a neat typed transcript. Optional high-accuracy TrOCR." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skriptio.sidahq.com/studio/handwriting" />
+        <meta property="og:image" content="/assets/aceel-logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
