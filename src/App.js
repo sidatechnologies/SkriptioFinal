@@ -237,7 +237,7 @@ export function Studio() {
   const ensureJsPDF = async () => { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
   const addHeader = (doc) => { try { doc.setFont('helvetica', 'normal'); } catch {} };
   const addFooter = (doc) => { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
-  const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y &gt; ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
+  const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y > ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
 
   const handleGenerate = async () => {
     if (loading) return;
