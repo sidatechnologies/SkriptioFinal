@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import ThemeToggle from "../components/ThemeToggle";
 import { Download, PackageOpen, Menu } from "lucide-react";
 import FloatingMenu from "../components/FloatingMenu";
+import { Helmet } from "react-helmet-async";
 
 export default function Merch() {
   const navigate = useNavigate();
@@ -31,6 +32,16 @@ export default function Merch() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — Merch &amp; Freebies</title>
+        <meta name="description" content="Download Aceel AI assets and Skriptio freebies. More items coming soon." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/merch" />
+        <meta property="og:title" content="Skriptio — Merch &amp; Freebies" />
+        <meta property="og:description" content="Logos, posters, and more. Free downloads." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skriptio.sidahq.com/merch" />
+        <meta property="og:image" content="/assets/aceel-logo.png" />
+      </Helmet>
       {/* Header (full navbar like landing) */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

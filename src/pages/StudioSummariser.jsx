@@ -10,6 +10,7 @@ import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF, splitSentences, looksLikeHeadingStrong, isAuthorish, normalizeText } from "../utils/textProcessor";
 import { getJsPDF } from "../utils/pdf";
 import { embedSentences, centralityRank, prewarmML } from "../utils/ml";
+import { Helmet } from "react-helmet-async";
 
 export default function StudioSummariser() {
   const [file, setFile] = useState(null);
@@ -119,6 +120,16 @@ export default function StudioSummariser() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — AI PDF Summariser (On-device)</title>
+        <meta name="description" content="Extract a concise summary from your PDF. Lightweight on-device models with private processing." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/studio/summariser" />
+        <meta property="og:title" content="Skriptio — AI PDF Summariser" />
+        <meta property="og:description" content="Summarise PDFs privately in your browser and export as a formatted PDF." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skriptio.sidahq.com/studio/summariser" />
+        <meta property="og:image" content="/assets/aceel-logo.png" />
+      </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

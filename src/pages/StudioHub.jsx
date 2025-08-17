@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../co
 import ThemeToggle from "../components/ThemeToggle";
 import StudioNav from "../components/StudioNav";
 import FloatingMenu from "../components/FloatingMenu";
+import { Helmet } from "react-helmet-async";
 
 export default function StudioHub() {
   const navigate = useNavigate();
@@ -25,6 +26,16 @@ export default function StudioHub() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Skriptio — Studio Hub</title>
+        <meta name="description" content="Choose a tool: Study Kit Generator, Handwriting → Typed, or AI PDF Summariser. All tools run on-device in your browser." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/studio" />
+        <meta property="og:title" content="Skriptio — Studio Hub" />
+        <meta property="og:description" content="Study tools that run fully in your browser: generate study kits, convert handwriting, summarise PDFs." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skriptio.sidahq.com/studio" />
+        <meta property="og:image" content="/assets/aceel-logo.png" />
+      </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
