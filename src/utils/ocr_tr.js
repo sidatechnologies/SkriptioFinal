@@ -11,7 +11,7 @@ let transformers = null;
 async function loadTransformers() {
   if (transformers) return transformers;
   // Dynamic import to avoid increasing initial bundle size
-  const mod = await import(/* webpackChunkName: "transformers-tr" */ '@xenova/transformers');
+  const mod = await import('@xenova/transformers');
   transformers = mod;
   return transformers;
 }
