@@ -20,10 +20,14 @@ export default function StudioHandwriting() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [highAcc, setHighAcc] = useState(false);
+  const [highAccAvailable, setHighAccAvailable] = useState(true);
   const fileRef = useRef();
 
   useEffect(() => {
-    const t = setTimeout(() => { prefetchTrocr().catch(() => {}); }, 600);
+    const t = setTimeout(async () => {
+      try { await prefetchTrocr(); setHighAccAvailable(true); }
+      catch { setHighAccAvailable(false); }
+    }, 600);
     return () => clearTimeout(t);
   }, []);
 
