@@ -227,7 +227,19 @@ export async function recognizeCanvasTrocr(canvas) {
     // Fallback to canvas if ImageData fails (should be rare)
     input = work;
   }
-  const out = await withTimeout(pipe(input), 20000, 'trocr inference');
+  let out;
+  try {
+    out = await withTimeout(pipe(input), 20000, 'trocr inference');
+  } catch (e) {
+    // Fallback: use a blob URL string which RawImage can always decode
+    const blob = await new Promise((resolve) => work.toBlob(resolve, 'image/png', 0.92));
+    const url = URL.createObjectURL(blob);
+    try {
+      out = await withTimeout(pipe(url), 20000, 'trocr inference (blob url)');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
   return postClean(text || '');
 }
