@@ -10,7 +10,6 @@ let transformers = null;
 
 async function loadTransformers() {
   if (transformers) return transformers;
-  // Dynamic import to avoid increasing initial bundle size
   const mod = await import('@xenova/transformers');
   transformers = mod;
   return transformers;
@@ -20,15 +19,16 @@ async function getTrocrPipeline() {
   if (trocrPipeline) return trocrPipeline;
   const { pipeline, env } = await loadTransformers();
   // Ensure we never try to fetch local "/models/..." paths in the browser
-  env.allowLocalModels = false;
-  // Cache weights in IndexedDB for faster subsequent runs
-  env.useBrowserCache = true;
+  try { env.allowLocalModels = false; } catch {}
+  try { env.localModelPath = null; } catch {}
+  try { env.useBrowserCache = true; } catch {}
   // Ensure onnxruntime-web assets resolve from CDN reliably
-  if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
-  }
+  try {
+    if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
+    }
+  } catch {}
   // Prefer Xenova quantized small handwritten model for faster load, good accuracy
-  // Try image-to-text first; fall back to text-recognition for older task names
   try {
     trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true });
   } catch (e) {
@@ -37,9 +37,12 @@ async function getTrocrPipeline() {
   return trocrPipeline;
 }
 
+export async function prefetchTrocr() {
+  try { await getTrocrPipeline(); } catch (e) { /* ignore prefetch errors; will retry on demand */ }
+}
+
 function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
 
-// Lightweight preprocessing: deskew (by trying few angles), contrast stretch, optional inversion for dark scans
 function rotateCanvas(srcCanvas, deg) {
   if (!deg) return srcCanvas;
   const rad = (deg * Math.PI) / 180;
@@ -120,13 +123,11 @@ function quickDeskew(srcCanvas) {
     test.width = srcCanvas.width; test.height = srcCanvas.height;
     const tctx = ctx2d(test); tctx.drawImage(srcCanvas, 0, 0);
     contrastStretch(test, 0.02, 0.98);
-    // Fast binary projection metric
     const projVar = (c) => {
       const ctx = ctx2d(c);
       const { width: W, height: H } = c;
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data; const rows = new Array(H).fill(0);
-      // mean threshold
       let sum = 0, cnt = 0;
       for (let i = 0; i < d.length; i += 4) { const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; sum += v; cnt++; }
       const mean = sum / Math.max(1, cnt);
@@ -149,14 +150,12 @@ function quickDeskew(srcCanvas) {
 
 export async function recognizeCanvasTrocr(canvas) {
   const pipe = await getTrocrPipeline();
-  // TrOCR works better on decent contrast grayscale
   const work = document.createElement('canvas');
   work.width = canvas.width; work.height = canvas.height;
   const wctx = ctx2d(work);
   wctx.drawImage(canvas, 0, 0);
   contrastStretch(work, 0.02, 0.98);
   invertCanvasIfNeeded(work);
-  // Resize toward 1100px width for speed/accuracy balance
   const targetW = 1100;
   if (work.width > targetW) {
     const scale = targetW / work.width;
@@ -189,7 +188,7 @@ function postClean(text) {
 }
 
 export async function extractTextFromPDFHighAcc(file, options = {}) {
-  const { maxPages = 40 } = options;
+  const { maxPages = 5 } = options; // cap initial pages for speed
   const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   const arrayBuffer = await file.arrayBuffer();
@@ -208,7 +207,6 @@ export async function extractTextFromPDFHighAcc(file, options = {}) {
     canvas.height = Math.ceil(viewport.height);
     await page.render({ canvasContext: ctx, viewport }).promise;
 
-    // Light preprocessing for handwriting
     const deskewed = quickDeskew(canvas);
     contrastStretch(deskewed, 0.02, 0.98);
     invertCanvasIfNeeded(deskewed);
