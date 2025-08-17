@@ -228,7 +228,7 @@ export function Studio() {
   const [difficulty, setDifficulty] = useState('balanced');
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth &gt;= 768 : true));
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
   const [theory, setTheory] = useState([]);
 
   useEffect(() => { prewarmPDF(); prewarmML(); }, []);
