@@ -414,3 +414,5 @@
     message: "Added optional High‑accuracy OCR using Transformers.js TrOCR (on-device). Default stays fast Tesseract; toggle enables TrOCR. Please UI-validate: model loads on first run, conversion completes, and app remains responsive. Also pending: light-theme dropdown styling and summariser default state."
   - agent: "main"
     message: "SEO embedded using react-helmet-async for Landing, Studio Hub, Study Kit, Handwriting, Summariser, and Merch. Added robots.txt and sitemap.xml. Fixed TrOCR init by avoiding env.localModelPath=null and guarding wasmPaths. Added user-facing toast on failure. Requesting retest of High‑accuracy OCR toggle and verify SEO tags in page source."
+  - agent: "testing"
+    message: "Backend testing not applicable - application successfully converted to frontend-only with no backend endpoints, API routes, or server-side functionality remaining. All backend tasks list is empty (backend: []). Application now runs entirely client-side with localStorage for session data, PDF.js for document processing, and on-device ML models. No backend infrastructure exists to test."
