@@ -160,7 +160,7 @@ function quickDeskew(srcCanvas) {
         rows[y] = s;
       }
       const m = rows.reduce((a,b)=>a+b,0) / Math.max(1, rows.length);
-      const v = rows.reduce((a,b)=&gt;a+(b-m)*(b-m),0) / Math.max(1, rows.length);
+      const v = rows.reduce((a,b)=>a+(b-m)*(b-m),0) / Math.max(1, rows.length);
       return v;
     };
     for (const a of angles) {
