@@ -23,7 +23,6 @@ export default function StudioHandwriting() {
   const fileRef = useRef();
 
   useEffect(() => {
-    // Light prefetch in the background so first run is faster
     const t = setTimeout(() => { prefetchTrocr().catch(() => {}); }, 600);
     return () => clearTimeout(t);
   }, []);
@@ -70,6 +69,7 @@ export default function StudioHandwriting() {
     setLoading(true);
     try {
       if (highAcc) {
+        // Try high-accuracy mode with a hard timeout via the helper in ocr_tr
         const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 5 });
         setText(extracted || "");
       } else {
@@ -78,7 +78,15 @@ export default function StudioHandwriting() {
       }
     } catch (e) {
       console.error(e);
-      toast({ title: 'High-accuracy OCR failed', description: 'We could not load the model from the CDN. Please try again, or switch off High‑accuracy.' });
+      // Fallback to fast OCR automatically if high-accuracy fails or times out
+      try {
+        toast({ title: 'High‑accuracy OCR unavailable', description: 'Falling back to fast OCR (on‑device).' });
+        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
+        setText(extracted || "");
+      } catch (e2) {
+        console.error(e2);
+        toast({ title: 'OCR failed', description: 'Please try another PDF or disable High‑accuracy.' });
+      }
     } finally { setLoading(false); }
   };
 

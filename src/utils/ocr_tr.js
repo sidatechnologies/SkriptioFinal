@@ -15,44 +15,44 @@ async function loadTransformers() {
   return transformers;
 }
 
+function withTimeout(promise, ms, label = 'operation') {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error(`TIMEOUT: ${label} exceeded ${ms}ms`)), ms);
+    promise.then((v) => { clearTimeout(id); resolve(v); }, (e) => { clearTimeout(id); reject(e); });
+  });
+}
+
 async function getTrocrPipeline() {
   if (trocrPipeline) return trocrPipeline;
   const { pipeline, env } = await loadTransformers();
-  // Ensure we never try to fetch local "/models/..." paths in the browser
   try { env.allowLocalModels = false; } catch {}
-  // DO NOT force null; some internal code may call .replace on this value
-  // Only override if it's a non-empty string to a valid local path (not our case)
-  // try { env.localModelPath = null; } catch {}
   try { env.useBrowserCache = true; } catch {}
-  // Ensure onnxruntime-web assets resolve from CDN reliably
-  try {
-    if (env?.backends?.onnx?.wasm) {
-      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
-    }
-  } catch {}
-  // Prefer Xenova quantized small handwritten model for faster load, good accuracy
-  try {
-    trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true });
-  } catch (e1) {
-    // Fallback to base handwritten model
+  // Do not force wasmPaths; allow library to resolve the right build for the environment
+
+  const loadWithFallbacks = async () => {
     try {
-      trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true });
-    } catch (e2) {
-      // Final fallback to printed small model (still image-to-text)
+      return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true }), 25000, 'load trocr-small-handwritten');
+    } catch (e1) {
       try {
-        trocrPipeline = await pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true });
-      } catch (e3) {
-        const err = new Error('Failed to initialize TrOCR (image-to-text). Please check network access to model CDN and try again.');
-        err.cause = e3 || e2 || e1;
-        throw err;
+        return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true }), 25000, 'load trocr-base-handwritten');
+      } catch (e2) {
+        try {
+          return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true }), 25000, 'load trocr-small-printed');
+        } catch (e3) {
+          const err = new Error('Failed to initialize TrOCR (image-to-text). Please check network access to model CDN and try again.');
+          err.cause = e3 || e2 || e1;
+          throw err;
+        }
       }
     }
-  }
+  };
+
+  trocrPipeline = await loadWithFallbacks();
   return trocrPipeline;
 }
 
 export async function prefetchTrocr() {
-  try { await getTrocrPipeline(); } catch (e) { /* ignore prefetch errors; will retry on demand */ }
+  try { await withTimeout(getTrocrPipeline(), 20000, 'prefetch trocr'); } catch (e) { /* ignore prefetch errors */ }
 }
 
 function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
@@ -183,7 +183,7 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  const out = await pipe(work);
+  const out = await withTimeout(pipe(work), 25000, 'trocr inference');
   const text = Array.isArray(out) ? (out[0]?.generated_text || out[0]?.text || '') : (out?.generated_text || out?.text || '');
   return postClean(text || '');
 }
