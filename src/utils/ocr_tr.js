@@ -181,7 +181,7 @@ export async function recognizeCanvasTrocr(canvas) {
   contrastStretch(work, 0.02, 0.98);
   invertCanvasIfNeeded(work);
   const targetW = 1100;
-  if (work.width &gt; targetW) {
+  if (work.width > targetW) {
     const scale = targetW / work.width;
     const s = document.createElement('canvas');
     s.width = Math.max(1, Math.round(work.width * scale));
