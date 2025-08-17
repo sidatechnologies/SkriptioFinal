@@ -219,13 +219,16 @@ export async function recognizeCanvasTrocr(canvas) {
     wctx.clearRect(0,0,work.width,work.height);
     wctx.drawImage(s,0,0);
   }
-  // Primary: pass ImageData (most stable across browsers)
+  // Robust input handoff to Transformers.js pipeline to avoid RawImage "Unsupported input type: object"
   let out;
+  let lastErr;
+  // 1) Try ImageBitmap (fast path where supported)
   try {
-    const id = wctx.getImageData(0, 0, work.width, work.height);
-    out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
-  } catch (e) {
-    // Fallback 1: HTMLImageElement
+    const bitmap = await (window.createImageBitmap ? window.createImageBitmap(work) : Promise.reject(new Error('no ImageBitmap')));
+    out = await withTimeout(pipe(bitmap), 20000, 'trocr inference (imagebitmap)');
+  } catch (e1) {
+    lastErr = e1;
+    // 2) Try HTMLImageElement from data URL
     try {
       const dataUrl = work.toDataURL('image/png', 0.94);
       const img = await new Promise((resolve, reject) => {
@@ -237,12 +240,21 @@ export async function recognizeCanvasTrocr(canvas) {
       });
       out = await withTimeout(pipe(img), 20000, 'trocr inference (img)');
     } catch (e2) {
-      // Fallback 2: string data URL
+      lastErr = e2;
+      // 3) Try string data URL directly
       try {
         const dataUrl = work.toDataURL('image/png', 0.94);
         out = await withTimeout(pipe(dataUrl), 20000, 'trocr inference (data url)');
       } catch (e3) {
-        throw e3 || e2 || e;
+        lastErr = e3;
+        // 4) Last resort: ImageData
+        try {
+          const id = wctx.getImageData(0, 0, work.width, work.height);
+          out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
+        } catch (e4) {
+          lastErr = e4;
+          throw lastErr;
+        }
       }
     }
   }
