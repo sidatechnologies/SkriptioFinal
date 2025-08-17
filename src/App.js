@@ -407,7 +407,7 @@ export function Studio() {
                                   while (displayOpts.length < 4) displayOpts.push(GENERICS[displayOpts.length % GENERICS.length]);
                                   displayOpts = displayOpts.slice(0, 4);
                                   const correctText = ((q.options[q.answer_index] ?? '') + '').trim();
-                                  let correctIdx = displayOpts.indexOf(correctText); if (correctIdx &lt; 0) correctIdx = 0;
+                                  let correctIdx = displayOpts.indexOf(correctText); if (correctIdx < 0) correctIdx = 0;
                                   const userIdx = Number.isInteger(answers[idx]) ? Math.min(Math.max(0, answers[idx]), 3) : null;
                                   return (
                                     <div className="text-xs text-foreground/80 space-y-1">
