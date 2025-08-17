@@ -166,7 +166,7 @@ function quickDeskew(srcCanvas) {
     for (const a of angles) {
       const rot = a === 0 ? test : rotateCanvas(test, a);
       const v = projVar(rot);
-      if (v &gt; bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
+      if (v > bestVar) { bestVar = v; best = a === 0 ? srcCanvas : rotateCanvas(srcCanvas, a); }
     }
     return best;
   } catch { return srcCanvas; }
