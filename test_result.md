@@ -455,10 +455,10 @@
 
 ## test_plan:
   current_focus:
-    - "Validate High‑accuracy OCR toggle loads model and produces text on sample page"
+    - "Validate High‑accuracy OCR toggle fails fast when unavailable and fast OCR fallback works"
     - "Fix dropdown styling in light theme - StudioNav mobile dropdown and difficulty selects need white background, black text, black arrow"
     - "Fix Summariser default state - Short should be highlighted by default, not Medium"
-    - "Verify TrOCR input fix: upload handwritten PDF with High‑accuracy ON and ensure typed text appears with no console errors"
+    - "Verify default fast OCR is quicker and more accurate on sample handwritten PDF"
     - "Verify FloatingMenu shows only Feedback and Merch"
   stuck_tasks: []
   test_all: false
