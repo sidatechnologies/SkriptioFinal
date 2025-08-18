@@ -10,6 +10,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF } from "../utils/textProcessor";
 import { extractTextFromPDFHighAcc, prefetchTrocr, isTrocrAvailable } from "../utils/ocr_tr";
+import { ocrPdfViaBackend } from "../utils/ocr_backend";
 import { getJsPDF } from "../utils/pdf";
 import { Switch } from "../components/ui/switch";
 import { Helmet } from "react-helmet-async";
@@ -72,30 +73,33 @@ export default function StudioHandwriting() {
     if (!file) return;
     setLoading(true);
     try {
-      if (highAcc) {
-        if (!highAccAvailable || !isTrocrAvailable()) {
-          toast({ title: 'High‑accuracy OCR unavailable', description: 'Using fast OCR instead.' });
-          const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
-          setText(extracted || "");
+      // 1) Prefer backend OCR for speed/accuracy (no keys, no extra hosting)
+      try {
+        const backendText = await ocrPdfViaBackend(file, { maxPages: 8, scale: 1.7 });
+        if (backendText && backendText.length >= 12) {
+          setText(backendText);
           return;
         }
-        // Try high-accuracy mode with an internal fast timeout; fallbacks handled inside
-        const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 5 });
-        setText(extracted || "");
-      } else {
-        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
-        setText(extracted || "");
+      } catch (be) {
+        console.debug('Backend OCR unavailable, falling back to client OCR', be?.message || be);
       }
+
+      // 2) If High‑accuracy is toggled and available, try TrOCR
+      if (highAcc && isTrocrAvailable()) {
+        try {
+          const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 5 });
+          if (extracted && extracted.length) { setText(extracted); return; }
+        } catch (e) {
+          console.debug('High-accuracy failed, will use fast OCR', e?.message || e);
+        }
+      }
+
+      // 3) Fallback to fast client-side OCR
+      const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
+      setText(extracted || "");
     } catch (e) {
-      console.debug('High-accuracy failed, falling back to fast OCR', e?.message || e);
-      try {
-        toast({ title: 'High‑accuracy OCR unavailable', description: 'Falling back to fast OCR (on‑device).' });
-        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
-        setText(extracted || "");
-      } catch (e2) {
-        console.error(e2);
-        toast({ title: 'OCR failed', description: 'Please try another PDF or disable High‑accuracy.' });
-      }
+      console.error(e);
+      toast({ title: 'OCR failed', description: 'Please try another PDF.' });
     } finally { setLoading(false); }
   };
 
@@ -121,7 +125,7 @@ export default function StudioHandwriting() {
     <div className="min-h-screen bg-background text-foreground">
       <Helmet>
         <title>Skriptio — Handwriting to Typed Text (On-device OCR)</title>
-        <meta name="description" content="Convert handwritten PDFs into clean typed text using on-device OCR. Optional high-accuracy neural TrOCR. Private — everything runs in your browser." />
+        <meta name="description" content="Convert handwritten PDFs into clean typed text using on-device OCR or server-accelerated OCR. Optional high-accuracy neural TrOCR." />
         <link rel="canonical" href="https://skriptio.sidahq.com/studio/handwriting" />
         <meta property="og:title" content="Skriptio — Handwriting to Typed Text" />
         <meta property="og:description" content="Upload a handwritten PDF and get a neat typed transcript. Optional high-accuracy TrOCR." />
@@ -151,7 +155,7 @@ export default function StudioHandwriting() {
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle>Upload PDF</CardTitle>
-                <CardDescription>Handwritten text PDFs work best. Processing happens in your browser.</CardDescription>
+                <CardDescription>Handwritten text PDFs work best. Processing is local or server-accelerated (no keys, no DB).</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Input type="file" accept="application/pdf" ref={fileRef} onChange={e => setFile(e.target.files?.[0] || null)} disabled={loading} className="hidden" />
@@ -163,12 +167,12 @@ export default function StudioHandwriting() {
                 <div className="flex items-center justify-between py-2 px-3 rounded-md border border-border/70 bg-background/40">
                   <div className="text-sm">
                     <div className="font-medium">Experimental: High‑accuracy OCR</div>
-                    <div className="text-xs text-foreground/70">TrOCR on-device. First run downloads model in background; faster next time.</div>
+                    <div className="text-xs text-foreground/70">Neural TrOCR (on-device) used only if available; backend OCR is default.</div>
                   </div>
                   <Switch checked={highAcc} onCheckedChange={setHighAcc} disabled={loading || !highAccAvailable} />
                 </div>
                 {!highAccAvailable && (
-                  <div className="text-xs text-foreground/60">High‑accuracy model not available right now. Please check your connection or try again later.</div>
+                  <div className="text-xs text-foreground/60">High‑accuracy model not available right now. Backend or fast OCR will be used.</div>
                 )}
 
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
@@ -177,9 +181,9 @@ export default function StudioHandwriting() {
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
-                    <li>Default path is fast OCR with advanced preprocessing.</li>
-                    <li>High‑accuracy mode uses a neural model (on‑device, private) for tougher handwriting.</li>
-                    <li>No uploads. Everything runs in your browser.</li>
+                    <li>Default path is server‑accelerated OCR (free, no DB/keys).</li>
+                    <li>Fallbacks: on-device High‑accuracy TrOCR (if available), then fast OCR.</li>
+                    <li>No uploads outside your deployment. Everything stays within your environment.</li>
                   </ul>
                 </div>
               </CardContent>
