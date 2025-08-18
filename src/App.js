@@ -17,7 +17,7 @@ import "./App.css";
 import { friendlySlugFromString } from "./utils/shortener";
 import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
-import StudioHandwriting from "./pages/StudioHandwriting";
+// import StudioHandwriting from "./pages/StudioHandwriting";
 import StudioSummariser from "./pages/StudioSummariser";
 import KitRoute from "./pages/KitRoute";
 import FloatingMenu from "./components/FloatingMenu";
