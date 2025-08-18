@@ -435,7 +435,7 @@ function sentenceShape(text) {
   const paras = merged.split(/\n\n+/).map(p => p.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim()).filter(Boolean);
   const out = [];
   for (const p of paras) {
-    const parts = p.split(/(?&lt;=[\.!?])\s+/); // simple splitter
+    const parts = p.split(/(?<=[\.!?])\s+/); // simple splitter
     for (let s of parts) {
       s = s.trim();
       if (s.length &lt; 20) continue;
