@@ -1,12 +1,7 @@
 export async function ocrPdfViaBackend(file, opts = {}) {
-  const { maxPages = 8, scale = 1.6, backendUrl = (process.env.REACT_APP_BACKEND_URL || (typeof import !== 'undefined' ? (import.meta?.env?.REACT_APP_BACKEND_URL) : undefined)) } = opts;
-  if (!backendUrl) {
-    const err = new Error('Missing REACT_APP_BACKEND_URL');
-    err.code = 'NO_BACKEND_URL';
-    throw err;
-  }
-  const base = String(backendUrl).replace(/\/+$/, '');
-  const apiBase = base.endsWith('/api') ? base : `${base}/api`;
+  const { maxPages = 8, scale = 1.6, basePath } = opts;
+  // Use same-origin relative API path. No envs required.
+  const apiBase = (basePath || '/api').replace(/\/+$/, '');
   const url = `${apiBase}/ocr/pdf`;
 
   const fd = new FormData();
@@ -15,7 +10,7 @@ export async function ocrPdfViaBackend(file, opts = {}) {
   fd.append('scale', String(scale));
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
+  const timeout = setTimeout(() => controller.abort(), 25000);
   let res;
   try {
     res = await fetch(url, { method: 'POST', body: fd, signal: controller.signal });
