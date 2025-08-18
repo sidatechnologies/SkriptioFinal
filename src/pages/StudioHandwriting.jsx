@@ -9,7 +9,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF } from "../utils/textProcessor";
-import { extractTextFromPDFHighAcc, prefetchTrocr } from "../utils/ocr_tr";
+import { extractTextFromPDFHighAcc, prefetchTrocr, isTrocrAvailable } from "../utils/ocr_tr";
 import { getJsPDF } from "../utils/pdf";
 import { Switch } from "../components/ui/switch";
 import { Helmet } from "react-helmet-async";
@@ -25,7 +25,7 @@ export default function StudioHandwriting() {
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      try { await prefetchTrocr(); setHighAccAvailable(true); }
+      try { await prefetchTrocr(); setHighAccAvailable(isTrocrAvailable()); }
       catch { setHighAccAvailable(false); }
     }, 600);
     return () => clearTimeout(t);
@@ -73,19 +73,24 @@ export default function StudioHandwriting() {
     setLoading(true);
     try {
       if (highAcc) {
-        // Try high-accuracy mode with a hard timeout via the helper in ocr_tr
+        if (!highAccAvailable || !isTrocrAvailable()) {
+          toast({ title: 'High‑accuracy OCR unavailable', description: 'Using fast OCR instead.' });
+          const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
+          setText(extracted || "");
+          return;
+        }
+        // Try high-accuracy mode with an internal fast timeout; fallbacks handled inside
         const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 5 });
         setText(extracted || "");
       } else {
-        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
+        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
         setText(extracted || "");
       }
     } catch (e) {
-      console.error(e);
-      // Fallback to fast OCR automatically if high-accuracy fails or times out
+      console.debug('High-accuracy failed, falling back to fast OCR', e?.message || e);
       try {
         toast({ title: 'High‑accuracy OCR unavailable', description: 'Falling back to fast OCR (on‑device).' });
-        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 2.0 });
+        const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
         setText(extracted || "");
       } catch (e2) {
         console.error(e2);

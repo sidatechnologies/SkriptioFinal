@@ -7,6 +7,7 @@
 
 let trocrPipeline = null;
 let transformers = null;
+let trocrAvail = null; // null unknown, true available, false unavailable
 
 async function loadTransformers() {
   if (transformers) return transformers;
@@ -60,15 +61,16 @@ async function getTrocrPipeline() {
   // Reduce ONNX Runtime verbosity if accessible globally (best-effort, harmless if missing)
   try { if (globalThis.ort?.env) { globalThis.ort.env.logLevel = 'error'; } } catch {}
 
+  const LOAD_TIMEOUT = 9000; // shorter, fail-fast
   const loadWithFallbacks = async () => {
     try {
-      return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true }), 20000, 'load trocr-small-handwritten');
+      return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-handwritten', { quantized: true }), LOAD_TIMEOUT, 'load trocr-small-handwritten');
     } catch (e1) {
       try {
-        return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true }), 20000, 'load trocr-base-handwritten');
+        return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-base-handwritten', { quantized: true }), LOAD_TIMEOUT, 'load trocr-base-handwritten');
       } catch (e2) {
         try {
-          return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true }), 20000, 'load trocr-small-printed');
+          return await withTimeout(pipeline('image-to-text', 'Xenova/trocr-small-printed', { quantized: true }), LOAD_TIMEOUT, 'load trocr-small-printed');
         } catch (e3) {
           const err = new Error('Failed to initialize TrOCR (image-to-text). Please check network access to model CDN and try again.');
           err.cause = e3 || e2 || e1;
@@ -81,6 +83,10 @@ async function getTrocrPipeline() {
   const restoreLogs = silenceOrtLogsTemporarily();
   try {
     trocrPipeline = await loadWithFallbacks();
+    trocrAvail = true;
+  } catch (e) {
+    trocrAvail = false;
+    throw e;
   } finally {
     if (restoreLogs) restoreLogs();
   }
@@ -88,8 +94,10 @@ async function getTrocrPipeline() {
 }
 
 export async function prefetchTrocr() {
-  try { await withTimeout(getTrocrPipeline(), 15000, 'prefetch trocr'); } catch (e) { /* ignore prefetch errors */ }
+  try { await withTimeout(getTrocrPipeline(), 6000, 'prefetch trocr'); } catch (e) { trocrAvail = false; /* ignore prefetch errors */ }
 }
+
+export function isTrocrAvailable() { return !!trocrAvail; }
 
 function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
 
@@ -222,10 +230,11 @@ export async function recognizeCanvasTrocr(canvas) {
   // Robust input handoff to Transformers.js pipeline to avoid RawImage "Unsupported input type: object"
   let out;
   let lastErr;
+  const INF_TIMEOUT = 9000; // quicker inference cap
   // 1) Try ImageBitmap (fast path where supported)
   try {
     const bitmap = await (window.createImageBitmap ? window.createImageBitmap(work) : Promise.reject(new Error('no ImageBitmap')));
-    out = await withTimeout(pipe(bitmap), 20000, 'trocr inference (imagebitmap)');
+    out = await withTimeout(pipe(bitmap), INF_TIMEOUT, 'trocr inference (imagebitmap)');
   } catch (e1) {
     lastErr = e1;
     // 2) Try HTMLImageElement from data URL
@@ -238,19 +247,19 @@ export async function recognizeCanvasTrocr(canvas) {
         im.onerror = (err) => reject(err);
         im.src = dataUrl;
       });
-      out = await withTimeout(pipe(img), 20000, 'trocr inference (img)');
+      out = await withTimeout(pipe(img), INF_TIMEOUT, 'trocr inference (img)');
     } catch (e2) {
       lastErr = e2;
       // 3) Try string data URL directly
       try {
         const dataUrl = work.toDataURL('image/png', 0.94);
-        out = await withTimeout(pipe(dataUrl), 20000, 'trocr inference (data url)');
+        out = await withTimeout(pipe(dataUrl), INF_TIMEOUT, 'trocr inference (data url)');
       } catch (e3) {
         lastErr = e3;
         // 4) Last resort: ImageData
         try {
           const id = wctx.getImageData(0, 0, work.width, work.height);
-          out = await withTimeout(pipe(id), 20000, 'trocr inference (imagedata)');
+          out = await withTimeout(pipe(id), INF_TIMEOUT, 'trocr inference (imagedata)');
         } catch (e4) {
           lastErr = e4;
           throw lastErr;
