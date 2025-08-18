@@ -123,7 +123,7 @@ function contrastStretch(canvas, lowPct = 0.03, highPct = 0.97) {
   const img = ctx.getImageData(0, 0, W, H);
   const d = img.data;
   const hist = new Array(256).fill(0);
-  for (let i = 0; i &lt; d.length; i += 4) {
+  for (let i = 0; i < d.length; i += 4) {
     const v = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
     hist[v]++;
   }
