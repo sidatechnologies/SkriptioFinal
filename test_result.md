@@ -107,15 +107,18 @@
 ## backend:
   - task: "Add backend OCR endpoint: POST /api/ocr/pdf (RapidOCR)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/main.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Server-side OCR using RapidOCR + PyMuPDF; no keys or DB. Bound to /api/ocr/pdf. Frontend integrated with fallback to on-device OCR."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASS: Backend OCR API fully functional. Fixed NumPy compatibility issue (downgraded to numpy<2) and created server.py symlink for supervisor. All tests passed: 1) GET /api/healthz returns 200 with ok:true (65ms response time), 2) POST /api/ocr/pdf successfully processes PDF with 'Hello OCR' text and extracts correct content (8.4s response time), 3) Invalid file handling returns proper 400 error with JSON error message. Backend accessible at https://96c853a2-7d6b-4a73-b527-c6dc8563fadd.preview.emergentagent.com/api. RapidOCR working correctly with PyMuPDF for PDF rendering."
 
 
 ## frontend:
