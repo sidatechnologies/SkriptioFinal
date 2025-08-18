@@ -485,7 +485,6 @@ export default function App() {
       <Route path="/studio" element={<StudioHub />} />
       <Route path="/studio/kit/*" element={<KitRoute />} />
       <Route path="/studio/:title/:code" element={<Studio />} />
-      <Route path="/studio/handwriting" element={<StudioHandwriting />} />
       <Route path="/studio/summariser" element={<StudioSummariser />} />
       <Route path="/merch" element={<Merch />} />
     </Routes>
