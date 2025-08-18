@@ -76,12 +76,15 @@ export default function StudioHandwriting() {
       // 1) Prefer backend OCR for speed/accuracy (no keys, no extra hosting)
       try {
         const backendText = await ocrPdfViaBackend(file, { maxPages: 8, scale: 1.7 });
-        if (backendText && backendText.length >= 12) {
+        if (backendText && backendText.length >= 8) {
           setText(backendText);
           return;
+        } else {
+          toast({ title: 'Backend OCR returned no text', description: 'Falling back to local OCR.' });
         }
       } catch (be) {
         console.debug('Backend OCR unavailable, falling back to client OCR', be?.message || be);
+        toast({ title: 'Backend OCR unavailable', description: 'Using local OCR instead.' });
       }
 
       // 2) If High‑accuracy is toggled and available, try TrOCR
