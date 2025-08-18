@@ -108,7 +108,7 @@
   - task: "Add backend OCR endpoint: POST /api/ocr/pdf (RapidOCR)"
     implemented: true
     working: true
-    file: "/app/backend/main.py"
+    file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -119,6 +119,9 @@
       - working: true
         agent: "testing"
         comment: "✅ PASS: Backend OCR API fully functional. Fixed NumPy compatibility issue (downgraded to numpy<2) and created server.py symlink for supervisor. All tests passed: 1) GET /api/healthz returns 200 with ok:true (65ms response time), 2) POST /api/ocr/pdf successfully processes PDF with 'Hello OCR' text and extracts correct content (8.4s response time), 3) Invalid file handling returns proper 400 error with JSON error message. Backend accessible at https://studykit-fix.preview.emergentagent.com/api. RapidOCR working correctly with PyMuPDF for PDF rendering."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Backend OCR API working perfectly after fixing dependency issues. Fixed PyMuPDF compatibility by downgrading to v1.21.1, installed missing dependencies (opencv-python, pyyaml, pyclipper, shapely), and downgraded numpy<2 for RapidOCR compatibility. All 3 tests passed: Health check (65ms), OCR processing with perfect text extraction (16.2s), and proper error handling for invalid files. Backend fully operational and ready for production use."
 
 
 ## frontend:
