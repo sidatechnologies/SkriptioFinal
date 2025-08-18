@@ -10,7 +10,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
 import { extractTextFromPDF } from "../utils/textProcessor";
 import { extractTextFromPDFHighAcc, prefetchTrocr, isTrocrAvailable } from "../utils/ocr_tr";
-import { ocrPdfViaBackend } from "../utils/ocr_backend";
+import { ocrPdfViaServer } from "../utils/ocr_server";
 import { getJsPDF } from "../utils/pdf";
 import { Switch } from "../components/ui/switch";
 import { Helmet } from "react-helmet-async";
@@ -79,7 +79,7 @@ export default function StudioHandwriting() {
       try {
         setStatus('Using backend OCR...');
         console.time('backend-ocr');
-        const backendText = await ocrPdfViaBackend(file, { maxPages: 8, scale: 1.7 });
+        const backendText = await ocrPdfViaServer(file, { maxPages: 8, scale: 1.7 });
         console.timeEnd('backend-ocr');
         if (backendText && backendText.length >= 8) {
           setText(backendText);
@@ -90,8 +90,7 @@ export default function StudioHandwriting() {
         }
       } catch (be) {
         console.debug('Backend OCR unavailable', be);
-        const msg = be?.code === 'NO_BACKEND_URL' ? 'Backend URL missing' : (be?.message || 'Backend error');
-        toast({ title: 'Backend OCR unavailable', description: msg });
+        toast({ title: 'Backend OCR unavailable', description: be?.message || 'Backend error' });
       }
 
       // 2) If High‑accuracy is toggled and available, try TrOCR
