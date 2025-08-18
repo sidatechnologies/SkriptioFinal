@@ -118,7 +118,7 @@
         comment: "Server-side OCR using RapidOCR + PyMuPDF; no keys or DB. Bound to /api/ocr/pdf. Frontend integrated with fallback to on-device OCR."
       - working: true
         agent: "testing"
-        comment: "✅ PASS: Backend OCR API fully functional. Fixed NumPy compatibility issue (downgraded to numpy<2) and created server.py symlink for supervisor. All tests passed: 1) GET /api/healthz returns 200 with ok:true (65ms response time), 2) POST /api/ocr/pdf successfully processes PDF with 'Hello OCR' text and extracts correct content (8.4s response time), 3) Invalid file handling returns proper 400 error with JSON error message. Backend accessible at https://96c853a2-7d6b-4a73-b527-c6dc8563fadd.preview.emergentagent.com/api. RapidOCR working correctly with PyMuPDF for PDF rendering."
+        comment: "✅ PASS: Backend OCR API fully functional. Fixed NumPy compatibility issue (downgraded to numpy<2) and created server.py symlink for supervisor. All tests passed: 1) GET /api/healthz returns 200 with ok:true (65ms response time), 2) POST /api/ocr/pdf successfully processes PDF with 'Hello OCR' text and extracts correct content (8.4s response time), 3) Invalid file handling returns proper 400 error with JSON error message. Backend accessible at https://studykit-fix.preview.emergentagent.com/api. RapidOCR working correctly with PyMuPDF for PDF rendering."
 
 
 ## frontend:
@@ -489,4 +489,4 @@
   - agent: "testing"
     message: "BACKEND TESTING COMPLETED: No backend infrastructure found to test. Application architecture confirmed as frontend-only with no server.py, API endpoints, database connections, or backend services. Review request explicitly confirmed frontend-only design. Testing agent role complete - no backend testing required or possible."
   - agent: "testing"
-    message: "✅ BACKEND OCR API TESTING COMPLETED: Successfully tested new backend OCR endpoint. Fixed critical NumPy compatibility issue (downgraded to numpy<2) that was preventing RapidOCR from loading. Created server.py symlink for supervisor compatibility. All 3 tests passed: Health check (65ms), PDF OCR processing with correct text extraction (8.4s), and proper error handling for invalid files. Backend fully operational at https://96c853a2-7d6b-4a73-b527-c6dc8563fadd.preview.emergentagent.com/api. Ready for frontend integration testing."
+    message: "✅ BACKEND OCR API TESTING COMPLETED: Successfully tested new backend OCR endpoint. Fixed critical NumPy compatibility issue (downgraded to numpy<2) that was preventing RapidOCR from loading. Created server.py symlink for supervisor compatibility. All 3 tests passed: Health check (65ms), PDF OCR processing with correct text extraction (8.4s), and proper error handling for invalid files. Backend fully operational at https://studykit-fix.preview.emergentagent.com/api. Ready for frontend integration testing."
