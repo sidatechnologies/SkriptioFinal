@@ -20,6 +20,7 @@ export default function StudioHandwriting() {
   const [file, setFile] = useState(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
   const [highAcc, setHighAcc] = useState(false);
   const [highAccAvailable, setHighAccAvailable] = useState(true);
   const fileRef = useRef();
@@ -72,36 +73,50 @@ export default function StudioHandwriting() {
   const handleConvert = async () => {
     if (!file) return;
     setLoading(true);
+    setStatus("");
     try {
       // 1) Prefer backend OCR for speed/accuracy (no keys, no extra hosting)
       try {
+        setStatus('Using backend OCR...');
+        console.time('backend-ocr');
         const backendText = await ocrPdfViaBackend(file, { maxPages: 8, scale: 1.7 });
+        console.timeEnd('backend-ocr');
         if (backendText && backendText.length >= 8) {
           setText(backendText);
+          setStatus('');
           return;
         } else {
           toast({ title: 'Backend OCR returned no text', description: 'Falling back to local OCR.' });
         }
       } catch (be) {
-        console.debug('Backend OCR unavailable, falling back to client OCR', be?.message || be);
-        toast({ title: 'Backend OCR unavailable', description: 'Using local OCR instead.' });
+        console.debug('Backend OCR unavailable', be);
+        const msg = be?.code === 'NO_BACKEND_URL' ? 'Backend URL missing' : (be?.message || 'Backend error');
+        toast({ title: 'Backend OCR unavailable', description: msg });
       }
 
       // 2) If High‑accuracy is toggled and available, try TrOCR
       if (highAcc && isTrocrAvailable()) {
         try {
+          setStatus('Using high‑accuracy OCR...');
+          console.time('trocr-ocr');
           const extracted = await extractTextFromPDFHighAcc(file, { maxPages: 5 });
-          if (extracted && extracted.length) { setText(extracted); return; }
+          console.timeEnd('trocr-ocr');
+          if (extracted && extracted.length) { setText(extracted); setStatus(''); return; }
         } catch (e) {
-          console.debug('High-accuracy failed, will use fast OCR', e?.message || e);
+          console.debug('High-accuracy failed', e);
         }
       }
 
       // 3) Fallback to fast client-side OCR
+      setStatus('Using fast local OCR...');
+      console.time('fast-ocr');
       const extracted = await extractTextFromPDF(file, { forceOCR: true, betterAccuracy: true, ocrScale: 1.6, maxPages: 10 });
+      console.timeEnd('fast-ocr');
       setText(extracted || "");
+      setStatus('');
     } catch (e) {
       console.error(e);
+      setStatus('');
       toast({ title: 'OCR failed', description: 'Please try another PDF.' });
     } finally { setLoading(false); }
   };
@@ -181,6 +196,7 @@ export default function StudioHandwriting() {
                 <Button disabled={!file || loading} onClick={handleConvert} className="w-full">
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Converting...</> : <><Type className="mr-2 h-4 w-4"/> Convert to typed text</>}
                 </Button>
+                {status && <div className="text-xs text-foreground/70">{status}</div>}
                 <div className="text-xs text-foreground/70">
                   Notes:
                   <ul className="list-disc pl-5 space-y-1 mt-1">
