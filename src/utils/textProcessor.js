@@ -880,24 +880,27 @@ function buildFormulaQuestion(formula, formulas, qi = 0, explain = false) { cons
 function buildClozeQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const stem = removePhraseOnce(s, phrase); const question = `Fill in the blank: ${summarizeSentence(stem, 150)}`; const correct = phrase; const distractPool = phrases.filter(p => p !== phrase).slice(0, 12); const opts = distinctFillOptions(correct, distractPool, [], [], 4); const placed = placeDeterministically(opts, correct, (qi + 2) % 4); return { id: `z-${qi}-${detIndex(phrase)}`, type: 'cloze', question, options: placed.arranged, answer_index: placed.idx, explanation: explain ? `The blank corresponds to the key term "${phrase}" from the material.` : '' }; }
 
 function buildQuiz(text, phrases, formulas, opts = {}) {
-  const rawSentences = splitSentences(text || '');
+  const sentences = splitSentences(text || '');
   const { difficulty = 'balanced', includeFormulas = true, explain = false } = opts;
   const out = []; const uniquePhrases = []; const seen = new Set(); for (const p of phrases) { const key = normalizeEquivalents(p); if (seen.has(key)) continue; seen.add(key); uniquePhrases.push(p); }
-  let goodSentences = rawSentences;
-  try { // ML-assisted ranking with fast deadline
-    // eslint-disable-next-line no-undef
-    goodSentences = (typeof window !== 'undefined') ? goodSentences : rawSentences;
-  } catch {}
-  // If ML is available, select top central sentences quickly
-  // We will resolve best sentences in generateArtifacts and pass down, but keep a fallback here
-  const total = 10; let wantFormula = includeFormulas ? (difficulty === 'balanced' ? 1 : 2) : 0; wantFormula = Math.min(wantFormula, (formulas || []).length, 2);
-  const usedQuestionTexts = new Set();
-  for (let i = 0; i < wantFormula && out.length < total; i++) {
-    const q = buildFormulaQuestion(formulas[i], formulas, i, explain);
-    if (!usedQuestionTexts.has(q.question)) { out.push(q); usedQuestionTexts.add(q.question); }
+  const total = 10;
+  // Filter formulas for readability and cap to avoid repetition
+  const goodFormulas = (formulas || []).filter(f => isReadableOption(f)).slice(0, 8);
+  let wantFormula = includeFormulas ? (difficulty === 'balanced' ? 1 : 2) : 0; wantFormula = Math.min(wantFormula, goodFormulas.length);
+  for (let i = 0; i < wantFormula && out.length < total; i++) out.push(buildFormulaQuestion(goodFormulas[i], goodFormulas, i, explain));
+  let qi = 0; for (const p of uniquePhrases) { if (out.length >= total) break; const builder = (qi % 2 === 0) ? buildConceptQuestion : buildClozeQuestion; out.push(builder(p, sentences, uniquePhrases, qi, explain)); qi++; }
+  let si = 0; while (out.length < total && si < sentences.length) { const s = sentences[si++]; const correct = summarizeSentence(s, 160); const distract = sentences.filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 150)); const opts2 = distinctFillOptions(correct, distract, [], phrases, 4); const placed = placeDeterministically(opts2, correct, (out.length + 1) % 4); out.push({ id: `s-${out.length}-${detIndex(s)}`, type: 'statement', question: `Which statement is supported by the material?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? 'This statement is derived from the provided content.' : '' }); }
+  // Top-up to ensure exactly 10 questions
+  let filler = 0; while (out.length < total) {
+    const p = uniquePhrases[filler % Math.max(1, uniquePhrases.length)] || `Topic ${filler+1}`;
+    const s = sentences[filler % Math.max(1, sentences.length)] || `This statement relates to ${p}.`;
+    const correct = summarizeSentence(s, 150);
+    const distract = sentences.filter(x => x !== s).slice(0, 4).map(z => summarizeSentence(z, 140));
+    const opts2 = distinctFillOptions(correct, distract, [], phrases, 4);
+    const placed = placeDeterministically(opts2, correct, (out.length + 1) % 4);
+    out.push({ id: `t-${out.length}-${detIndex(p)}`, type: 'statement', question: `Which statement is supported by the material?`, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    filler++;
   }
-  let qi = 0; for (const p of uniquePhrases) { if (out.length >= total) break; const builder = (qi % 2 === 0) ? buildConceptQuestion : buildClozeQuestion; const q = builder(p, goodSentences, uniquePhrases, qi, explain); if (q && !usedQuestionTexts.has(q.question)) { out.push(q); usedQuestionTexts.add(q.question); } qi++; }
-  let si = 0; while (out.length < total && si < goodSentences.length) { const s = goodSentences[si++]; const correct = summarizeSentence(s, 160); const distract = goodSentences.filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 150)); const opts2 = distinctFillOptions(correct, distract, [], [], 4); const placed = placeDeterministically(opts2, correct, (out.length + 1) % 4); const q = { id: `s-${out.length}-${detIndex(s)}`, type: 'statement', question: `Which statement is supported by the material?`, options: placed.arranged, answer_index: placed.idx, explanation: explain ? 'This statement is derived from the provided content.' : '' }; if (!usedQuestionTexts.has(q.question)) { out.push(q); usedQuestionTexts.add(q.question); } }
   return out.slice(0, 10);
 }
 
