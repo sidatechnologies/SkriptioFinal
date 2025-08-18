@@ -892,19 +892,50 @@ function buildStudyPlan(phrases, sentences, k = 7) {
 export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
   try { prewarmML(); } catch {}
   const text = String(rawText || '');
-  const sentencesAll = splitSentences(text);
+  // Split sentences and create robust fallbacks
+  let sentencesAll = splitSentences(text);
+  if ((!sentencesAll || sentencesAll.length === 0) && (text || '').trim().length > 0) {
+    const rough = (text || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const merged = rough.join(' ');
+    const chunks = merged.split(/(?<=[\.!?])\s+/).map(s => s.trim()).filter(Boolean);
+    sentencesAll = chunks.length ? chunks : [merged.slice(0, 240) + (merged.length > 240 ? '…' : '')];
+  }
+
   // ML-assisted selection of better sentences
   let sentences = sentencesAll;
   try {
     const top = await selectTopSentences(sentencesAll, 160, 160);
     if (top && top.length >= 8) sentences = top;
   } catch {}
-  const draftPhrases = extractKeyPhrases(text, 24);
-  const phrases = refineKeyPhrases(draftPhrases, sentencesAll, providedTitle || '');
+
+  // Extract phrases, with fallback if empty
+  let draftPhrases = extractKeyPhrases(text, 24) || [];
+  let phrases = refineKeyPhrases(draftPhrases, sentencesAll, providedTitle || '');
+  if (!phrases || phrases.length === 0) {
+    const toks = tokenize(text).filter(t => !STOPWORDS.has(t) && t.length >= 4);
+    const freq = new Map();
+    for (const t of toks) freq.set(t, (freq.get(t) || 0) + 1);
+    phrases = Array.from(freq.entries()).sort((a,b)=>b[1]-a[1]).map(([w])=>w).slice(0, 16);
+    if (phrases.length === 0) {
+      // absolute fallback
+      phrases = Array.from({length: 7}, (_,i) => `Topic ${i+1}`);
+    }
+  }
+
   const formulas = extractFormulasFromText(text);
 
-  // Build quiz using curated sentences only
-  const quiz = buildQuiz(text, phrases, formulas, opts);
+  // Build quiz using curated sentences only; ensure non-empty fallback
+  let quiz = buildQuiz(text, phrases, formulas, opts) || [];
+  if (!Array.isArray(quiz) || quiz.length === 0) {
+    const pool = (sentences || []).slice(0, 6);
+    quiz = pool.map((s, idx) => {
+      const correct = summarizeSentence(s, 160);
+      const distract = (sentences || []).filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 150));
+      const opts2 = distinctFillOptions(correct, distract, [], phrases, 4);
+      const placed = placeDeterministically(opts2, correct, (idx + 1) % 4);
+      return { id: `fb-${idx}`, type: 'statement', question: 'Which statement is supported by the material?', options: placed.arranged, answer_index: placed.idx, explanation: '' };
+    }).slice(0, 6);
+  }
 
   // Build flashcards: prioritize Define:<term> with best matching sentence
   const defineCards = [];
@@ -917,14 +948,21 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       if (defineCards.length >= 8) break;
     } catch {}
   }
-  const extraPool = sentences.map(s => ensureCaseAndPeriod('A.', summarizeSentence(s, 200))).slice(0, 50);
+  const extraPool = (sentences || []).map(s => ensureCaseAndPeriod('A.', summarizeSentence(s, 200))).slice(0, 60);
   while (defineCards.length < 12 && extraPool.length) {
     const back = extraPool.shift();
+    if (!back) break;
     defineCards.push({ front: 'Key idea?', back });
+  }
+  if (defineCards.length === 0 && (text || '').trim().length) {
+    defineCards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('A.', summarizeSentence(text, 220)) });
   }
   const flashcards = defineCards.slice(0, 12);
 
-  const plan = buildStudyPlan(phrases, sentences, 7);
+  // Ensure plan uses real phrases when possible
+  let planPhrases = phrases && phrases.length ? phrases : Array.from({length:7}, (_,i)=>`Topic ${i+1}`);
+  const plan = buildStudyPlan(planPhrases, sentences, 7);
+
   const title = (providedTitle && providedTitle.trim()) || inferDocTitle(text, 'Study Kit');
   const kit = { title, quiz, flashcards, plan };
   try { const enhanced = await tryEnhanceArtifacts(kit, sentences, phrases, 140, opts); return enhanced || kit; } catch { return kit; }
