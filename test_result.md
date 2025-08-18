@@ -362,7 +362,7 @@
   file: "/app/src/pages/StudioHandwriting.jsx, /app/src/utils/textProcessor.js"
   stuck_count: 0
   priority: "high"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "NA"
       agent: "main"
@@ -370,6 +370,9 @@
     - working: true
       agent: "testing"
       comment: "✅ PASS: Handwriting tool UI tested on /studio/handwriting. Convert button properly disabled without file selection. Typed text area visible and functional. Upload control present and working. Page loads without crashes. Note: Actual OCR functionality not tested due to test environment limitations, but UI behavior is correct."
+    - working: true
+      agent: "main"
+      comment: "Improved accuracy with deskew, adaptive binarization, morphology, two-column detection, and timed multi-PSM passes. Faster default path and better results for messy handwriting."
 - task: "Fix dropdown styling in light theme"
   implemented: false
   working: false
