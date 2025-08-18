@@ -301,3 +301,53 @@ export async function tryEnhanceArtifacts(artifacts, sentences, keyphrases, dead
   rebuilt.quiz = enhancedQuiz;
   return rebuilt;
 }
+
+// --------- New lightweight helpers for better sentence selection ----------
+function hasVerb(s) { return /(\b(is|are|was|were|has|have|represents|means|refers|consists|contains|denotes|uses|used|measures|shows|indicates|describes|defines|computes|estimates)\b)/i.test(String(s || '')); }
+function isAllCaps(s) { const letters = String(s || '').replace(/[^A-Za-z]/g, ''); if (!letters) return false; const caps = letters.replace(/[^A-Z]/g, '').length; return caps / letters.length > 0.7; }
+function looksValidSentence(s) {
+  const t = String(s || '').trim();
+  if (t.length < 60 || t.length > 400) return false;
+  if (!hasVerb(t)) return false;
+  if (isAllCaps(t)) return false;
+  const nonAscii = (t.match(/[^\x20-\x7E\n]/g) || []).length;
+  if (nonAscii > Math.max(5, Math.floor(t.length * 0.1))) return false;
+  return true;
+}
+
+export async function selectTopSentences(sentences, maxOut = 120, deadlineMs = 160) {
+  const pool = (sentences || []).filter(looksValidSentence);
+  if (pool.length === 0) return [];
+  const vecs = await embedSentences(pool, deadlineMs);
+  if (!vecs) {
+    // Fallback: simple heuristic ranking by length (mid-length preferred)
+    return pool
+      .map(s => [s, Math.abs(180 - s.length)])
+      .sort((a, b) => a[1] - b[1])
+      .slice(0, maxOut)
+      .map(([s]) => s);
+  }
+  const { sentences: uniq, vectors } = dedupeByCosine(pool, vecs, 0.9);
+  const scores = centralityRank(vectors);
+  const idxs = scores.map((s, i) => [i, s]).sort((a, b) => b[1] - a[1]).slice(0, Math.min(maxOut, uniq.length)).map(([i]) => i);
+  return idxs.map(i => uniq[i]);
+}
+
+export async function bestSentenceForPhrase(phrase, sentences, deadlineMs = 160) {
+  const pool = (sentences || []).filter(looksValidSentence);
+  if (pool.length === 0) return '';
+  const vecs = await embedSentences([phrase, ...pool], deadlineMs);
+  if (!vecs) {
+    // Fallback regex match
+    const rx = new RegExp(`\\b${String(phrase).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'i');
+    const m = pool.find(s => rx.test(s));
+    return m || pool[0];
+  }
+  const qv = vecs[0];
+  let best = 0; let bestSim = -1;
+  for (let i = 0; i < pool.length; i++) {
+    const sim = cosine(qv, vecs[i + 1]);
+    if (sim > bestSim) { bestSim = sim; best = i; }
+  }
+  return pool[best];
+}

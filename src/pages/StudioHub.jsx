@@ -12,14 +12,24 @@ export default function StudioHub() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const CardCommon = ({ icon, title, desc, onOpen }) => (
-    <Card className="bg-card border border-black/70 dark:border-white/60">
+  const CardCommon = ({ icon, title, desc, onOpen, disabled = false }) => (
+    <Card className="bg-card border border-black/70 dark:border-white/60 relative">
+      {disabled && (
+        <div className="absolute inset-0 backdrop-blur-[2px] bg-background/40 z-10 rounded-md" />
+      )}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">{icon} {title}</CardTitle>
         <CardDescription>{desc}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button onClick={onOpen} className="bg-primary text-primary-foreground hover:bg-primary/90">Open <ArrowRight size={16} className="ml-1"/></Button>
+        <Button
+          onClick={onOpen}
+          disabled={disabled}
+          aria-disabled={disabled}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          Open <ArrowRight size={16} className="ml-1"/>
+        </Button>
       </CardContent>
     </Card>
   );
@@ -57,6 +67,7 @@ export default function StudioHub() {
         <StudioNav />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* 1. Study Kit */}
           <CardCommon
             icon={<FileText size={18}/>} 
             title="Study Kit Generator"
@@ -64,13 +75,7 @@ export default function StudioHub() {
             onOpen={() => navigate('/studio/kit')}
           />
 
-          <CardCommon
-            icon={<PenLine size={18}/>} 
-            title="Handwriting → Typed"
-            desc="Upload a handwritten text PDF and download a clean typed‑text PDF."
-            onOpen={() => navigate('/studio/handwriting')}
-          />
-
+          {/* 2. Summariser now in second slot */}
           <CardCommon
             icon={<Sparkles size={18}/>} 
             title="AI PDF Summariser"
@@ -78,7 +83,16 @@ export default function StudioHub() {
             onOpen={() => navigate('/studio/summariser')}
           />
 
-          {/* Coming soon */}
+          {/* 3. Handwriting moved to Coming Soon with frozen button */}
+          <CardCommon
+            icon={<PenLine size={18}/>} 
+            title="Handwriting → Typed (Coming soon)"
+            desc="Upload a handwritten text PDF and download a clean typed‑text PDF."
+            onOpen={() => {}}
+            disabled
+          />
+
+          {/* 4. Existing Coming soon */}
           <Card className="bg-card border border-black/70 dark:border-white/60 relative overflow-hidden">
             <div className="absolute inset-0 backdrop-blur-[2px] opacity-70 pointer-events-none" />
             <CardHeader>
