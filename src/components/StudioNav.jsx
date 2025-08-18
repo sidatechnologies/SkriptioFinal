@@ -21,7 +21,6 @@ export default function StudioNav() {
   const items = [
     { to: "/studio", label: "Studio" },
     { to: "/studio/kit", label: "Study Kit" },
-    { to: "/studio/handwriting", label: "Handwriting → Typed (Coming soon)", disabled: true },
     { to: "/studio/summariser", label: "PDF Summariser" },
   ];
 
