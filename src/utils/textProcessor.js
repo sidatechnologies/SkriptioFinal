@@ -835,7 +835,41 @@ export function buildFlashcards(sentences, phrases, total = 12, docTitle = '') {
 function ensureCaseAndPeriod(prefix = 'A.', text = '') { let t = String(text || '').trim(); if (!t) return `${prefix}`.trim(); t = fixMidwordSpaces(fixSpacing(t)); if (!/[\.!?]$/.test(t)) t += '.'; t = t.charAt(0).toUpperCase() + t.slice(1); return `${prefix} ${t}`.trim(); }
 function detIndex(str, n) { let h = 0; const s = String(str || ''); for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return n ? (h % n) : h; }
 function placeDeterministically(choices, correct, seed = 0) { const n = choices.length; const idx = Math.min(n - 1, (detIndex(String(correct), n) + seed) % n); const others = choices.filter(c => c !== correct); const arranged = new Array(n); arranged[idx] = correct; let oi = 0; for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; } return { arranged, idx }; }
-function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) { const selected = [String(correct || '').trim()]; const seen = new Set([selected[0].toLowerCase()]); const addIf = (opt) => { if (!opt) return false; const norm = String(opt).trim(); if (!norm) return false; if (seen.has(norm.toLowerCase())) return false; for (const s of selected) { if (tooSimilar(s, norm) || lexicalJaccard(s, norm) >= 0.7) return false; } selected.push(norm); seen.add(norm.toLowerCase()); return true; }; for (const c of (pool || [])) { if (selected.length >= needed) break; addIf(c); } if (selected.length < needed) { for (const c of (fallbackPool || [])) { if (selected.length >= needed) break; addIf(c); } } if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (String(c).trim().toLowerCase() === selected[0].toLowerCase()) continue; addIf(c); } } const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices']; let gi = 0; while (selected.length < needed && gi < generics.length) { addIf(generics[gi++]); } return selected.slice(0, needed); }
+function isReadableOption(str) {
+  const s = String(str || '').trim();
+  if (!s) return false;
+  const nonAscii = (s.match(/[^\x20-\x7E]/g) || []).length;
+  const badRun = (s.match(/[¢©®™~^{}<>\u00A0]/g) || []).length;
+  const letters = (s.match(/[A-Za-z]/g) || []).length;
+  const total = s.length;
+  if (nonAscii > Math.max(3, Math.floor(total * 0.12))) return false;
+  if (badRun >= 2) return false;
+  if (total >= 40 && letters / Math.max(1,total) < 0.45) return false;
+  return true;
+}
+function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
+  const selected = [String(correct || '').trim()];
+  const seen = new Set([selected[0].toLowerCase()]);
+  const addIf = (opt) => {
+    if (!opt) return false;
+    const norm = String(opt).trim();
+    if (!norm) return false;
+    if (!isReadableOption(norm)) return false;
+    if (seen.has(norm.toLowerCase())) return false;
+    for (const s of selected) { if (tooSimilar(s, norm) || lexicalJaccard(s, norm) >= 0.7) return false; }
+    selected.push(norm);
+    seen.add(norm.toLowerCase());
+    return true;
+  };
+  for (const c of (pool || [])) { if (selected.length >= needed) break; addIf(c); }
+  if (selected.length < needed) { for (const c of (fallbackPool || [])) { if (selected.length >= needed) break; addIf(c); } }
+  if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (String(c).trim().toLowerCase() === selected[0].toLowerCase()) continue; addIf(c); } }
+  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+  let gi = 0; while (selected.length < needed && gi < generics.length) { addIf(generics[gi++]); }
+  // final pad if still short
+  while (selected.length < needed) selected.push('Background theory');
+  return selected.slice(0, needed);
+}
 
 function inferDocTitle(text, fallback = 'Study Kit') { const lines = normalizeText(text).split(/\n+/).map(l => l.trim()); const first = lines.find(Boolean) || ''; return first.slice(0, 80) || fallback; }
 
