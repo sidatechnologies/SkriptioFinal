@@ -880,9 +880,11 @@ function buildStudyPlan(phrases, sentences, k = 7) {
     (p, s) => `Take the quiz again and track score for ${p}.`
   ];
   for (let i = 0; i < Math.min(k, topics.length || k); i++) {
-    const p = topics[i] || `Focus ${i + 1}`;
-    const sen = sentences.find(s => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s)) || '';
-    const dTasks = [tasks[0](p, sen), tasks[(i % (tasks.length - 1)) + 1](p, sen), tasks[(i + 2) % tasks.length](p, sen)];
+    const p = topics[i] || `Topic ${i + 1}`;
+    const sen = (sentences || []).find(s => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s)) || '';
+    const used = new Set();
+    const pick = (idx) => { let j = idx % tasks.length; let guard = 0; while (used.has(j) && guard < tasks.length) { j = (j + 1) % tasks.length; guard++; } used.add(j); return tasks[j](p, sen); };
+    const dTasks = [pick(0), pick(i + 1), pick(i + 2)];
     days.push({ title: `Day ${i + 1}: ${p}`, objectives: dTasks });
   }
   while (days.length < 7) { const n = days.length + 1; days.push({ title: `Day ${n}: Synthesis`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary connecting the main ideas', 'Do a timed self‑test (10 mins) and review mistakes' ] }); }
