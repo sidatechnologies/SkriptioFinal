@@ -438,7 +438,7 @@ function sentenceShape(text) {
     const parts = p.split(/(?<=[\.!?])\s+/); // simple splitter
     for (let s of parts) {
       s = s.trim();
-      if (s.length &lt; 20) continue;
+      if (s.length < 20) continue;
       // drop sentences with suspiciously few vowels
       const letters = s.replace(/[^A-Za-z]/g, '');
       const vowels = (letters.match(/[aeiouy]/gi) || []).length;
