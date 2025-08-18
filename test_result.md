@@ -104,7 +104,19 @@
 
 ## user_problem_statement: "Convert the full-stack Skriptio app to frontend-only while keeping design, UI and all other functionalities working. Session-only storage, remove recent functionality, no backend/database/API needed."
 
-## backend: []
+## backend:
+  - task: "Add backend OCR endpoint: POST /api/ocr/pdf (RapidOCR)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/main.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Server-side OCR using RapidOCR + PyMuPDF; no keys or DB. Bound to /api/ocr/pdf. Frontend integrated with fallback to on-device OCR."
+
 
 ## frontend:
   - task: "Ensure 4 options for every concept MCQ (pad when distractors are short)"
