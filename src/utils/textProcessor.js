@@ -896,7 +896,8 @@ function buildFormulaQuestion(formula, formulas, qi = 0, explain = false) { cons
 function buildClozeQuestion(phrase, sentences, phrases, qi = 0, explain = false) { const hasPhrase = (p, s) => new RegExp(`\\b${escapeRegExp(p)}\\b`, 'i').test(s); const s = sentences.find(ss => hasPhrase(phrase, ss) && ss.length >= 50) || sentences[qi % Math.max(1, sentences.length)] || ''; const stem = removePhraseOnce(s, phrase); const question = `Fill in the blank: ${summarizeSentence(stem, 150)}`; const correct = phrase; const distractPool = phrases.filter(p => p !== phrase).slice(0, 12); const opts = distinctFillOptions(correct, distractPool, [], [], 4); const placed = placeDeterministically(opts, correct, (qi + 2) % 4); { const formatted = finalizeOptions('cloze', placed.arranged, placed.idx); return { id: `z-${qi}-${detIndex(phrase)}`, type: 'cloze', question, options: formatted, answer_index: placed.idx, explanation: explain ? `The blank corresponds to the key term "${phrase}" from the material.` : '' }; } }
 
 function buildQuiz(text, phrases, formulas, opts = {}) {
-  const sentences = splitSentences(text || '');
+  const sentencesRaw = splitSentences(text || '');
+  const sentences = sentencesRaw.filter(s => hasVerb(s) && !isAuthorish(s) && !(PUBLISHER_DISCLAIMER_RX.test(s)) && !isAllCaps(s));
   const { difficulty = 'balanced', includeFormulas = true, explain = false } = opts;
   const out = []; const uniquePhrases = []; const seen = new Set(); for (const p of phrases) { const key = normalizeEquivalents(p); if (seen.has(key)) continue; seen.add(key); uniquePhrases.push(p); }
   const total = 10;
