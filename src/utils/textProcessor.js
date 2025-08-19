@@ -847,8 +847,57 @@ function harmonizeOptions(opts = [], correctIndex = 0) { const base = (opts[corr
 function formatFormulaOption(formula, variant = 0) { const f = String(formula || '').trim().replace(/[\.]+$/, ''); const T = [ (x) => `Formula: ${x}.`, (x) => `The formula shown is: ${x}.`, (x) => `The expression is: ${x}.` ]; const tpl = T[variant % T.length]; return ensureSentence(tpl(f)); }
 function formatTermOption(term, variant = 0) { const x = String(term || '').trim().replace(/[\.]+$/, ''); const T = [ (y) => `${y.charAt(0).toUpperCase() + y.slice(1)}.`, (y) => `The term is ${y}.`, (y) => `Concept: ${y}.` ]; const tpl = T[variant % T.length]; return ensureSentence(tpl(x)); }
 function paraphraseLight(s = '', seed = 0) { let t = String(s || '').trim(); if (!t) return t; t = fixMidwordSpaces(fixSpacing(t)); const table = [ [/[\b]utili[sz]e\b/gi, 'use'], [/\bconsists of\b/gi, 'is composed of'], [/\brefers to\b/gi, 'means'], [/\bindicates\b/gi, 'shows'], [/\bdemonstrates\b/gi, 'shows'], [/\bvarious\b/gi, 'several'], [/\bnumerous\b/gi, 'many'] ], [ [/\bimportant\b/gi, 'significant'], [/\bcrucial\b/gi, 'essential'], [/\bmajor\b/gi, 'primary'], [/\bminor\b/gi, 'small'], [/\bmethod\b/gi, 'approach'], [/\btechnique\b/gi, 'method'] ], [ [/\bshows that\b/gi, 'suggests that'], [/\bis defined as\b/gi, 'may be described as'], [/\bis known as\b/gi, 'is commonly called'], [/\bfor example\b/gi, 'for instance'] ] ]; const bucket = table[seed % table.length]; for (const [rx, rep] of bucket) t = t.replace(rx, rep); t = t.replace(/\([^)]{0,60}\)/g, ''); t = t.replace(/\[[^\]]{0,60}\]/g, ''); t = summarizeSentence(t, Math.min(200, Math.max(120, t.length))); return t; }
-function finalizeOptions(type, arranged = [], correctIdx = 0) { let formatted = arranged.map((o, i) => { if (type === 'formula') return formatFormulaOption(o, i); if (type === 'cloze') return formatTermOption(o, i); return ensureSentence(limitSentences(o, 2)); }); if (type !== 'formula' && type !== 'cloze') { for (let i = 0; i < formatted.length; i++) { if (i === correctIdx) continue; formatted[i] = ensureSentence(paraphraseLight(formatted[i], (i + 1) * (correctIdx + 3))); } } formatted = harmonizeOptions(formatted, correctIdx); // ensure no duplicates after harmonization
- const seen = new Set(); for (let i = 0; i < formatted.length; i++) { const k = formatted[i].toLowerCase(); if (seen.has(k)) { formatted[i] = ensureSentence(paraphraseLight(formatted[i], i + 7)); } seen.add(formatted[i].toLowerCase()); } return formatted; }
+function finalizeOptions(type, arranged = [], correctIdx = 0) { 
+  // Lightweight non‑LLM paraphraser scoped here to keep patch minimal
+  function paraphraseLight(s = '', seed = 0) {
+    let t = String(s || '').trim();
+    if (!t) return t;
+    t = fixMidwordSpaces(fixSpacing(t));
+    const buckets = [
+      [
+        [/\butili[sz]e\b/gi, 'use'], [/\bconsists of\b/gi, 'is composed of'], [/\brefers to\b/gi, 'means'], [/\bindicates\b/gi, 'shows'], [/\bdemonstrates\b/gi, 'shows'], [/\bvarious\b/gi, 'several'], [/\bnumerous\b/gi, 'many']
+      ],
+      [
+        [/\bimportant\b/gi, 'significant'], [/\bcrucial\b/gi, 'essential'], [/\bmajor\b/gi, 'primary'], [/\bminor\b/gi, 'small'], [/\bmethod\b/gi, 'approach'], [/\btechnique\b/gi, 'method']
+      ],
+      [
+        [/\bshows that\b/gi, 'suggests that'], [/\bis defined as\b/gi, 'may be described as'], [/\bis known as\b/gi, 'is commonly called'], [/\bfor example\b/gi, 'for instance']
+      ]
+    ];
+    const bucket = buckets[Math.abs(seed) % buckets.length];
+    for (const [rx, rep] of bucket) t = t.replace(rx, rep);
+    t = t.replace(/\([^)]{0,60}\)/g, '');
+    t = t.replace(/\[[^\]]{0,60}\]/g, '');
+    t = summarizeSentence(t, Math.min(200, Math.max(120, t.length)));
+    return t;
+  }
+
+  let formatted = arranged.map((o, i) => {
+    if (type === 'formula') return formatFormulaOption(o, i);
+    if (type === 'cloze') return formatTermOption(o, i);
+    return ensureSentence(limitSentences(o, 2));
+  });
+
+  // Paraphrase distractors so options are not copy‑pasted from the passage
+  if (type !== 'formula' && type !== 'cloze') {
+    for (let i = 0; i < formatted.length; i++) {
+      if (i === correctIdx) continue;
+      formatted[i] = ensureSentence(paraphraseLight(formatted[i], (i + 1) * (correctIdx + 3)));
+    }
+  }
+
+  formatted = harmonizeOptions(formatted, correctIdx);
+  // Ensure uniqueness after harmonization
+  const seen = new Set();
+  for (let i = 0; i < formatted.length; i++) {
+    const k = (formatted[i] || '').toLowerCase();
+    if (seen.has(k)) {
+      formatted[i] = ensureSentence(paraphraseLight(formatted[i], i + 7));
+    }
+    seen.add((formatted[i] || '').toLowerCase());
+  }
+  return formatted;
+}
 function detIndex(str, n) { let h = 0; const s = String(str || ''); for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return n ? (h % n) : h; }
 function placeDeterministically(choices, correct, seed = 0) { const n = choices.length; const idx = Math.min(n - 1, (detIndex(String(correct), n) + seed) % n); const others = choices.filter(c => c !== correct); const arranged = new Array(n); arranged[idx] = correct; let oi = 0; for (let i = 0; i < n; i++) { if (arranged[i]) continue; arranged[i] = others[oi++] || ''; } return { arranged, idx }; }
 function isReadableOption(str) {
