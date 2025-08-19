@@ -1,80 +1,82 @@
 <analysis>
-The previous AI engineer was tasked with resolving a critical black screen issue affecting the application's live deployment. The problem was meticulously diagnosed: the root path () was blank because its  component rendered nothing, while feature pages like  and  appeared black due to the browser attempting to load stale JavaScript chunk files that no longer existed on the server, a common Service Worker/cache mismatch problem.
-
-The engineer implemented several targeted fixes: restoring the  page and  page UIs to their original state, adding a robust Service Worker and cache kill-switch in  and  to force cache clearing upon first visit, and disabling code splitting in  to ensure a single, stable JavaScript bundle. All changes were made to preserve existing design and functionality. The fixes are committed, but a redeploy is essential for them to reflect on the live site, which is currently serving an outdated build causing the persistence of the black screen and preview stream timeout.
+The AI engineer successfully initiated the Studio Features implementation, focusing on the frontend as per instructions. The primary task involved developing the Study Kit Generator (quizzes, flashcards, study planner, theory questions) using specific open-source ML models. The engineer's approach involved setting up an  utility for model loading and inference, and integrating this into . This process revealed critical issues: 404s for model weights, WASM memory allocation failures, a PWA manifest icon error, and a React component definition bug. The engineer diligently debugged and applied targeted fixes, including switching to web-optimized model mirrors, implementing memory management strategies, generating correct PWA icons, and restoring missing component definitions. While core functionality for the Study Kit is claimed to be established, several console warnings persist, indicating areas for further refinement. The work has progressed iteratively with continuous user feedback and bug resolution.
 </analysis>
 
 <product_requirements>
-The primary user requirement was to fix a critical bug causing the entire website to be black, with none of the functionalities loading on the deployed application, . Initially, this issue was reported for the home page (). Subsequently, the user clarified that individual feature pages, specifically Study Kit () and Summariser (), were also affected by the black screen.
+The core objective is to build Studio Features for an educational application, strictly as a frontend-only implementation, without any backend or database. Speed and accuracy are non-negotiable, leveraging specified open-source ML/AI models and libraries.
 
-The user explicitly requested that the fix should remove the portions wherever the error is, and rebuild it, as it is. no change, minus the error. no change should be in design or functionality. This emphasizes that the solution must strictly address the technical errors without altering the existing visual design or functional behavior of the application. The goal was to restore the application to a fully functional and visible state across all affected routes.
+The features required are:
+1.  **Study Kit Generator**:
+    *   **Quiz Questions (10)**: Generate from PDF/text, excluding headings/author info. Questions and options must be unique, varied in difficulty, grammatically correct, with filler options similar to correct ones. Evaluation should show correctness and a concise explanation.
+    *   **Flashcards**: Extract concise, non-vague/generic topics from content for revision.
+    *   **7 Day Study Planner**: Generate a detailed, non-vague/generic 7-day plan from the content.
+    *   **Theory Questions**: Generate long-answer questions from the content.
+2.  **AI Summariser**: Summarize PDF/text content based on selected length (Short/Medium/Long). Output must be pointwise, exclude irrelevant text (headings, gibberish, author).
+3.  **Resume Builder**: Provide a professional, minimal live preview that updates automatically as fields are edited. PDF export is a future consideration.
+
+The existing UI style must be preserved, and prior logic for these features should be overwritten.
 </product_requirements>
 
 <key_technical_concepts>
-- **React Frontend:** Core framework for the application's UI.
-- **FastAPI Backend:** Provides API services.
-- **Service Workers:** Frontend technology for caching, identified as a source of stale content.
-- **Code Splitting (Webpack/Craco):** Build optimization that generated problematic hashed JS chunks.
-- **Build Caching/Stale Assets:** Root cause of  loading failures.
-- **Environment Variables:** Used for dynamic URL configuration (e.g., ).
+-   **Frontend ML/AI**: Running models entirely in the browser using , , .
+-   **Specific ML Models**:  (summarization, QG),  (embeddings),  (resume auto-suggestions, pending).
+-   **PDF Handling**: Utilizing  for text extraction.
+-   **Text Processing**: Employing  for cleaning.
+-   **PWA Standards**: Correctly configuring  for web app icons.
+-   **Error Recovery**: Implementing fallbacks (e.g., TF.js for embeddings) and memory management.
 </key_technical_concepts>
 
 <code_architecture>
-The application has a standard full-stack structure:
+The application structure is a standard full-stack setup, but current feature development is focused entirely on the  directory.
 
 
-Within the  directory, key files and their significance:
 
-- ****:
-    - **Importance**: Main React component defining application routes and top-level structure.
-    - **Changes Made**:
-        - Initially, the  component for the root path () was an empty stub, causing a black screen.
-        - First, it was temporarily modified to redirect to .
-        - Later, it was fully restored to its intended hero-like UI, including a header, description, and Open Studio CTA, without altering its original design.
-        - **Impact**: Resolved the black screen issue on the root path.
-
-- ****:
-    - **Importance**: Renders the UI for the Summariser feature, accessible at .
-    - **Changes Made**:
-        - The component was found to be rendering an empty container.
-        - Its full UI (header, , controls, card) was restored to ensure it renders correctly.
-        - **Impact**: Fixed the black screen specific to the  route.
-
-- ****:
-    - **Importance**: The entry point for the React application into the DOM and handles Service Worker registration.
-    - **Changes Made**:
-        - A one-time kill-switch was added to aggressively unregister all Service Workers and clear all browser caches on the first page load, followed by a reload.
-        - **Impact**: Prevents stale  from referencing old, non-existent JavaScript chunks, ensuring users get the latest build.
-
-- ****:
-    - **Importance**: The foundational HTML file for the frontend application.
-    - **Changes Made**:
-        - An additional JavaScript snippet was embedded as a safety net one-time kill-switch for Service Workers and caches.
-        - **Impact**: Works in tandem with  to ensure robust cache busting.
-
-- ****:
-    - **Importance**: Configuration file for customizing Create React App's Webpack settings without ejecting.
-    - **Changes Made**:
-        - Modified the Webpack configuration to disable code splitting () and runtime chunking ().
-        - **Impact**: Forces the application to build into a single  bundle, preventing future issues with stale  files trying to load missing hashed chunk files after redeployment.
+*   :
+    *   **Importance**: This new file centralizes the logic for loading and running machine learning models in the browser using . It contains functions for ,  (Question Generation), and  pipelines, which are crucial for the Study Kit features. It also includes error handling with fallbacks (e.g., to TensorFlow.js for embeddings) and memory optimization techniques.
+    *   **Changes Made**: This file was initially created to host the AI logic. It has been updated multiple times to:
+        *   Point to  for embeddings instead of  to resolve 404 errors.
+        *   Default to  for Question Generation after  caused 404s.
+        *   Implement sentence truncation (512 chars), total sentence capping (160), and batching (16) to prevent  memory errors during embedding, ensuring smoother performance on larger inputs.
+*   :
+    *   **Importance**: Serves as the main React application component. It defines the application's routes and integrates the various Studio Features functionality by calling functions from . It also manages the UI state related to input (text/PDF), generated content, and user interactions within the Study Kit.
+    *   **Changes Made**: Substantially modified to:
+        *   Integrate the  and other AI-powered functions from .
+        *   Display generated quizzes, flashcards, study plans, and theory questions.
+        *   Handle user quiz selections and evaluation logic, showing correct/wrong answers with explanations.
+        *   Show basic PDF file details (name, size, page count) upon upload.
+        *   Critically, the  component definition was restored to resolve a  that was crashing the app.
+*   :
+    *   **Importance**: This file provides metadata for the Progressive Web App (PWA), including app icons for various device sizes. Incorrect configuration can lead to PWA warnings or broken icon displays.
+    *   **Changes Made**: Updated to correctly specify PWA icons. Initially, the icon declarations were causing browser warnings due to potential size mismatches. It was revised to explicitly define  and  entries pointing to newly generated icons.
+*   :
+    *   **Importance**: This new build script (a modern JS module) uses the  library to automatically generate correctly sized PWA icons (, ) from a single source logo provided by the user. This automation ensures PWA compliance and consistent icon quality.
+    *   **Changes Made**: This file was newly created and integrated into the  script to ensure icon generation happens automatically after dependency installation.
 </code_architecture>
 
 <pending_tasks>
-- **User Action Required:** The user needs to trigger a fresh frontend deployment of the application for the implemented fixes to take effect on the live site.
+-   Implement the AI Summariser page (dedicated functionality).
+-   Enhance the Resume Builder with live preview and PDF export.
+-   Consider adding a visual first-page PDF preview under the upload panel, if the user explicitly requests it.
+-   Address persistent console warnings:  (numerous).
+-   Address  warning.
+-   Address  warning.
 </pending_tasks>
 
 <current_work>
-The AI engineer has successfully diagnosed and implemented fixes for the entire website is black issue. The problem was identified as twofold: the home page () was black because its  component was empty, and feature pages like  and  failed to load due to the browser attempting to fetch outdated JavaScript chunk files from cache, which no longer existed on the server.
+The immediate past work focused on stabilizing and fixing critical bugs within the **Study Kit Generator** features after their initial implementation. The Study Kit (Quiz, Flashcards, 7-Day Plan, Theory Questions) is functionally implemented to run entirely on the frontend using specified ML models.
 
-The following precise changes have been made to the codebase, ensuring no alteration to design or functionality:
-1.  **Home Page Fix:** The  component in  has been restored to its intended hero-like UI with a call-to-action, resolving the blank screen on the root route.
-2.  **Summariser Page Fix:** The  component in  was also rendering an empty container; its full UI has been restored.
-3.  **Cache/Service Worker Busting:** A robust one-time kill-switch mechanism has been added to both  and . This logic actively unregisters any old Service Workers and clears all cached site data on a user's first visit, followed by a page reload. This prevents stale  files from causing  issues with JavaScript chunks.
-4.  **Build Stability:** The  file has been modified to disable Webpack's code splitting. This ensures that the application builds into a single  file, eliminating the future risk of hashed chunk filename mismatches between deployed builds and user caches.
+Specifically:
+-   **Model Loading & Stability**:
+    -   The  model for embeddings now loads correctly by using its ONNX web mirror, , resolving previous 404 errors. A fallback to TF.js Universal Sentence Encoder is in place for resilience.
+    -   The  model for question generation was causing 404s. As per the user's explicit instruction, the system now defaults to  for QG.
+    -   Memory issues () during embedding large texts have been mitigated by implementing client-side data handling: sentences are truncated to 512 characters, a maximum of 160 sentences are processed, and processing occurs in batches of 16.
+-   **PWA Icon Fix**: The Progressive Web App (PWA) icon display issues, which caused console errors and warnings, have been addressed. A new script () was created to generate  and  PNG icons from the provided logo, and  was updated to correctly reference these generated assets, hooked into .
+-   **Application Crash Fix**: A critical  error, which prevented the application from loading, was resolved by restoring the missing  component definition in .
+-   **PDF Upload Feedback**: Upon PDF upload, the UI now provides immediate confirmation by displaying the file name, size, and page count, addressing user feedback about not seeing their uploaded PDF. A visual preview is pending.
 
-All these changes are present in the repository. However, the live deployed site () is still serving an older build. Consequently, the user's live preview and the internal preview for the AI engineer still show the black screen or stream timeout because they are interacting with the old, problematic build. The application's source code now contains the fixes, but they require a fresh frontend redeploy to become active on the public URL.
+While core functionality of the Study Kit Generator is believed to be operational with the required models, the console still displays numerous non-critical warnings related to ONNX Runtime's graph optimization (), a deprecated parameter in , and an undefined function warning in .
 </current_work>
 
 <optional_next_step>
-After the user redeploys the frontend, I will run an automated UI verification across /, /studio/kit, and /studio/summariser.
+Proceed with the implementation of the AI Summariser page.
 </optional_next_step>
