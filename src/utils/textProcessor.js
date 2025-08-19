@@ -690,6 +690,8 @@ function cleanOCROutput(text) {
 
 // Heuristic cleaners and NLP helpers
 function isAllCaps(s) { const letters = s.replace(/[^A-Za-z]/g, ''); if (!letters) return false; const caps = letters.replace(/[^A-Z]/g, '').length; return caps / letters.length > 0.7; }
+// Common publisher/authorish patterns to exclude from content-derived items
+const PUBLISHER_DISCLAIMER_RX = /(tata\s*mcgraw\s*-?\s*hill|mcgraw\s*-?\s*hill|pearson|wiley|isbn\b|all rights reserved|copyright|no responsibility|this work is published|affiliation|biography)/i;
 function isTitleCaseLine(s) { const words = s.trim().split(/\s+/); if (words.length > 10) return false; let caps = 0; for (const w of words) if (w[0] && w[0] === w[0].toUpperCase()) caps++; return caps / Math.max(1, words.length) > 0.6; }
 function hasVerb(s) { return /\b(is|are|was|were|has|have|represents|means|refers|consists|contains|denotes|uses|used|measures|shows|indicates|describes|defines|computes|estimates)\b/i.test(s); }
 export function looksLikeHeading(s) {
