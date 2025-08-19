@@ -18,7 +18,7 @@ import { Helmet } from "react-helmet-async";
 import "./App.css";
 
 // New AI helpers
-import { prewarmAI, summarisePointwise, embedTexts, generateQuestionFromContext } from "./utils/ai";
+import { prewarmAI } from "./utils/ai";
 import { extractTextFromPDF, splitSentences, normalizeText, isAuthorish, looksLikeHeadingStrong, extractKeyPhrases, buildTheoryQuestions } from "./utils/textProcessor";
 
 function HeroAtom() {
