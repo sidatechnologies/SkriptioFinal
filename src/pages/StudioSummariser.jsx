@@ -159,14 +159,6 @@ export default function StudioSummariser() {
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            {previewURL ? (
-              <Card className="kit-surface">
-                <div className="kit-toolbar">Preview (first page)</div>
-                <CardContent>
-                  <img src={previewURL} alt="PDF preview" className="max-h-96 rounded-md border border-border" />
-                </CardContent>
-              </Card>
-            ) : null}
             <Card className="kit-surface">
               <div className="kit-toolbar flex items-center justify-between">
                 <div>Summary</div>
