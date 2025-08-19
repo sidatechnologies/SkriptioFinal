@@ -328,20 +328,17 @@
       - working: "NA"
         agent: "main"
         comment: "If a PDF page has sparse selectable text, render to canvas and OCR in-browser. Merges OCR with any extracted text."
-  - task: "Reduce repetition: de-duplicate questions and enforce option diversity globally"
+  - task: "MCQ quality overhaul: stems + transformed distractors (negation, numbers, modals, entity swap)"
     implemented: true
     working: "NA"
-    file: "/app/src/utils/textProcessor.js, /app/src/utils/ml.js"
+    file: "/app/src/utils/textProcessor.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Global guardrails: unique correct answers across quiz when possible, textual-similarity thresholds on options, and Jaccard-based question dedup."
-      - working: "NA"
-        agent: "main"
-        comment: "Added stronger filtering: ban generic topics (‘Study Kit’, ‘Synthesis’, headings), enforce per-question paraphrased distractors and sentence formatting, and harmonize option lengths/casing with finalizeOptions."
+        comment: "Standardized stems and replaced distractor selection with rule-based transformations of the correct sentence. Guardrails: not-in-source, not-too-similar, unique sets, 4 options exactly."
   - task: "Hide correct answers on-screen until Evaluate; reveal after evaluation"
     implemented: true
     working: "NA"
