@@ -21,7 +21,8 @@ export default function StudioSummariser() {
   const [aiUsed, setAiUsed] = useState(false);
   const fileRef = useRef();
 
-  useEffect(() => { try { prewarmML(); } catch {} }, []);
+  // UI-only mode: disable model prewarm
+  useEffect(() => { /* disabled in UI-only replica */ }, []);
 
   const LOGO_URL = "/assets/aceel-logo.png";
   const logoDataRef = useRef(null);
