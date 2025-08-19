@@ -132,6 +132,10 @@ function summarizeSentence(s, targetLen = 180) {
   t = t.replace(/(:)\s*[•◦·➢►»›]\s+/g, '$1 ');
   // Remove stray sequences of bullets within the sentence
   t = t.replace(/[•◦·➢►»›]+/g, ' ');
+  // Collapse duplicated 'X: X ...' patterns
+  t = t.replace(/^([^:]{2,}?)\s*:\s*\1\b/i, '$1');
+  // Normalize common dashed term formatting like 'K - means' -> 'K‑means'
+  t = t.replace(/\bK\s*[-–—]\s*means\b/gi, 'K‑means');
   t = t.replace(/\s{2,}/g, ' ');
 
   if (t.length > targetLen) {
