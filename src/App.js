@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail } from "lucide-react";
+import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail, Menu } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import StudioNav from "./components/StudioNav";
 import { Button } from "./components/ui/button";
@@ -30,7 +30,7 @@ function HeroAtom() {
 
 function LandingCTA() {
   return (
-    <section className="max-w-6xl mx-auto px-6 py-16">
+    <section className="max-w-6xl mx-auto px-6 py-14">
       <div className="border rounded-xl p-8 md:p-10 text-center bg-card card-glow">
         <h3 className="text-xl md:text-2xl font-semibold mb-3">Ready to try the Studio?</h3>
         <p className="text-foreground/80 mb-5">Open the Studio to see the exact UI for Study Kit and Summariser in both themes.</p>
@@ -43,6 +43,7 @@ function LandingCTA() {
 }
 
 function Landing() {
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   return (
     <div className="min-h-screen hero-gradient text-foreground">
       <Helmet>
@@ -55,24 +56,43 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="font-semibold tracking-tight">Skriptio</div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link to="/studio" className="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm text-sm">
+            <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80 mr-2">
+              <Link to="/">Home</Link>
+              <Link to="/studio">Studio</Link>
+              <Link to="/merch">Merch</Link>
+            </nav>
+            <ThemeToggle className="md:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="md:hidden p-2 rounded-md border border-border" onClick={() => setMobileOpen(o => !o)}>
+              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
+            </button>
+            <ThemeToggle className="hidden md:inline-flex" />
+            <Link to="/studio" className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm text-sm">
               Open Studio <ArrowRight size={14} />
             </Link>
           </div>
         </div>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-background/95 shadow">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
+              <Link to="/" onClick={() => setMobileOpen(false)}>Home</Link>
+              <Link to="/studio" onClick={() => setMobileOpen(false)}>Studio</Link>
+              <Link to="/merch" onClick={() => setMobileOpen(false)}>Merch</Link>
+              <Link to="/studio" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm w-max">Open Studio <ArrowRight size={14} /></Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main>
         {/* Hero */}
-        <section className="max-w-6xl mx-auto px-6 py-14 grid md:grid-cols-2 gap-10 items-start">
+        <section className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-6 items-center">
           <div>
             <p className="gold-pill inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm mb-4">
               <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
               A product by Aceel AI
             </p>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-4">Study kits from your notes &amp; PDFs</h1>
-            <p className="text-foreground/80 mb-6">Paste notes or upload a PDF. Get a 10‑question quiz, flashcards and a 7‑day plan — instantly. Runs fully in your browser.</p>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Study kits from your notes &amp; PDFs</h1>
+            <p className="text-foreground/80 mb-5">Paste notes or upload a PDF. Get a 10‑question quiz, flashcards and a 7‑day plan — instantly. Runs fully in your browser.</p>
             <div className="flex items-center gap-3">
               <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
                 Open Studio <ArrowRight size={16} />
@@ -80,7 +100,7 @@ function Landing() {
               <a href="#how" className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm">How it works</a>
             </div>
           </div>
-          <div className="hidden md:flex justify-end pt-1">
+          <div className="hidden md:flex justify-end">
             <HeroAtom />
           </div>
         </section>
@@ -129,7 +149,7 @@ function Landing() {
         <LandingCTA />
       </main>
 
-      {/* Floating feedback/merch menu on home */}
+      {/* Floating feedback/merch menu on all pages via wrapper */}
       <FloatingMenu />
 
       {/* Footer */}
@@ -232,6 +252,8 @@ export function Studio() {
           </div>
         </div>
       </main>
+
+      <FloatingMenu />
     </div>
   );
 }

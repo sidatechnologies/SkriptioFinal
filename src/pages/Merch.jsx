@@ -42,21 +42,39 @@ export default function Merch() {
         <meta property="og:url" content="https://skriptio.sidahq.com/merch" />
         <meta property="og:image" content="/assets/aceel-logo.png" />
       </Helmet>
-      {/* Header (no menubar, small Open Studio) */}
+      {/* Header with responsive menubar */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
           <div className="flex items-center gap-2">
-            <ThemeToggle className="lg:hidden" />
-            <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
-            <ThemeToggle className="hidden lg:inline-flex" />
+            <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80 mr-2">
+              <Link to="/">Home</Link>
+              <Link to="/studio">Studio</Link>
+              <Link to="/merch">Merch</Link>
+            </nav>
+            <ThemeToggle className="md:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="md:hidden p-2 rounded-md border border-border" onClick={() => setMobileOpen(o => !o)}>
+              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
+            </button>
+            <ThemeToggle className="hidden md:inline-flex" />
+            <Button size="sm" onClick={() => navigate('/studio')} className="hidden md:inline-flex bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
           </div>
         </div>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-background/95 shadow">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
+              <Link to="/" onClick={() => setMobileOpen(false)}>Home</Link>
+              <Link to="/studio" onClick={() => setMobileOpen(false)}>Studio</Link>
+              <Link to="/merch" onClick={() => setMobileOpen(false)}>Merch</Link>
+              <button onClick={() => { setMobileOpen(false); navigate('/studio'); }} className="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm w-max">Open Studio</button>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Floating menu on Merch */}
+      {/* Floating menu on all pages */}
       <FloatingMenu />
 
       <main className="max-w-6xl mx-auto px-6 py-10">
@@ -117,6 +135,8 @@ export default function Merch() {
           </div>
         </div>
       </main>
+
+      <FloatingMenu />
     </div>
   );
 }

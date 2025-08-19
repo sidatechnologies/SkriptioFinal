@@ -23,6 +23,7 @@ input, textarea, select { transition: background-color .2s ease, border-color .2
 input[type="text"], textarea { border: 1.5px solid rgba(0,0,0,0.6); background: #fff; }
 .dark input[type="text"], .dark textarea { border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.04); }
 .button-upload, .btn-upload { border: 1.5px solid rgba(0,0,0,0.6) !important; }
+.dark .button-upload, .dark .btn-upload { border: 1.5px solid rgba(255,255,255,0.85) !important; }
 
 /* Checkboxes styling - minimalistic tick (avoid stretching) */
 input[type="checkbox"] { width: 16px; height: 16px; border: 1.5px solid #000; appearance: none; -webkit-appearance: none; -moz-appearance: none; border-radius: 3px; display: inline-block; position: relative; background: #fff; box-sizing: content-box; }
@@ -69,18 +70,18 @@ input[type=file] { display: none; }
 .float-delay-2 { animation-delay: 1.2s; }
 
 /* Small hero atom with 5 orbits */
-.hero-atom { position: relative; width: 300px; height: 300px; margin: 0; }
+.hero-atom { position: relative; width: 280px; height: 280px; margin: 0; }
 .hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 24px rgba(245,197,66,0.4); }
 .hero-atom .orbit { position: absolute; inset: 0; margin: auto; border: 1px dashed rgba(0,0,0,0.18); border-radius: 9999px; transform: rotate(0deg); }
 .dark .hero-atom .orbit { border-color: rgba(255,255,255,0.15); }
 .hero-atom .electron { position: absolute; width: 7px; height: 7px; background: #111; border-radius: 9999px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
 .dark .hero-atom .electron { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.7); }
 @keyframes spinOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.orbit-1 { width: 130px; height: 130px; animation: spinOrbit 6s linear infinite; }
-.orbit-2 { width: 180px; height: 180px; animation: spinOrbit 9s linear infinite; }
-.orbit-3 { width: 220px; height: 220px; animation: spinOrbit 12s linear infinite; }
-.orbit-4 { width: 260px; height: 260px; animation: spinOrbit 15s linear infinite; }
-.orbit-5 { width: 300px; height: 300px; animation: spinOrbit 18s linear infinite; }
+.orbit-1 { width: 120px; height: 120px; animation: spinOrbit 6s linear infinite; }
+.orbit-2 { width: 160px; height: 160px; animation: spinOrbit 9s linear infinite; }
+.orbit-3 { width: 200px; height: 200px; animation: spinOrbit 12s linear infinite; }
+.orbit-4 { width: 240px; height: 240px; animation: spinOrbit 15s linear infinite; }
+.orbit-5 { width: 280px; height: 280px; animation: spinOrbit 18s linear infinite; }
 .hero-atom .orbit .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
 @media (max-width: 1024px) { .hero-atom { display: none; } }
 

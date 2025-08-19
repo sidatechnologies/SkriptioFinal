@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import ThemeToggle from "../components/ThemeToggle";
 import StudioNav from "../components/StudioNav";
+import FloatingMenu from "../components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 
 export default function StudioSummariser() {
@@ -64,6 +65,8 @@ export default function StudioSummariser() {
           </div>
         </div>
       </main>
+
+      <FloatingMenu />
     </div>
   );
 }
