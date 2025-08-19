@@ -1000,7 +1000,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       if (defineCards.length >= 8) break;
     } catch {}
   }
-  const extraPool = (sentences || []).map(s => ensureCaseAndPeriod('A.', summarizeSentence(s, 200))).slice(0, 60);
+  const extraPool = (sentences || []).map(s => ensureCaseAndPeriod('', summarizeSentence(s, 200))).slice(0, 60);
   while (defineCards.length < 12 && extraPool.length) {
     const back = extraPool.shift();
     if (!back) break;
