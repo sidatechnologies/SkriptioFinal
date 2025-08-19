@@ -203,7 +203,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   } catch {}
 
   // Phrases/terms for term-definition items
-  const phrases = extractKeyPhrases(text, 24);
+  const phrases = extractKeyPhrases(text, 40);
 
   // Helpers for global de-duplication across the quiz
   function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
