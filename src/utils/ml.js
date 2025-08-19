@@ -9,17 +9,17 @@ export function prewarmML() {
     if (_modelPromise) return _modelPromise;
     const load = async () => {
       // Dynamic import to keep initial bundle small
-      const [{ default: tf }, use] = await Promise.all([
-        import('@tensorflow/tfjs'),
+      const [tfc, use] = await Promise.all([
+        (async () => {
+          const core = await import('@tensorflow/tfjs-core');
+          await import('@tensorflow/tfjs-backend-cpu');
+          return core;
+        })(),
         import('@tensorflow-models/universal-sentence-encoder')
       ]);
-      // Hard-disable WebGL and force CPU backend to avoid GPU context issues
       try {
-        if (tf?.env) {
-          try { tf.env().set('WEBGL_FORCE_DISABLED', true); } catch {}
-        }
-        await tf.setBackend('cpu');
-        await tf.ready();
+        await tfc.setBackend('cpu');
+        await tfc.ready();
       } catch {}
       _useModel = await use.load();
       return _useModel;
