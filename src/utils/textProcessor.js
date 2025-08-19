@@ -127,6 +127,13 @@ function ensureCaseAndPeriod(prefix = '', text = '') {
 function summarizeSentence(s, targetLen = 180) {
   if (!s) return s;
   let t = s.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '');
+  // Drop common list bullets/hyphens copied from PDFs
+  t = t.replace(/^\s*(?:[•◦·➢►»›–—\-]+|\(?\d{1,3}\)?[.)]|[A-Za-z]\.)\s+/, '');
+  t = t.replace(/(:)\s*[•◦·➢►»›]\s+/g, '$1 ');
+  // Remove stray sequences of bullets within the sentence
+  t = t.replace(/[•◦·➢►»›]+/g, ' ');
+  t = t.replace(/\s{2,}/g, ' ');
+
   if (t.length > targetLen) {
     const cut = t.slice(0, targetLen - 1);
     const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'));
