@@ -204,6 +204,19 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
   // Phrases/terms for term-definition items
   const phrases = extractKeyPhrases(text, 40);
+  const BAN_WORDS = new Set(['step','steps','choose','choosing','best','algorithm','algorithms','machine','learning','problem','data','model','models','process','procedure']);
+  function isGenericTopic(p){
+    const w = String(p||'').toLowerCase().trim();
+    if (!w) return true;
+    const toks = w.split(/\s+/);
+    const sw = toks.filter(t => STOPWORDS.has(t)).length;
+    if (sw / Math.max(1,toks.length) > 0.5) return true;
+    if (toks.length <= 1) return true;
+    if (BAN_WORDS.has(w)) return true;
+    if (/(^|\s)(step|steps|choose|choosing|best|algorithm|algorithms)($|\s)/.test(w)) return true;
+    return false;
+  }
+
 
   // Helpers for global de-duplication across the quiz
   function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
