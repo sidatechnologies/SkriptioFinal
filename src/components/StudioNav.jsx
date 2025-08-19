@@ -9,9 +9,10 @@ export default function StudioNav() {
   const isActive = (to) => {
     if (to === "/studio") return pathname === "/studio";
     if (to === "/studio/summariser") return pathname === "/studio/summariser" || pathname.startsWith("/studio/summariser/");
+    if (to === "/studio/resume") return pathname === "/studio/resume" || pathname.startsWith("/studio/resume/");
     if (to === "/studio/kit") {
       const isKitDirect = pathname === "/studio/kit" || pathname.startsWith("/studio/kit/");
-      const isLegacyShare = pathname.startsWith("/studio/") && !["/studio", "/studio/summariser"].includes(pathname) && !pathname.startsWith("/studio/summariser");
+      const isLegacyShare = pathname.startsWith("/studio/") && !["/studio", "/studio/summariser", "/studio/resume"].includes(pathname) && !pathname.startsWith("/studio/summariser") && !pathname.startsWith("/studio/resume");
       return isKitDirect || isLegacyShare;
     }
     return pathname.startsWith(to);

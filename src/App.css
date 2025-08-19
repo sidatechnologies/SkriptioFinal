@@ -69,8 +69,7 @@ input[type=file] { display: none; }
 .float-delay-1 { animation-delay: .6s; }
 .float-delay-2 { animation-delay: 1.2s; }
 
-/* Small hero atom with 5 orbits */
-.hero-atom { position: relative; width: 280px; height: 280px; margin: 0; }
+/* Small hero atom with 5 orbits */\n.hero-atom { position: relative; width: 280px; height: 280px; margin: 0; }
 .hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 24px rgba(245,197,66,0.4); }
 .hero-atom .orbit { position: absolute; inset: 0; margin: auto; border: 1px dashed rgba(0,0,0,0.18); border-radius: 9999px; transform: rotate(0deg); }
 .dark .hero-atom .orbit { border-color: rgba(255,255,255,0.15); }
@@ -126,4 +125,16 @@ input[type=file] { display: none; }
 
 /* Toolbar helpers */
 .toolbar { display:flex; flex-wrap:wrap; gap:10px; }
-.toolbar .btn { padding: 8px 12px; border:1px solid var(--border); border-radius:6px; font-size: 0.9rem; }
+.toolbar .btn { padding: 8px 12px; border:1.5px solid rgba(0,0,0,0.7); border-radius:6px; font-size: 0.9rem; background: transparent; color: inherit; }
+.dark .toolbar .btn { border-color: rgba(255,255,255,0.8); }
+
+/* Strong demarcation panel for Study Kit results */
+.kit-surface { border: 2px solid rgba(0,0,0,0.8) !important; background: #fff; }
+.dark .kit-surface { border: 2px solid rgba(255,255,255,0.75) !important; background: rgba(255,255,255,0.03); }
+.kit-toolbar { border-bottom: 1px dashed rgba(0,0,0,0.35); padding: 12px; }
+.dark .kit-toolbar { border-color: rgba(255,255,255,0.3); }
+
+/* Segmented pill group tweaks */
+.segmented { display:inline-flex; background: transparent; border: 1.5px solid #000; border-radius: 8px; padding: 2px; }
+.segmented .item { border-radius: 6px; padding: 6px 10px; }
+.dark .segmented { border-color: #fff; }

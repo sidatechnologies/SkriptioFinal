@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, FileText, PenLine, Sparkles, EyeOff, Menu } from "lucide-react";
+import { ArrowRight, FileText, PenLine, Sparkles, BriefcaseBusiness, EyeOff, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import ThemeToggle from "../components/ThemeToggle";
@@ -38,13 +38,8 @@ export default function StudioHub() {
     <div className="min-h-screen bg-background text-foreground">
       <Helmet>
         <title>Skriptio — Studio Hub</title>
-        <meta name="description" content="Choose a tool: Study Kit Generator, Handwriting → Typed, or AI PDF Summariser. All tools run on-device in your browser." />
+        <meta name="description" content="Choose a tool: Study Kit Generator, Resume Builder, or AI PDF Summariser. All tools run on-device in your browser." />
         <link rel="canonical" href="https://skriptio.sidahq.com/studio" />
-        <meta property="og:title" content="Skriptio — Studio Hub" />
-        <meta property="og:description" content="Study tools that run fully in your browser: generate study kits, convert handwriting, summarise PDFs." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://skriptio.sidahq.com/studio" />
-        <meta property="og:image" content="/assets/aceel-logo.png" />
       </Helmet>
       <FloatingMenu />
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
@@ -75,7 +70,7 @@ export default function StudioHub() {
             onOpen={() => navigate('/studio/kit')}
           />
 
-          {/* 2. Summariser now in second slot */}
+          {/* 2. Summariser */}
           <CardCommon
             icon={<Sparkles size={18}/>} 
             title="AI PDF Summariser"
@@ -83,16 +78,15 @@ export default function StudioHub() {
             onOpen={() => navigate('/studio/summariser')}
           />
 
-          {/* 3. Handwriting moved to Coming Soon with frozen button */}
+          {/* 3. Resume Builder (active) */}
           <CardCommon
-            icon={<PenLine size={18}/>} 
-            title="Handwriting → Typed (Coming soon)"
-            desc="Upload a handwritten text PDF and download a clean typed‑text PDF."
-            onOpen={() => {}}
-            disabled
+            icon={<BriefcaseBusiness size={18}/>} 
+            title="Resume Builder"
+            desc="Select a template, fill details, and download a professional resume (no watermark)."
+            onOpen={() => navigate('/studio/resume')}
           />
 
-          {/* 4. Existing Coming soon */}
+          {/* 4. Coming soon */}
           <Card className="bg-card border border-black/70 dark:border-white/60 relative overflow-hidden">
             <div className="absolute inset-0 backdrop-blur-[2px] opacity-70 pointer-events-none" />
             <CardHeader>
