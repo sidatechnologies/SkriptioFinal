@@ -42,6 +42,23 @@ module.exports = {
           ],
         };
       }
+
+      // Disable code splitting to prevent environments that rewrite /static/* from breaking chunk loads.
+      if (webpackConfig.optimization) {
+        webpackConfig.optimization.runtimeChunk = false;
+        webpackConfig.optimization.splitChunks = {
+          cacheGroups: {
+            default: false,
+            vendors: false,
+          },
+        };
+      }
+      // Produce a single stable JS asset name
+      if (webpackConfig.output) {
+        webpackConfig.output.filename = 'static/js/main.js';
+        webpackConfig.output.chunkFilename = 'static/js/main.js';
+      }
+
       return webpackConfig;
     },
   },
