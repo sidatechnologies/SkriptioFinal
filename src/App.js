@@ -231,10 +231,12 @@ export function Studio() {
                 </Button>
                 <div>
                   <div className="text-sm mb-2">Difficulty</div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <label className="inline-flex items-center gap-2"><input name="d" type="radio" defaultChecked/> Balanced</label>
-                    <label className="inline-flex items-center gap-2"><input name="d" type="radio"/> Harder</label>
-                    <label className="inline-flex items-center gap-2"><input name="d" type="radio"/> Expert</label>
+                  <div>
+                    <div className="segmented">
+                      <button className="item">Balanced</button>
+                      <button className="item">Harder</button>
+                      <button className="item">Expert</button>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
