@@ -564,6 +564,30 @@
       agent: "main"
       comment: "Added subtle dot icons before 'Fast & minimal', 'Private (runs in your browser)', and 'Saves hours of prep'."
 
+
+- task: "Fix Study Kit generation (embedding path) and ensure kit renders"
+  implemented: true
+  working: true
+  file: "/app/src/App.js, /app/src/utils/ml.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "main"
+      comment: "Rewired Study Kit to use embedSentences from utils/ml instead of missing embedTexts import. Added safe fallbacks so quiz renders reliably. Verified on provided PDF (Choosing the best ML algo.pdf): 10 MCQs generated, Evaluate shows correct answers, tabs switch fine."
+- task: "Summariser fallback extractive + Short default; PDF tested"
+  implemented: true
+  working: true
+  file: "/app/src/pages/StudioSummariser.jsx, /app/src/utils/ml.js, /app/src/utils/pdf.js"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "main"
+      comment: "Added robust fallback when Transformers summarizer is slow/unavailable: extractive top‑sentence ranking via selectTopSentences + ensureSentence. Default length Short selected. Tested end‑to‑end with provided PDF: bullets appear and Download Summary PDF works."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
