@@ -66,7 +66,7 @@ export default function StudioSummariser() {
     if (!picks.length) {
       const pool = sentences.slice(0, Math.min(14, sentences.length));
       const step = Math.max(1, Math.ceil(pool.length / n));
-      for (let i = 0; i < pool.length &amp;&amp; picks.length < n; i += step) picks.push(pool[i]);
+      for (let i = 0; i < pool.length && picks.length < n; i += step) picks.push(pool[i]);
     }
     setAiUsed(usedAI);
     return picks.map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
