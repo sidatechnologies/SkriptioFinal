@@ -300,7 +300,8 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
     // Place correct deterministically and ensure option-set uniqueness across quiz
     const arranged = [...opts];
-    const idx = Math.min(3, Math.floor(Math.random() * 4));
+    // deterministic placement seeded by question index to vary positions across quiz
+    const idx = (quiz.length * 7 + 3) % 4;
     const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
 
     const setKey = arranged.map(normKey).sort().join('|');
