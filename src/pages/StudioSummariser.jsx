@@ -74,21 +74,8 @@ export default function StudioSummariser() {
   };
 
   const handleSummarise = async () => {
-    if (!file) return;
-    setLoading(true);
-    try {
-      const quick = extractTextFromPDFQuick(file, { maxPages: 24, totalBudgetMs: 4500 });
-      const fullSlow = extractTextFromPDF(file, { maxPages: 24 });
-      const fastText = await Promise.race([quick, new Promise(r => setTimeout(() => r(null), 4800))]);
-      const text = fastText || await fullSlow;
-      setSourceTitle(pickTitle(text));
-      const n = lengthPref === 'short' ? 3 : (lengthPref === 'long' ? 8 : 5);
-      const bullets = await summarise(text.slice(0, 120000), n);
-      setSummary(bullets);
-    } catch (e) {
-      setSummary([]);
-      setAiUsed(false);
-    } finally { setLoading(false); }
+    // UI-only replica: disable summarisation functionality
+    return;
   };
 
   const downloadSummaryPDF = async () => {
