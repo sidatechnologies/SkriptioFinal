@@ -168,7 +168,7 @@ function distinctFillOptions(correct, pool = [], needed = 4) {
     const norm = String(opt || '').trim(); if (!norm) return false;
     if (seen.has(norm.toLowerCase())) return false;
     // avoid near duplicates
-    if (selected.some(s => jaccard(s, norm) >= 0.7)) return false;
+    if (selected.some(s => jaccard(s, norm) >= 0.55)) return false;
     selected.push(norm); seen.add(norm.toLowerCase()); return true;
   };
   for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
