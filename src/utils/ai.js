@@ -2,7 +2,8 @@
    Models:
    - Summarisation: t5-small (from prompt, lightweight option).
    - Question Generation: valhalla/t5-small-qa-qg-hl (highlight format "<hl>answer<hl>" with prefix "generate question:")
-   - Embeddings: sentence-transformers/all-MiniLM-L6-v2 (feature-extraction) for similarity, dedup, distractors
+   - Embeddings: sentence-transformers/all-MiniLM-L6-v2 was requested; however Transformers.js needs ONNX-converted weights which are not hosted under the original repo, causing 404.
+     Until you approve using the converted (same) model repo or hosting weights locally, we use TF.js USE (Universal Sentence Encoder) for embeddings to avoid console errors.
 
    All loads are lazy with short timeouts and safe fallbacks to keep UI responsive.
 */
@@ -14,7 +15,6 @@ env.useBrowserCache = true;
 
 let _summarizerPromise = null;
 let _qgPromise = null;
-let _embedPromise = null;
 
 async function withTimeout(promise, ms) {
   return await Promise.race([
@@ -24,13 +24,14 @@ async function withTimeout(promise, ms) {
 }
 
 export function prewarmAI() {
+  // Prewarm TF.js USE only (to avoid 404s from MiniLM ONNX fetch under original repo)
   try {
-    if (!_embedPromise) {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        window.requestIdleCallback(() => { _embedPromise = pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2').catch(() => null); }, { timeout: 1500 });
-      } else {
-        setTimeout(() => { _embedPromise = pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2').catch(() => null); }, 1000);
-      }
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      window.requestIdleCallback(async () => {
+        try { const ml = await import('./ml'); ml.prewarmML && ml.prewarmML(); } catch {}
+      }, { timeout: 1500 });
+    } else {
+      setTimeout(async () => { try { const ml = await import('./ml'); ml.prewarmML && ml.prewarmML(); } catch {} }, 1000);
     }
   } catch {}
 }
@@ -45,12 +46,6 @@ export async function getQG(deadlineMs = 0) {
   if (_qgPromise) return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
   _qgPromise = pipeline('text2text-generation', 'valhalla/t5-small-qa-qg-hl');
   return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
-}
-
-export async function getEmbedder(deadlineMs = 0) {
-  if (_embedPromise) return deadlineMs ? await withTimeout(_embedPromise, deadlineMs) : await _embedPromise;
-  _embedPromise = pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2');
-  return deadlineMs ? await withTimeout(_embedPromise, deadlineMs) : await _embedPromise;
 }
 
 // Summarise long text into 5-8 bullets based on target length
@@ -90,23 +85,8 @@ export async function summarisePointwise(text, length = 'short') {
   return out;
 }
 
-// Embeddings helper: try MiniLM via Transformers.js; if unavailable (404), fall back to USE (TensorFlow.js) to keep UX responsive
+// Embeddings helper: Use TF.js Universal Sentence Encoder to avoid 404 from MiniLM under original repo name
 export async function embedTexts(texts, deadlineMs = 30000) {
-  try {
-    const embedder = await getEmbedder(deadlineMs);
-    if (embedder) {
-      const res = await embedder(texts, { pooling: 'mean', normalize: true });
-      const arr = Array.isArray(res) ? res : res?.data || res;
-      if (Array.isArray(arr) && Array.isArray(arr[0])) return arr;
-      if (res?.tolist) return res.tolist();
-      if (res?.data && res?.dims) {
-        const out = [];
-        for (let i = 0; i < (res.dims[0] || 0); i++) out.push(Array.from(res.data.slice(i * res.dims[1], (i + 1) * res.dims[1])));
-        return out;
-      }
-    }
-  } catch {}
-  // Fallback path (browser-only) using TF.js Universal Sentence Encoder
   try {
     const ml = await import('./ml');
     const arr = await ml.embedSentences(texts, Math.min(1200, deadlineMs));
