@@ -165,17 +165,17 @@
       - working: "NA"
         agent: "main"
         comment: "Updated concept question builder to use distinctFillOptions with robust fallbacks so MCQs always have exactly 4 options. Prevents missing option C/D cases."
-  - task: "Update PDF footer branding in all exports"
+  - task: "Enable PDF downloads (Quiz/Flashcards/Theory/Plan) with logo header and branded footer"
     implemented: true
     working: "NA"
-    file: "/app/src/App.js"
+    file: "/app/src/App.js, /app/src/utils/pdf.js"
     stuck_count: 0
-    priority: "medium"
+    priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "PDF footer now shows: 'skriptio.sidahq.com | aceel@sidahq.com' instead of just email. Applies to Quiz, Flashcards, Theory, and Plan exports."
+        comment: "Implemented jsPDF-based exports with header logo (/public/assets/aceel-logo.png) and footer 'aceel@sidahq.com | skriptio.sidahq.com'. Four toolbar buttons now generate PDFs."
   - task: "MCQ option normalization (capitalized, period, balanced length, formula options as sentences)"
     implemented: true
     working: "NA"
