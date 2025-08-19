@@ -1007,7 +1007,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     defineCards.push({ front: 'Key idea?', back });
   }
   if (defineCards.length === 0 && (text || '').trim().length) {
-    defineCards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('A.', summarizeSentence(text, 220)) });
+    defineCards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 220)) });
   }
   const flashcards = defineCards.slice(0, 12);
 
