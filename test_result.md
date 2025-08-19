@@ -125,6 +125,20 @@
 
 
 ## frontend:
+  - task: "Fix preview black screen by disabling Service Worker and unregistering existing SW"
+    implemented: true
+    working: "NA"
+    file: "/app/src/index.js, /app/public/sw.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Studio features not working; screen hangs/blackout on preview."
+      - working: "NA"
+        agent: "main"
+        comment: "Changed SW registration to only run on real production domains and actively unregister in preview/dev. This prevents stale cache causing blank screens."
   - task: "Ensure 4 options for every concept MCQ (pad when distractors are short)"
     implemented: true
     working: "NA"
