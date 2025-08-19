@@ -294,7 +294,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
         definition = await ml.bestSentenceForPhrase(term, baseSentences, 220);
       } catch {}
       if (!definition) definition = s;
-      const defCorrect = ensureCaseAndPeriod('\u2014', summarizeSentence(definition, 150));
+      const defCorrect = ensureCaseAndPeriod('', summarizeSentence(definition, 150));
       const candObjs = baseSentences.filter(x => !x.toLowerCase().includes(term.toLowerCase()) && normKey(x) !== normKey(definition))
         .map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
         .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
