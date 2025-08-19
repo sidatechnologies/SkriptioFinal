@@ -219,6 +219,14 @@ function useKitState() {
 }
 
 async function buildKitFromContent(rawText, title, difficulty) {
+  // Use robust textProcessor.generateArtifacts first; fallback to legacy pipeline if needed
+  try {
+    const artifacts = await generateArtifacts(rawText, title, { difficulty });
+    if (artifacts && Array.isArray(artifacts.quiz) && artifacts.quiz.length) {
+      return artifacts;
+    }
+  } catch {}
+
   const cleaned = normalizeText(rawText)
     .split(/\n+/)
     .filter(line => line && !isAuthorish(line) && !looksLikeHeadingStrong(line))
