@@ -49,7 +49,8 @@ export default function StudioSummariser() {
   function cleanInputText(raw) {
     // Normalize and strip headings/authorish boilerplate
     const lines = normalizeText(raw).split(/\n+/);
-    const filtered = lines.filter(l => l && !isAuthorish(l) && !looksLikeHeadingStrong(l));
+    // Be conservative: only drop author-ish lines; keep most content (even bullets without punctuation)
+    const filtered = lines.filter(l => l && !isAuthorish(l));
     // Remove obvious gibberish like single characters or repeated punctuation
     return filtered.filter(l => l.length > 3 && /[a-zA-Z]/.test(l)).join(' ');
   }
