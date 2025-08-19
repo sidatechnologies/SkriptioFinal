@@ -6,9 +6,28 @@
 */
 
 import { env, pipeline } from '@xenova/transformers';
+import * as ort from 'onnxruntime-web';
 
-env.allowLocalModels = false;
-env.useBrowserCache = true;
+// Route ONNX assets to local /ort and silence non-critical logs
+try {
+  env.useBrowserCache = true;
+  env.allowLocalModels = false;
+  env.backends = env.backends || {};
+  env.backends.onnx = env.backends.onnx || {};
+  env.backends.onnx.wasm = Object.assign({}, env.backends.onnx.wasm, {
+    wasmPaths: '/ort/',
+    numThreads: 1,
+    proxy: false,
+  });
+  // Silence ORT optimizer spam
+  if (ort && ort.env) {
+    ort.env.logLevel = 'error';
+    if (ort.env.wasm) {
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.proxy = false;
+    }
+  }
+} catch {}
 
 let _summarizerPromise = null;
 let _qgPromise = null;
@@ -41,7 +60,6 @@ export async function getSummarizer(deadlineMs = 0) {
 
 export async function getQG(deadlineMs = 0) {
   if (_qgPromise) return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
-  // Default to base t5-small for QG prompting (no finetune download attempts)
   _qgPromise = pipeline('text2text-generation', 'Xenova/t5-small');
   return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
 }
@@ -63,13 +81,13 @@ export async function summarisePointwise(text, length = 'short') {
   const chunks = [];
   for (let i = 0; i < Math.min(clean.length, targetChars); i += chunkSize) {
     chunks.push(clean.slice(i, i + chunkSize));
-    if (chunks.length >= 6) break;
+    if (chunks.length >= 4) break; // reduce compute
   }
   const outputs = [];
   for (const ch of chunks) {
     const input = `summarize: ${ch}`;
     try {
-      const res = await model(input, { max_new_tokens: 96, temperature: 0.7 });
+      const res = await model(input, { max_new_tokens: 80, temperature: 0.7 });
       const txt = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';
       if (txt) outputs.push(txt.trim());
     } catch {}
@@ -138,8 +156,6 @@ export async function generateQuestionFromContext(context, answerSpan) {
   if (!qg) return null;
   const ctx = String(context || '');
   const ans = String(answerSpan || '').trim();
-
-  // Base T5 prompting (no special tokens guaranteed)
   const prompt = `generate question: context: ${ctx} answer: ${ans}`;
   try {
     const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
