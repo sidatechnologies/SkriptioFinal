@@ -732,6 +732,7 @@ export function normalizeText(raw) {
       kept[kept.length - 1] = (kept[kept.length - 1] + ' ' + l).trim();
       continue;
     }
+    if (isAuthorish(l) || PUBLISHER_DISCLAIMER_RX.test(l)) { continue; }
     if (!looksLikeHeading(l) || containsFormula(l)) kept.push(l);
   }
   return kept.join('\n');
