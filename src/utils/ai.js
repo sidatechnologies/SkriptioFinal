@@ -54,7 +54,7 @@ export function prewarmAI() {
 
 export async function getSummarizer(deadlineMs = 0) {
   if (_summarizerPromise) return deadlineMs ? await withTimeout(_summarizerPromise, deadlineMs) : await _summarizerPromise;
-  _summarizerPromise = pipeline('text2text-generation', 't5-small');
+  _summarizerPromise = pipeline('text2text-generation', 'Xenova/t5-small');
   return deadlineMs ? await withTimeout(_summarizerPromise, deadlineMs) : await _summarizerPromise;
 }
 
