@@ -183,8 +183,17 @@ function distinctFillOptions(correct, pool = [], needed = 4) {
     selected.push(norm); seen.add(norm.toLowerCase()); return true;
   };
   for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
-  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
-  let gi = 0; while (selected.length < needed && gi < generics.length) addIf(generics[gi++]);
+  // Limit generic fillers to at most 1 to avoid low-quality option sets
+  const generics = ['Implementation details', 'General concepts', 'Background theory', 'Best practices'];
+  let gi = 0; let genericCount = 0;
+  while (selected.length < needed && gi < generics.length && genericCount < 1) { if (addIf(generics[gi++])) genericCount++; }
+  // If still short, create minor variants of the correct to keep length/grammar comparable
+  const variants = [
+    String(correct || '').replace(/\s+is\s+/gi, ' can be '),
+    String(correct || '').replace(/\s+may\s+/gi, ' must '),
+    String(correct || '').replace(/\s+often\s+/gi, ' sometimes ')
+  ];
+  for (const v of variants) { if (selected.length >= needed) break; addIf(ensureSentence(v)); }
   while (selected.length < needed) selected.push('Background theory');
   return selected.slice(0, needed);
 }
