@@ -596,11 +596,12 @@
 
 ## test_plan:
   current_focus:
-    - "Validate High‑accuracy OCR toggle fails fast when unavailable and fast OCR fallback works"
+    - "Validate improved MCQ quality: one-correct with transformed distractors; stems standardized"
+    - "Flashcards show per-card titles (no 'Key idea?') and clean 1–2 sentence backs"
+    - "7‑day plan shows varied objectives across days (no repetition)"
+    - "PDF downloads: Quiz, Flashcards, Theory, 7‑Day Plan include logo header and footer branding"
+    - "Share/Copy link: copies link with #s= token; opening link auto-loads kit"
     - "Fix dropdown styling in light theme - StudioNav mobile dropdown and difficulty selects need white background, black text, black arrow"
-    - "Fix Summariser default state - Short should be highlighted by default, not Medium"
-    - "Verify default fast OCR is quicker and more accurate on sample handwritten PDF"
-    - "Verify FloatingMenu shows only Feedback and Merch"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
