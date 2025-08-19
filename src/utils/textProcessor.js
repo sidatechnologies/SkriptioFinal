@@ -184,10 +184,10 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const title = (providedTitle && providedTitle.trim()) || (normalizeText(text).split(/\n+/).find(Boolean) || 'Study Kit').slice(0, 80);
 
   // Try to rank sentences for variety; fallback to first N
-  let baseSentences = allSents.slice(0, 40);
+  let baseSentences = allSents.slice(0, 60);
   try {
     const ml = await import('./ml');
-    const ranked = await ml.selectTopSentences(allSents, 40, 200);
+    const ranked = await ml.selectTopSentences(allSents, 60, 220);
     if (Array.isArray(ranked) && ranked.length) baseSentences = ranked;
   } catch {}
 
@@ -198,13 +198,14 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
   const usedCorrects = new Set();
   const usedOptionKeys = new Set();
+  const usedSentenceKeys = new Set(); // avoid reusing same base sentence across questions
   const globalOptionCount = new Map(); // ensure option text appears at most once across quiz
   const usedBank = []; // global bank of option texts to avoid semantic repeats across questions
   function globallyNovel(s) { try { const t = String(s||''); for (const u of usedBank) { if (jaccard(t, u) >= 0.6) return false; } return true; } catch { return true; } }
 
   function uniqueOptions(arr) {
     const out = []; const seen = new Set();
-    for (const a of arr) { const k = normKey(a); if (!k || seen.has(k)) continue; seen.add(k); out.push(a); if (out.length >= 12) break; }
+    for (const a of arr) { const k = normKey(a); if (!k || seen.has(k)) continue; seen.add(k); out.push(a); if (out.length >= 14) break; }
     return out;
   }
   function notOverused(opt) { return (globalOptionCount.get(normKey(opt)) || 0) < 1; }
@@ -214,15 +215,35 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const quiz = [];
   let si = 0, pi = 0;
 
-  while (quiz.length < total && si < baseSentences.length) {
+  function pickSentence() {
+    // pick next sentence that is not used and is globally novel
+    for (let t = 0; t < baseSentences.length; t++) {
+      const idx = (si + t) % baseSentences.length;
+      const s = baseSentences[idx];
+      const key = normKey(s);
+      if (usedSentenceKeys.has(key)) continue;
+      const candidate = ensureCaseAndPeriod('', summarizeSentence(s, 150));
+      if (!globallyNovel(candidate)) continue;
+      si = idx + 1;
+      usedSentenceKeys.add(key);
+      return s;
+    }
+    // fallback first
+    const s = baseSentences[si % baseSentences.length] || '';
+    si++;
+    usedSentenceKeys.add(normKey(s));
+    return s;
+  }
+
+  while (quiz.length < total && baseSentences.length > 0) {
     const typeIdx = quiz.length % 3; // 0: statement, 1: term, 2: fact
 
     // Pick a distinct correct sentence
-    let s = baseSentences[si++] || '';
+    let s = pickSentence();
     let correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
     let guard = 0;
-    while (usedCorrects.has(normKey(correct)) && guard < 12 && si < baseSentences.length) {
-      s = baseSentences[si++];
+    while ((usedCorrects.has(normKey(correct)) || !globallyNovel(correct)) && guard < 12) {
+      s = pickSentence();
       correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
       guard++;
     }
@@ -232,8 +253,10 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     let opts = [];
 
     if (typeIdx === 0) {
-      const pool = baseSentences.filter(x => x !== s).slice(0, 30).map(z => ensureCaseAndPeriod('', summarizeSentence(z, 140)));
-      const distinct = distinctFillOptions(correct, uniqueOptions(pool).filter(notOverused), 4);
+      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(s)).map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 140)) }))
+        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
+      const pool = uniqueOptions(candObjs.map(o => o.txt));
+      const distinct = distinctFillOptions(correct, pool, 4);
       opts = distinct;
     } else if (typeIdx === 1) {
       const term = phrases[pi % Math.max(1, phrases.length)] || 'the topic';
@@ -242,33 +265,38 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       let definition = '';
       try {
         const ml = await import('./ml');
-        definition = await ml.bestSentenceForPhrase(term, baseSentences, 200);
+        definition = await ml.bestSentenceForPhrase(term, baseSentences, 220);
       } catch {}
       if (!definition) definition = s;
       const defCorrect = ensureCaseAndPeriod('\u2014', summarizeSentence(definition, 150));
-      const otherDefs = baseSentences.filter(x => !x.toLowerCase().includes(term.toLowerCase()) && x !== definition).slice(0, 30).map(z => ensureCaseAndPeriod('', summarizeSentence(z, 130)));
-      opts = distinctFillOptions(defCorrect, uniqueOptions(otherDefs).filter(notOverused), 4);
+      const candObjs = baseSentences.filter(x => !x.toLowerCase().includes(term.toLowerCase()) && normKey(x) !== normKey(definition))
+        .map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
+        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
+      const pool = uniqueOptions(candObjs.map(o => o.txt));
+      opts = distinctFillOptions(defCorrect, pool, 4);
       correct = defCorrect;
     } else {
       const snippet = ensureCaseAndPeriod('', summarizeSentence(s, 120));
       question = `Which is true regarding this topic?`;
-      const alt = baseSentences.filter(x => x !== s).slice(0, 30).map(z => ensureCaseAndPeriod('', summarizeSentence(z, 130)));
-      opts = distinctFillOptions(snippet, uniqueOptions(alt).filter(notOverused), 4);
+      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(s)).map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
+        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
+      const pool = uniqueOptions(candObjs.map(o => o.txt));
+      opts = distinctFillOptions(snippet, pool, 4);
       correct = opts[0];
     }
 
-    // If after filtering by global usage we still got repeated options across quiz, expand pool aggressively
+    // If still not enough, expand pool aggressively with unseen sentences
     if (opts.length < 4) {
       const extra = [];
-      for (let j = 0; j < baseSentences.length && extra.length < 10; j++) {
+      for (let j = 0; j < baseSentences.length && extra.length < 20; j++) {
         const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[j], 130));
-        if (notOverused(cand)) extra.push(cand);
+        if (notOverused(cand) && globallyNovel(cand) && normKey(cand) !== normKey(correct)) extra.push(cand);
       }
       const filled = distinctFillOptions(correct, uniqueOptions(extra), 4);
       opts = filled;
     }
 
-    // Place correct deterministically and ensure option-set uniqueness
+    // Place correct deterministically and ensure option-set uniqueness across quiz
     const arranged = [...opts];
     const idx = Math.min(3, Math.floor(Math.random() * 4));
     const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
@@ -279,14 +307,18 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       let replacement = '';
       for (let k = 0; k < baseSentences.length; k++) {
         const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[(si + k) % baseSentences.length], 130));
-        if (notOverused(cand) && !arranged.some(o => normKey(o) === normKey(cand))) { replacement = cand; break; }
+        if (notOverused(cand) && globallyNovel(cand) && !arranged.some(o => normKey(o) === normKey(cand))) { replacement = cand; break; }
       }
       if (replacement) arranged[arranged.length - 1] = replacement;
     }
     usedOptionKeys.add(arranged.map(normKey).sort().join('|'));
 
     // Mark global usage so the same option text isn't reused elsewhere
-    for (const o of arranged) globalOptionCount.set(normKey(o), (globalOptionCount.get(normKey(o)) || 0) + 1);
+    for (const o of arranged) {
+      const key = normKey(o);
+      globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1);
+      usedBank.push(o);
+    }
 
     quiz.push({ id: `q-${quiz.length}`, type: typeIdx === 1 ? 'term' : (typeIdx === 2 ? 'fact' : 'statement'), question, options: arranged, answer_index: idx, explanation: '' });
   }
@@ -296,15 +328,15 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     const s = baseSentences[quiz.length % Math.max(1, baseSentences.length)] || text || 'The material describes a topic.';
     const correct = ensureCaseAndPeriod('', summarizeSentence(s, 150));
     let pool = [];
-    for (let j = 0; j < baseSentences.length && pool.length < 16; j++) {
+    for (let j = 0; j < baseSentences.length && pool.length < 20; j++) {
       const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[j], 130));
-      if (notOverused(cand) && normKey(cand) !== normKey(correct)) pool.push(cand);
+      if (notOverused(cand) && globallyNovel(cand) && normKey(cand) !== normKey(correct)) pool.push(cand);
     }
     const opts2 = distinctFillOptions(correct, uniqueOptions(pool), 4);
     const arranged = [...opts2];
     const idx = Math.min(3, Math.floor(Math.random() * 4));
     const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
-    for (const o of arranged) globalOptionCount.set(normKey(o), (globalOptionCount.get(normKey(o)) || 0) + 1);
+    for (const o of arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
     quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: arranged, answer_index: idx, explanation: '' });
   }
 
