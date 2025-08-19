@@ -10,6 +10,7 @@ import FloatingMenu from "../components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 import { prewarmAI, summarisePointwise } from "../utils/ai";
 import { extractTextFromPDF, normalizeText, looksLikeHeadingStrong, isAuthorish } from "../utils/textProcessor";
+import { getJsPDF } from "../utils/pdf";
 
 export default function StudioSummariser() {
   const fileRef = useRef(null);
