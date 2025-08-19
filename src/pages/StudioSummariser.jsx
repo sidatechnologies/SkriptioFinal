@@ -51,7 +51,7 @@ export default function StudioSummariser() {
     if (sentences.length === 0) { setAiUsed(false); return []; }
     let picks = [];
     let usedAI = false;
-    const tryML = sentences.length <= 140;
+    const tryML = sentences.length &lt;= 140;
     try {
       if (tryML) {
         const vecs = await embedSentences(sentences, 160);
@@ -66,7 +66,7 @@ export default function StudioSummariser() {
     if (!picks.length) {
       const pool = sentences.slice(0, Math.min(14, sentences.length));
       const step = Math.max(1, Math.ceil(pool.length / n));
-      for (let i = 0; i < pool.length && picks.length < n; i += step) picks.push(pool[i]);
+      for (let i = 0; i &lt; pool.length && picks.length &lt; n; i += step) picks.push(pool[i]);
     }
     setAiUsed(usedAI);
     return picks.map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -76,7 +76,6 @@ export default function StudioSummariser() {
     if (!file) return;
     setLoading(true);
     try {
-      // Use quick extractor first for instant responsiveness; fall back to full
       const quick = extractTextFromPDFQuick(file, { maxPages: 24, totalBudgetMs: 4500 });
       const fullSlow = extractTextFromPDF(file, { maxPages: 24 });
       const fastText = await Promise.race([quick, new Promise(r => setTimeout(() => r(null), 4800))]);
@@ -91,9 +90,84 @@ export default function StudioSummariser() {
     } finally { setLoading(false); }
   };
 
-  const downloadSummaryPDF = async () => { /* unchanged */ };
+  const downloadSummaryPDF = async () => {
+    try {
+      const jsPDF = await getJsPDF(1200);
+      if (!jsPDF) return;
+      await ensureAssetsLoaded();
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      addHeader(doc);
+      doc.setFontSize(14);
+      let y = 48;
+      doc.text(sourceTitle || 'Summary', 40, y); y += 18;
+      doc.setFontSize(12);
+      (summary || []).forEach((s, i) => {
+        const lines = doc.splitTextToSize(`${i+1}. ${s}`, 515);
+        lines.forEach((ln) => { doc.text(ln, 40, y); y += 16; if (y &gt; 780) { addFooter(doc); doc.addPage(); y = 48; addHeader(doc); } });
+      });
+      addFooter(doc);
+      doc.save((sourceTitle || 'summary') + '.pdf');
+    } catch {}
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">{/* unchanged UI */}</div>
+    &lt;div className="min-h-screen bg-background text-foreground"&gt;
+      &lt;Helmet&gt;
+        &lt;title&gt;Skriptio — PDF Summariser&lt;/title&gt;
+      &lt;/Helmet&gt;
+      &lt;FloatingMenu /&gt;
+      &lt;header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border"&gt;
+        &lt;div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
+          &lt;Link to="/" className="font-semibold tracking-tight"&gt;Skriptio&lt;/Link&gt;
+          &lt;ThemeToggle /&gt;
+        &lt;/div&gt;
+      &lt;/header&gt;
+
+      &lt;main className="max-w-6xl mx-auto px-6 py-8 space-y-6"&gt;
+        &lt;StudioNav /&gt;
+
+        &lt;Card className="bg-card border border-black/70 dark:border-white/60"&gt;
+          &lt;CardHeader&gt;
+            &lt;CardTitle&gt;AI PDF Summariser&lt;/CardTitle&gt;
+            &lt;CardDescription&gt;Upload a PDF and get Short / Medium / Long bullet summaries. Runs fully in your browser.&lt;/CardDescription&gt;
+          &lt;/CardHeader&gt;
+          &lt;CardContent className="space-y-4"&gt;
+            &lt;div className="grid md:grid-cols-3 gap-3"&gt;
+              &lt;div className="select-wrap"&gt;
+                &lt;select className="select-control rounded-md px-3 pr-7 py-2" value={lengthPref} onChange={e =&gt; setLengthPref(e.target.value)}&gt;
+                  &lt;option value="short"&gt;Short&lt;/option&gt;
+                  &lt;option value="medium"&gt;Medium&lt;/option&gt;
+                  &lt;option value="long"&gt;Long&lt;/option&gt;
+                &lt;/select&gt;
+                &lt;span className="select-arrow"&gt;▼&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;input ref={fileRef} type="file" accept="application/pdf" className="file-input-reset" onChange={e =&gt; setFile(e.target.files?.[0] || null)} /&gt;
+              &lt;Button onClick={() =&gt; fileRef.current?.click()} variant="outline" className="button-upload"&gt;
+                &lt;Upload size={16} className="mr-2" /&gt; Upload PDF
+              &lt;/Button&gt;
+            &lt;/div&gt;
+            &lt;div className="flex items-center gap-3"&gt;
+              &lt;Button onClick={handleSummarise} disabled={!file || loading} className="bg-primary text-primary-foreground hover:bg-primary/90"&gt;
+                {loading ? (&lt;&gt;&lt;Loader2 className="mr-2 h-4 w-4 animate-spin" /&gt; Working…&lt;/&gt;) : 'Summarise'}
+              &lt;/Button&gt;
+              {summary.length ? &lt;Button onClick={downloadSummaryPDF} variant="outline"&gt;&lt;Download size={16} className="mr-2" /&gt; Download PDF&lt;/Button&gt; : null}
+            &lt;/div&gt;
+          &lt;/CardContent&gt;
+        &lt;/Card&gt;
+
+        {summary.length ? (
+          &lt;Card className="bg-card border border-black/70 dark:border-white/60"&gt;
+            &lt;CardHeader&gt;
+              &lt;CardTitle&gt;Summary {aiUsed ? '(AI-ranked)' : ''}&lt;/CardTitle&gt;
+            &lt;/CardHeader&gt;
+            &lt;CardContent&gt;
+              &lt;ol className="list-decimal pl-5 space-y-2"&gt;
+                {summary.map((s, i) =&gt; &lt;li key={i} className="text-sm"&gt;{s}&lt;/li&gt;)}
+              &lt;/ol&gt;
+            &lt;/CardContent&gt;
+          &lt;/Card&gt;
+        ) : &lt;div className="text-sm text-foreground/70"&gt;Upload a PDF and click Summarise to see results here.&lt;/div&gt;}
+      &lt;/main&gt;
+    &lt;/div&gt;
   );
 }
