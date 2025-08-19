@@ -636,6 +636,9 @@ export async function extractTextFromPDF(file, options = {}) {
         canvas.height = Math.ceil(viewport.height);
         await page.render({ canvasContext: ctx, viewport }).promise;
 
+        // Yield to UI thread to avoid perceived blackout during heavy render
+        await tick();
+
         const textOcr = await recognizeWithConfigs(canvas, true);
         if (textOcr && textOcr.length > collected.length) {
           collected = collected ? collected + '\n' + textOcr : textOcr;
