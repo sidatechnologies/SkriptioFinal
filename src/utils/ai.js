@@ -72,7 +72,8 @@ export async function getEmbedder(deadlineMs = 0) {
 
 // Summarise long text into 5-8 bullets based on target length
 export async function summarisePointwise(text, length = 'short') {
-  const model = await getSummarizer(25000);
+  // Wait for model without a hard timeout to avoid premature null on slow first-load
+  const model = await getSummarizer(0);
   if (!model) return [];
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
   if (!clean) return [];
