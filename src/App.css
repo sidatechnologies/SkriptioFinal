@@ -135,6 +135,8 @@ input[type=file] { display: none; }
 .dark .kit-toolbar { border-color: rgba(255,255,255,0.3); }
 
 /* Segmented pill group tweaks */
-.segmented { display:inline-flex; background: transparent; border: 1.5px solid #000; border-radius: 8px; padding: 2px; }
-.segmented .item { border-radius: 6px; padding: 6px 10px; }
+.segmented { display:inline-flex; background: transparent; border: 1.5px solid #000; border-radius: 9999px; padding: 2px; }
+.segmented .item { border-radius: 9999px; padding: 6px 10px; }
+.segmented .item.active { background:#000; color:#fff; }
 .dark .segmented { border-color: #fff; }
+.dark .segmented .item.active { background:#fff; color:#000; }
