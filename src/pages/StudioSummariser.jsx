@@ -54,10 +54,8 @@ export default function StudioSummariser() {
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <Card className="bg-card border border-black/70 dark:border-white/60">
-              <CardHeader>
-                <CardTitle>Summary</CardTitle>
-              </CardHeader>
+            <Card className="kit-surface">
+              <div className="kit-toolbar">Summary</div>
               <CardContent className="space-y-4">
                 <div className="text-sm text-foreground/70">AI mode: Fallback (non‑AI heuristic) · Private — runs locally</div>
                 <div className="text-sm text-foreground/70 border border-dashed border-border rounded-md p-8 text-center">Your summary will appear here once generated.</div>
