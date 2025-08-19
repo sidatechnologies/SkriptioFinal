@@ -78,7 +78,7 @@ export async function summarisePointwise(text, length = 'short') {
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
   if (!clean) return [];
   const targetChars = length === 'long' ? 4000 : length === 'medium' ? 2200 : 1200;
-  const chunkSize = 900;
+  const chunkSize = 700;
   const chunks = [];
   for (let i = 0; i < Math.min(clean.length, targetChars); i += chunkSize) {
     chunks.push(clean.slice(i, i + chunkSize));
