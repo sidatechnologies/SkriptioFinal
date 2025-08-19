@@ -356,17 +356,17 @@
       - working: "NA"
         agent: "main"
         comment: "On-screen quiz now highlights correct option and shows 'Correct answer: ...' only after Evaluate. Prior to Evaluate, answers are hidden. Fixed duplicate evaluated state and now set on evaluation/reset on regenerate."
-  - task: "Share link: gzip+base64url compression, unique link each time, and add dedicated Copy Link button"
+  - task: "Share/Copy link with shadcn icons and auto-load via #s= token"
     implemented: true
     working: "NA"
-    file: "/app/src/App.js, /app/package.json"
+    file: "/app/src/App.js, /app/src/utils/b64url.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented pako-based deflate compression for share payload with base64url. Added UID+timestamp so links are always unique. Two buttons: Share (Web Share API) and Copy Link (clipboard/prompt). Backward-compatible decoder supports legacy uncompressed tokens."
+        comment: "Replaced buttons with icon buttons (Share, Link). Copy places a URL containing #s= gzip+base64url payload. Studio decodes token on load and renders kit."
   - task: "Rebuild landing page with hero + animated cards, step flow, features, about, FAQ, footer; minimal gradient and both themes"
     implemented: true
     working: true
