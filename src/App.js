@@ -58,7 +58,7 @@ export function Studio() {
   const handleGenerate = async () => {
     if (loading) return;
     const hasText = (text || '').trim().length > 0;
-    if (!hasText &amp;&amp; !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
+    if (!hasText && !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
     setLoading(true); setLoadingStep('Reading input');
     try {
       let full = hasText ? text : '';
