@@ -71,7 +71,7 @@ function Landing() {
   );
 }
 
-function EmptyState({ label }) { return (&lt;div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}&lt;/div&gt;); }
+function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div&gt;); }
 
 export function Studio() {
   const navigate = useNavigate();
@@ -137,134 +137,134 @@ export function Studio() {
   };
 
   return (
-    &lt;div className="min-h-screen bg-background text-foreground"&gt;
-      &lt;FloatingMenu /&gt;
-      &lt;header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border"&gt;
-        &lt;div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
-          &lt;Link to="/" className="font-semibold tracking-tight"&gt;Skriptio&lt;/Link&gt;
-          &lt;div className="flex items-center gap-2"&gt;
-            &lt;ThemeToggle /&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/header&gt;
+    <div className="min-h-screen bg-background text-foreground"&gt;
+      <FloatingMenu /&gt;
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border"&gt;
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
+          <Link to="/" className="font-semibold tracking-tight"&gt;Skriptio</Link&gt;
+          <div className="flex items-center gap-2"&gt;
+            <ThemeToggle /&gt;
+          </div&gt;
+        </div&gt;
+      </header&gt;
 
-      &lt;main className="max-w-6xl mx-auto px-6 py-8 space-y-6"&gt;
-        &lt;StudioNav /&gt;
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6"&gt;
+        <StudioNav /&gt;
 
-        &lt;Card className="bg-card border border-black/70 dark:border-white/60"&gt;
-          &lt;CardHeader&gt;
-            &lt;CardTitle&gt;Study Kit Generator&lt;/CardTitle&gt;
-            &lt;CardDescription&gt;Paste notes or upload a PDF, pick difficulty, then Generate.&lt;/CardDescription&gt;
-          &lt;/CardHeader&gt;
-          &lt;CardContent className="space-y-4"&gt;
-            &lt;div className="grid md:grid-cols-3 gap-3"&gt;
-              &lt;Input placeholder="Title (optional)" value={title} onChange={e =&gt; setTitle(e.target.value)} className="studio-input-title" /&gt;
-              &lt;div className="select-wrap"&gt;
-                &lt;select className="select-control rounded-md px-3 pr-7 py-2" value={difficulty} onChange={e =&gt; setDifficulty(e.target.value)}&gt;
-                  &lt;option value="balanced"&gt;Balanced&lt;/option&gt;
-                  &lt;option value="harder"&gt;Harder&lt;/option&gt;
-                &lt;/select&gt;
-                &lt;span className="select-arrow"&gt;&lt;ChevronDown size={16} /&gt;&lt;/span&gt;
-              &lt;/div&gt;
-              &lt;div className="flex items-center gap-3"&gt;
-                &lt;label className="inline-flex items-center gap-2 text-sm"&gt;
-                  &lt;input type="checkbox" checked={includeFormulas} onChange={e =&gt; setIncludeFormulas(e.target.checked)} /&gt;
+        <Card className="bg-card border border-black/70 dark:border-white/60"&gt;
+          <CardHeader&gt;
+            <CardTitle&gt;Study Kit Generator</CardTitle&gt;
+            <CardDescription&gt;Paste notes or upload a PDF, pick difficulty, then Generate.</CardDescription&gt;
+          </CardHeader&gt;
+          <CardContent className="space-y-4"&gt;
+            <div className="grid md:grid-cols-3 gap-3"&gt;
+              <Input placeholder="Title (optional)" value={title} onChange={e =&gt; setTitle(e.target.value)} className="studio-input-title" /&gt;
+              <div className="select-wrap"&gt;
+                <select className="select-control rounded-md px-3 pr-7 py-2" value={difficulty} onChange={e =&gt; setDifficulty(e.target.value)}&gt;
+                  <option value="balanced"&gt;Balanced</option&gt;
+                  <option value="harder"&gt;Harder</option&gt;
+                </select&gt;
+                <span className="select-arrow"&gt;<ChevronDown size={16} /&gt;</span&gt;
+              </div&gt;
+              <div className="flex items-center gap-3"&gt;
+                <label className="inline-flex items-center gap-2 text-sm"&gt;
+                  <input type="checkbox" checked={includeFormulas} onChange={e =&gt; setIncludeFormulas(e.target.checked)} /&gt;
                   Include formulas
-                &lt;/label&gt;
-                &lt;label className="inline-flex items-center gap-2 text-sm"&gt;
-                  &lt;input type="checkbox" checked={showExplanations} onChange={e =&gt; setShowExplanations(e.target.checked)} /&gt;
+                </label&gt;
+                <label className="inline-flex items-center gap-2 text-sm"&gt;
+                  <input type="checkbox" checked={showExplanations} onChange={e =&gt; setShowExplanations(e.target.checked)} /&gt;
                   Show explanations
-                &lt;/label&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;Textarea rows={10} placeholder="Paste notes here…" value={text} onChange={e =&gt; setText(e.target.value)} className="studio-textarea-notes" /&gt;
-            &lt;div className="flex items-center gap-3"&gt;
-              &lt;input ref={fileInputRef} type="file" accept="application/pdf" className="file-input-reset" onChange={e =&gt; setFile(e.target.files?.[0] || null)} /&gt;
-              &lt;Button onClick={() =&gt; fileInputRef.current?.click()} variant="outline" className="button-upload"&gt;
-                &lt;Upload size={16} className="mr-2" /&gt; Upload PDF
-              &lt;/Button&gt;
-              &lt;Button onClick={handleGenerate} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90"&gt;
-                {loading ? (&lt;&gt;&lt;Loader2 className="mr-2 h-4 w-4 animate-spin" /&gt; {loadingStep || 'Working…'}&lt;/&gt;) : 'Generate'}
-              &lt;/Button&gt;
-            &lt;/div&gt;
-          &lt;/CardContent&gt;
-        &lt;/Card&gt;
+                </label&gt;
+              </div&gt;
+            </div&gt;
+            <Textarea rows={10} placeholder="Paste notes here…" value={text} onChange={e =&gt; setText(e.target.value)} className="studio-textarea-notes" /&gt;
+            <div className="flex items-center gap-3"&gt;
+              <input ref={fileInputRef} type="file" accept="application/pdf" className="file-input-reset" onChange={e =&gt; setFile(e.target.files?.[0] || null)} /&gt;
+              <Button onClick={() =&gt; fileInputRef.current?.click()} variant="outline" className="button-upload"&gt;
+                <Upload size={16} className="mr-2" /&gt; Upload PDF
+              </Button&gt;
+              <Button onClick={handleGenerate} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90"&gt;
+                {loading ? (<&gt;<Loader2 className="mr-2 h-4 w-4 animate-spin" /&gt; {loadingStep || 'Working…'}</&gt;) : 'Generate'}
+              </Button&gt;
+            </div&gt;
+          </CardContent&gt;
+        </Card&gt;
 
         {result ? (
-          &lt;Tabs defaultValue="quiz" className="studio-tabs-wrap"&gt;
-            &lt;TabsList&gt;
-              &lt;TabsTrigger value="quiz"&gt;Quiz&lt;/TabsTrigger&gt;
-              &lt;TabsTrigger value="cards"&gt;Flashcards&lt;/TabsTrigger&gt;
-              &lt;TabsTrigger value="plan"&gt;7‑Day Plan&lt;/TabsTrigger&gt;
-              &lt;TabsTrigger value="theory"&gt;Theory Qs&lt;/TabsTrigger&gt;
-            &lt;/TabsList&gt;
+          <Tabs defaultValue="quiz" className="studio-tabs-wrap"&gt;
+            <TabsList&gt;
+              <TabsTrigger value="quiz"&gt;Quiz</TabsTrigger&gt;
+              <TabsTrigger value="cards"&gt;Flashcards</TabsTrigger&gt;
+              <TabsTrigger value="plan"&gt;7‑Day Plan</TabsTrigger&gt;
+              <TabsTrigger value="theory"&gt;Theory Qs</TabsTrigger&gt;
+            </TabsList&gt;
 
-            &lt;TabsContent value="quiz" className="space-y-4"&gt;
+            <TabsContent value="quiz" className="space-y-4"&gt;
               {result.quiz.map((q) =&gt; (
-                &lt;div key={q.id} className="border rounded-md p-4"&gt;
-                  &lt;div className="font-medium mb-2"&gt;{q.question}&lt;/div&gt;
-                  &lt;div className="grid gap-2"&gt;
+                <div key={q.id} className="border rounded-md p-4"&gt;
+                  <div className="font-medium mb-2"&gt;{q.question}</div&gt;
+                  <div className="grid gap-2"&gt;
                     {q.options.map((opt, idx) =&gt; {
                       const selected = answers[q.id] === idx;
                       const correctNow = evaluated &amp;&amp; idx === q.answer_index;
                       return (
-                        &lt;button key={idx} onClick={() =&gt; onPickOption(q.id, idx)} className={`text-left px-3 py-2 rounded-md border quiz-option ${selected ? 'quiz-option--selected' : ''} ${correctNow ? 'ring-2 ring-emerald-500' : ''}`}&gt;
-                          &lt;span className="quiz-letter mr-2"&gt;{String.fromCharCode(65 + idx)}.&lt;/span&gt; {opt}
-                        &lt;/button&gt;
+                        <button key={idx} onClick={() =&gt; onPickOption(q.id, idx)} className={`text-left px-3 py-2 rounded-md border quiz-option ${selected ? 'quiz-option--selected' : ''} ${correctNow ? 'ring-2 ring-emerald-500' : ''}`}&gt;
+                          <span className="quiz-letter mr-2"&gt;{String.fromCharCode(65 + idx)}.</span&gt; {opt}
+                        </button&gt;
                       );
                     })}
-                  &lt;/div&gt;
-                &lt;/div&gt;
+                  </div&gt;
+                </div&gt;
               ))}
-              &lt;div className="flex items-center gap-3"&gt;
-                &lt;Button onClick={onEvaluate} disabled={evaluated} className="bg-primary text-primary-foreground"&gt;{evaluated ? 'Evaluated' : 'Evaluate'}&lt;/Button&gt;
-                {evaluated ? &lt;div className="text-sm"&gt;Score: &lt;span className="font-semibold"&gt;{score} / {result.quiz.length}&lt;/span&gt;&lt;/div&gt; : null}
-              &lt;/div&gt;
-            &lt;/TabsContent&gt;
+              <div className="flex items-center gap-3"&gt;
+                <Button onClick={onEvaluate} disabled={evaluated} className="bg-primary text-primary-foreground"&gt;{evaluated ? 'Evaluated' : 'Evaluate'}</Button&gt;
+                {evaluated ? <div className="text-sm"&gt;Score: <span className="font-semibold"&gt;{score} / {result.quiz.length}</span&gt;</div&gt; : null}
+              </div&gt;
+            </TabsContent&gt;
 
-            &lt;TabsContent value="cards" className="grid md:grid-cols-2 gap-3"&gt;
+            <TabsContent value="cards" className="grid md:grid-cols-2 gap-3"&gt;
               {result.flashcards.map((c, i) =&gt; (
-                &lt;Card key={i} className="border"&gt;
-                  &lt;CardHeader&gt;&lt;CardTitle className="text-base"&gt;{c.front}&lt;/CardTitle&gt;&lt;/CardHeader&gt;
-                  &lt;CardContent&gt;&lt;p className="text-sm"&gt;{c.back}&lt;/p&gt;&lt;/CardContent&gt;
-                &lt;/Card&gt;
+                <Card key={i} className="border"&gt;
+                  <CardHeader&gt;<CardTitle className="text-base"&gt;{c.front}</CardTitle&gt;</CardHeader&gt;
+                  <CardContent&gt;<p className="text-sm"&gt;{c.back}</p&gt;</CardContent&gt;
+                </Card&gt;
               ))}
-            &lt;/TabsContent&gt;
+            </TabsContent&gt;
 
-            &lt;TabsContent value="plan" className="grid md:grid-cols-2 gap-3"&gt;
+            <TabsContent value="plan" className="grid md:grid-cols-2 gap-3"&gt;
               {result.plan.map((d, i) =&gt; (
-                &lt;Card key={i} className="border"&gt;
-                  &lt;CardHeader&gt;&lt;CardTitle className="text-base"&gt;{d.title}&lt;/CardTitle&gt;&lt;/CardHeader&gt;
-                  &lt;CardContent&gt;
-                    &lt;ul className="list-disc pl-5 space-y-1"&gt;
-                      {d.objectives.map((o, j) =&gt; &lt;li key={j} className="plan-objective"&gt;{o}&lt;/li&gt;)}
-                    &lt;/ul&gt;
-                  &lt;/CardContent&gt;
-                &lt;/Card&gt;
+                <Card key={i} className="border"&gt;
+                  <CardHeader&gt;<CardTitle className="text-base"&gt;{d.title}</CardTitle&gt;</CardHeader&gt;
+                  <CardContent&gt;
+                    <ul className="list-disc pl-5 space-y-1"&gt;
+                      {d.objectives.map((o, j) =&gt; <li key={j} className="plan-objective"&gt;{o}</li&gt;)}
+                    </ul&gt;
+                  </CardContent&gt;
+                </Card&gt;
               ))}
-            &lt;/TabsContent&gt;
+            </TabsContent&gt;
 
-            &lt;TabsContent value="theory" className="space-y-2"&gt;
-              {theory.map((t, i) =&gt; &lt;div key={i} className="border rounded-md p-3 text-sm"&gt;{t}&lt;/div&gt;)}
-            &lt;/TabsContent&gt;
-          &lt;/Tabs&gt;
+            <TabsContent value="theory" className="space-y-2"&gt;
+              {theory.map((t, i) =&gt; <div key={i} className="border rounded-md p-3 text-sm"&gt;{t}</div&gt;)}
+            </TabsContent&gt;
+          </Tabs&gt;
         ) : (
-          &lt;EmptyState label="Generate to see your quiz, flashcards, plan and theory questions here." /&gt;
+          <EmptyState label="Generate to see your quiz, flashcards, plan and theory questions here." /&gt;
         )}
-      &lt;/main&gt;
-    &lt;/div&gt;
+      </main&gt;
+    </div&gt;
   );
 }
 
 export default function App() {
   return (
-    &lt;Routes&gt;
-      &lt;Route path="/" element={&lt;Landing /&gt;} /&gt;
-      &lt;Route path="/studio" element={&lt;StudioHub /&gt;} /&gt;
-      &lt;Route path="/studio/kit/*" element={&lt;KitRoute /&gt;} /&gt;
-      &lt;Route path="/studio/:title/:code" element={&lt;Studio /&gt;} /&gt;
-      &lt;Route path="/studio/summariser" element={&lt;StudioSummariser /&gt;} /&gt;
-      &lt;Route path="/merch" element={&lt;Merch /&gt;} /&gt;
-    &lt;/Routes&gt;
+    <Routes&gt;
+      <Route path="/" element={<Landing /&gt;} /&gt;
+      <Route path="/studio" element={<StudioHub /&gt;} /&gt;
+      <Route path="/studio/kit/*" element={<KitRoute /&gt;} /&gt;
+      <Route path="/studio/:title/:code" element={<Studio /&gt;} /&gt;
+      <Route path="/studio/summariser" element={<StudioSummariser /&gt;} /&gt;
+      <Route path="/merch" element={<Merch /&gt;} /&gt;
+    </Routes&gt;
   );
 }
