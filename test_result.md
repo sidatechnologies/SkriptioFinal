@@ -147,6 +147,70 @@
       - working: "NA"
         agent: "main"
         comment: "PDF footer now shows: 'skriptio.sidahq.com | aceel@sidahq.com' instead of just email. Applies to Quiz, Flashcards, Theory, and Plan exports."
+  - task: "MCQ option normalization (capitalized, period, balanced length, formula options as sentences)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "user"
+        comment: "Quiz shows repeated options, filler text and gibberish; options not properly formatted."
+      - working: "NA"
+        agent: "main"
+        comment: "Added ensureSentence/limitSentences/normalizeToLength + finalizeOptions. All MCQ options now start with a capital, end with a full stop, and are normalized to the correct option length. Formula options rendered as proper sentences (e.g., 'Formula: E = mc^2.')."
+  - task: "Flashcards grammar cleanup (remove 'A.' prefix, proper sentences)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "user"
+        comment: "Flashcards backs contain odd prefixes and OCR junk."
+      - working: "NA"
+        agent: "main"
+        comment: "Removed 'A.' prefix in flashcard backs. Enforce capital start + period; drop author/publisher lines; keep 1–2 sentences."
+  - task: "Filter author/publisher disclaimers from content"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added PUBLISHER_DISCLAIMER_RX and integrated into normalizeText to drop lines like 'This work is published...', ISBN, bios, etc."
+  - task: "Study plan fallback titles (no repeated 'Synthesis')"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Rotate fallback day titles among: Consolidation, Integration, Mastery, Review and self‑test, Recap and drill."
+  - task: "PDF/OCR flicker mitigation (no overlay)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "user"
+        comment: "Screen blacks out for a second when PDF is processed."
+      - working: "NA"
+        agent: "main"
+        comment: "Added micro-yields (tick) after page renders and long loops to keep UI responsive; no processing overlay added per request."
 
   - task: "Convert full-stack app to frontend-only with client-side processing"
     implemented: true
