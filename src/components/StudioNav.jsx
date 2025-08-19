@@ -21,6 +21,7 @@ export default function StudioNav() {
     { to: "/studio", label: "Studio" },
     { to: "/studio/kit", label: "Study Kit" },
     { to: "/studio/summariser", label: "PDF Summariser" },
+    { to: "/studio/resume", label: "Resume Builder" },
   ];
 
   const current = items.find((i) => isActive(i.to)) || items[0];
