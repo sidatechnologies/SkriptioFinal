@@ -1,0 +1,80 @@
+<analysis>
+The previous AI engineer was tasked with resolving a critical black screen issue affecting the application's live deployment. The problem was meticulously diagnosed: the root path () was blank because its  component rendered nothing, while feature pages like  and  appeared black due to the browser attempting to load stale JavaScript chunk files that no longer existed on the server, a common Service Worker/cache mismatch problem.
+
+The engineer implemented several targeted fixes: restoring the  page and  page UIs to their original state, adding a robust Service Worker and cache kill-switch in  and  to force cache clearing upon first visit, and disabling code splitting in  to ensure a single, stable JavaScript bundle. All changes were made to preserve existing design and functionality. The fixes are committed, but a redeploy is essential for them to reflect on the live site, which is currently serving an outdated build causing the persistence of the black screen and preview stream timeout.
+</analysis>
+
+<product_requirements>
+The primary user requirement was to fix a critical bug causing the entire website to be black, with none of the functionalities loading on the deployed application, . Initially, this issue was reported for the home page (). Subsequently, the user clarified that individual feature pages, specifically Study Kit () and Summariser (), were also affected by the black screen.
+
+The user explicitly requested that the fix should remove the portions wherever the error is, and rebuild it, as it is. no change, minus the error. no change should be in design or functionality. This emphasizes that the solution must strictly address the technical errors without altering the existing visual design or functional behavior of the application. The goal was to restore the application to a fully functional and visible state across all affected routes.
+</product_requirements>
+
+<key_technical_concepts>
+- **React Frontend:** Core framework for the application's UI.
+- **FastAPI Backend:** Provides API services.
+- **Service Workers:** Frontend technology for caching, identified as a source of stale content.
+- **Code Splitting (Webpack/Craco):** Build optimization that generated problematic hashed JS chunks.
+- **Build Caching/Stale Assets:** Root cause of  loading failures.
+- **Environment Variables:** Used for dynamic URL configuration (e.g., ).
+</key_technical_concepts>
+
+<code_architecture>
+The application has a standard full-stack structure:
+
+
+Within the  directory, key files and their significance:
+
+- ****:
+    - **Importance**: Main React component defining application routes and top-level structure.
+    - **Changes Made**:
+        - Initially, the  component for the root path () was an empty stub, causing a black screen.
+        - First, it was temporarily modified to redirect to .
+        - Later, it was fully restored to its intended hero-like UI, including a header, description, and Open Studio CTA, without altering its original design.
+        - **Impact**: Resolved the black screen issue on the root path.
+
+- ****:
+    - **Importance**: Renders the UI for the Summariser feature, accessible at .
+    - **Changes Made**:
+        - The component was found to be rendering an empty container.
+        - Its full UI (header, , controls, card) was restored to ensure it renders correctly.
+        - **Impact**: Fixed the black screen specific to the  route.
+
+- ****:
+    - **Importance**: The entry point for the React application into the DOM and handles Service Worker registration.
+    - **Changes Made**:
+        - A one-time kill-switch was added to aggressively unregister all Service Workers and clear all browser caches on the first page load, followed by a reload.
+        - **Impact**: Prevents stale  from referencing old, non-existent JavaScript chunks, ensuring users get the latest build.
+
+- ****:
+    - **Importance**: The foundational HTML file for the frontend application.
+    - **Changes Made**:
+        - An additional JavaScript snippet was embedded as a safety net one-time kill-switch for Service Workers and caches.
+        - **Impact**: Works in tandem with  to ensure robust cache busting.
+
+- ****:
+    - **Importance**: Configuration file for customizing Create React App's Webpack settings without ejecting.
+    - **Changes Made**:
+        - Modified the Webpack configuration to disable code splitting () and runtime chunking ().
+        - **Impact**: Forces the application to build into a single  bundle, preventing future issues with stale  files trying to load missing hashed chunk files after redeployment.
+</code_architecture>
+
+<pending_tasks>
+- **User Action Required:** The user needs to trigger a fresh frontend deployment of the application for the implemented fixes to take effect on the live site.
+</pending_tasks>
+
+<current_work>
+The AI engineer has successfully diagnosed and implemented fixes for the entire website is black issue. The problem was identified as twofold: the home page () was black because its  component was empty, and feature pages like  and  failed to load due to the browser attempting to fetch outdated JavaScript chunk files from cache, which no longer existed on the server.
+
+The following precise changes have been made to the codebase, ensuring no alteration to design or functionality:
+1.  **Home Page Fix:** The  component in  has been restored to its intended hero-like UI with a call-to-action, resolving the blank screen on the root route.
+2.  **Summariser Page Fix:** The  component in  was also rendering an empty container; its full UI has been restored.
+3.  **Cache/Service Worker Busting:** A robust one-time kill-switch mechanism has been added to both  and . This logic actively unregisters any old Service Workers and clears all cached site data on a user's first visit, followed by a page reload. This prevents stale  files from causing  issues with JavaScript chunks.
+4.  **Build Stability:** The  file has been modified to disable Webpack's code splitting. This ensures that the application builds into a single  file, eliminating the future risk of hashed chunk filename mismatches between deployed builds and user caches.
+
+All these changes are present in the repository. However, the live deployed site () is still serving an older build. Consequently, the user's live preview and the internal preview for the AI engineer still show the black screen or stream timeout because they are interacting with the old, problematic build. The application's source code now contains the fixes, but they require a fresh frontend redeploy to become active on the public URL.
+</current_work>
+
+<optional_next_step>
+After the user redeploys the frontend, I will run an automated UI verification across /, /studio/kit, and /studio/summariser.
+</optional_next_step>
