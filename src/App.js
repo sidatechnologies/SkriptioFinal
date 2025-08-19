@@ -111,8 +111,8 @@ function Landing() {
               <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Saves hours of prep</div>
             </div>
           </div>
-          <div className="hidden md:block relative h-[280px]">
-            <div className="absolute right-0 top-0">
+          <div className="hidden md:block hero-aside">
+            <div className="hero-anchor">
               <HeroAtom />
             </div>
           </div>

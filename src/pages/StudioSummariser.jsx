@@ -48,7 +48,6 @@ export default function StudioSummariser() {
                   <Upload size={16} className="mr-2" /> Choose PDF
                 </Button>
                 <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={!hasFile}>Summarise PDF</Button>
-                <div className="text-xs text-foreground/70">All summarisation runs on‑device. If the lightweight model can’t load, a fast fallback is used.</div>
               </CardContent>
             </Card>
           </div>
@@ -56,10 +55,9 @@ export default function StudioSummariser() {
           <div className="lg:col-span-2 space-y-4">
             <Card className="kit-surface">
               <div className="kit-toolbar">Summary</div>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-foreground/70">AI mode: Fallback (non‑AI heuristic) · Private — runs locally</div>
+              <CardContent>
                 <div className="text-sm text-foreground/70 border border-dashed border-border rounded-md p-8 text-center">Your summary will appear here once generated.</div>
-                <Button disabled className="w-max">Download Summary PDF</Button>
+                <div className="mt-3"><Button disabled className="w-max">Download Summary PDF</Button></div>
               </CardContent>
             </Card>
           </div>
