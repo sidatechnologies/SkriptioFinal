@@ -190,7 +190,7 @@
       - working: "NA"
         agent: "main"
         comment: "Added ensureSentence/limitSentences/normalizeToLength + finalizeOptions. All MCQ options now start with a capital, end with a full stop, and are normalized to the correct option length. Formula options rendered as proper sentences (e.g., 'Formula: E = mc^2.')."
-  - task: "Flashcards grammar cleanup (remove 'A.' prefix, proper sentences)"
+  - task: "Flashcards headings per card (no 'Key idea?')"
     implemented: true
     working: "NA"
     file: "/app/src/utils/textProcessor.js"
@@ -199,11 +199,8 @@
     needs_retesting: true
     status_history:
       - working: "NA"
-        agent: "user"
-        comment: "Flashcards backs contain odd prefixes and OCR junk."
-      - working: "NA"
         agent: "main"
-        comment: "Removed 'A.' prefix in flashcard backs. Enforce capital start + period; drop author/publisher lines; keep 1–2 sentences."
+        comment: "Front titles now derived from sentences (colon-head, key phrases, or top tokens). Backs remain cleaned 1–2 sentences with proper punctuation."
   - task: "Filter author/publisher disclaimers from content"
     implemented: true
     working: "NA"
