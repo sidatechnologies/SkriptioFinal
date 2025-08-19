@@ -451,7 +451,7 @@ function sentenceShape(text) {
       // drop sentences with suspiciously few vowels
       const letters = s.replace(/[^A-Za-z]/g, '');
       const vowels = (letters.match(/[aeiouy]/gi) || []).length;
-      if (letters.length >= 10 && vowels / Math.max(1, letters.length) < 0.2) continue;
+      if (letters.length >= 10 && vowels / Math.max(1, letters.length) < 0.28) continue;
       out.push(s.replace(/\s{2,}/g, ' '));
     }
   }
