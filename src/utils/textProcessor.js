@@ -131,7 +131,7 @@ function summarizeSentence(s, targetLen = 180) {
   t = t.replace(/^\s*(?:[•◦·➢►»›–—\-]+|\(?\d{1,3}\)?[.)]|[A-Za-z]\.)\s+/, '');
   t = t.replace(/(:)\s*[•◦·➢►»›]\s+/g, '$1 ');
   // Remove stray sequences of bullets within the sentence
-  t = t.replace(/[•◦·➢►»›]+/g, ' ');
+  t = t.replace(/[•◦·➢►»›❖]+/g, ' ');
   // Collapse duplicated 'X: X ...' patterns
   t = t.replace(/^([^:]{2,}?)\s*:\s*\1\b/i, '$1');
   // Normalize common dashed term formatting like 'K - means' -> 'K‑means'
