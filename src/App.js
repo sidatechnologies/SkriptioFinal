@@ -103,7 +103,6 @@ export function Studio() {
 
   const handleGenerate = async () => {
     // UI-only replica: disable generation functionality
-    toast({ title: 'Demo mode', description: 'Functionality is disabled in this UI-only build.' });
     return;
   };
 
