@@ -24,7 +24,25 @@ import FloatingMenu from "./components/FloatingMenu";
 import { fromB64Url, b64uEncodeObject as b64uEncode } from "./utils/b64url";
 import { Helmet } from "react-helmet-async";
 
-function Landing() { /* unchanged */ }
+function Landing() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    // Quick fix: redirect root to Studio Hub to avoid blank page
+    navigate('/studio', { replace: true });
+  }, [navigate]);
+  // Fallback UI if redirect is blocked
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl mb-3">Skriptio</h1>
+        <a href="/studio" className="inline-flex items-center gap-2 px-4 py-2 border rounded">
+          Open Studio
+          <span aria-hidden>→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
 
 function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div>); }
 
