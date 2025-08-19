@@ -141,12 +141,12 @@ function Landing() {
         <section id="features" className="max-w-6xl mx-auto px-6 py-10">
           <h2 className="section-title text-2xl font-semibold mb-6">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className="card-glow"><CardHeader><CardTitle>🧠 Tough quizzes</CardTitle><CardDescription>10 MCQs per kit: concept, property, and formula items tuned by difficulty.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>🗂️ Smart flashcards</CardTitle><CardDescription>Concise fronts, context‑rich backs derived from the text you provide.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>🗓️ 7‑Day plans</CardTitle><CardDescription>Clustered topics with daily objectives for steady, guided progress.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>➕ Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied quizzes.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>🔒 Private by design</CardTitle><CardDescription>Runs 100% in your browser after load. No servers, no data sharing.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>⚡ Fast &amp; responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Tough quizzes</CardTitle><CardDescription>10 MCQs per kit: concept, property, and formula items tuned by difficulty.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Smart flashcards</CardTitle><CardDescription>Concise fronts, context‑rich backs derived from the text you provide.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>7‑Day plans</CardTitle><CardDescription>Clustered topics with daily objectives for steady, guided progress.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied quizzes.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Private by design</CardTitle><CardDescription>Runs 100% in your browser after load. No servers, no data sharing.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Fast &amp; responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
           </div>
         </section>
 
