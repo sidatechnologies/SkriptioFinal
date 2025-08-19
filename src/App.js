@@ -289,13 +289,13 @@ export function Studio() {
                 </Card>
               </TabsContent>
               <TabsContent value="flashcards">
-                <Card className="bg-card border border-black/70 dark:border-white/60"><CardContent><EmptyState label="No flashcards yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">Flashcards</div><CardContent><EmptyState label="No flashcards yet." /></CardContent></Card>
               </TabsContent>
               <TabsContent value="plan">
-                <Card className="bg-card border border-black/70 dark:border-white/60"><CardContent><EmptyState label="No plan yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">7‑Day Plan</div><CardContent><EmptyState label="No plan yet." /></CardContent></Card>
               </TabsContent>
               <TabsContent value="theory">
-                <Card className="bg-card border border-black/70 dark:border-white/60"><CardContent><EmptyState label="No theory questions yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">Theory Qs</div><CardContent><EmptyState label="No theory questions yet." /></CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>
