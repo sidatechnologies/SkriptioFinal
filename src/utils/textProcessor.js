@@ -671,7 +671,7 @@ function cleanOCROutput(text) {
   t = t.replace(/\n?\s*-+\s*\d+\s*-+\s*\n?/g, "\n");
   t = charCleanupLight(t);
   t = t.replace(/([A-Za-z]{2,})-\n([A-Za-z]{2,})/g, "$1$2");
-  t = t.replace(/\b([A-Za-z]{3,})\s+([a-z]{2,})\b/g, (m, a, b) => { if ((a + b).length <= 12) return a + b; return m; });
+  // removed aggressive word-merge rule that caused merged words in summaries and outputs
   // Remove stray currency/symbol runs
   t = t.replace(/[£€¥₹]+/g, '');
   const lines = t.split(/\n+/).map(l => l.trim());
