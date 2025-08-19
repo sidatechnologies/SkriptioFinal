@@ -356,7 +356,22 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   }
 
   // Flashcards — use diverse sentences
-  const flashBase = baseSentences.slice(0, 16);
+  // Flashcards: pick top diverse 12 sentences by centrality; avoid duplicates by signature
+  let flashBase = baseSentences.slice(0, 40);
+  try {
+    const ml = await import('./ml');
+    const ranked = await ml.selectTopSentences(baseSentences, 20, 200);
+    if (Array.isArray(ranked) && ranked.length) flashBase = ranked;
+  } catch {}
+  const seenSig = new Set();
+  const flashPicked = [];
+  for (const s of flashBase) {
+    const sig = tokenize(s).filter(t => !STOPWORDS.has(t)).slice(0,3).join(' ');
+    if (!seenSig.has(sig)) { seenSig.add(sig); flashPicked.push(s); }
+    if (flashPicked.length >= 12) break;
+  }
+  const flashcards = (flashPicked.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
+
   const flashcards = (flashBase.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
   if (flashcards.length === 0 && text.trim()) flashcards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
 
