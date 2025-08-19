@@ -377,7 +377,13 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
   // 7-day plan
   const days = [];
-  const topics = (phrases.length ? phrases : Array.from({ length: 7 }, (_, i) => `Topic ${i+1}`));
+  // 7-day plan — pick 7 distinct topics by phrase centrality/signature
+  let topics = (phrases.length ? phrases : Array.from({ length: 14 }, (_, i) => `Topic ${i+1}`));
+  // Deduplicate phrase signatures (first 2 tokens)
+  const seenP = new Set();
+  const uniqP = [];
+  for (const p of topics) { const sig = String(p).split(/\s+/).slice(0,2).join(' ').toLowerCase(); if (!seenP.has(sig)) { seenP.add(sig); uniqP.push(p); } }
+  topics = uniqP.slice(0, 14);
   for (let i = 0; i < Math.min(7, topics.length || 7); i++) {
     const p = topics[i] || `Topic ${i+1}`;
     days.push({ title: `Day ${i + 1}: ${p}`, objectives: [
