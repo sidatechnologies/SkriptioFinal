@@ -1,7 +1,7 @@
 /* Frontend-only AI pipelines using Transformers.js with the exact models requested.
    Models:
    - Summarisation: t5-small
-   - Question Generation: try valhalla/t5-small-qa-qg-hl; if unavailable in web format, fall back to t5-small.
+   - Question Generation: t5-small (default). No attempt to valhalla to avoid 404s.
    - Embeddings: Xenova/all-MiniLM-L6-v2 (ONNX mirror of requested MiniLM) with batching and safe fallbacks.
 */
 
@@ -41,13 +41,7 @@ export async function getSummarizer(deadlineMs = 0) {
 
 export async function getQG(deadlineMs = 0) {
   if (_qgPromise) return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
-  // Try the requested finetune first
-  try {
-    _qgPromise = pipeline('text2text-generation', 'valhalla/t5-small-qa-qg-hl');
-    const p = deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
-    if (p) return p;
-  } catch {}
-  // Fallback to base t5-small (ONNX web mirror) for QG prompting
+  // Default to base t5-small for QG prompting (no finetune download attempts)
   _qgPromise = pipeline('text2text-generation', 'Xenova/t5-small');
   return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
 }
@@ -97,8 +91,8 @@ export async function summarisePointwise(text, length = 'short') {
 
 // Embeddings helper with batching and truncation to avoid WASM OOM
 export async function embedTexts(texts, deadlineMs = 30000) {
-  const arr = (texts || []).map(t => String(t || '').slice(0, 512)); // hard cap length per item
-  const maxN = 160; // limit total sentences to embed
+  const arr = (texts || []).map(t => String(t || '').slice(0, 512));
+  const maxN = 160;
   const items = arr.slice(0, maxN);
 
   let embedder = null;
@@ -125,13 +119,11 @@ export async function embedTexts(texts, deadlineMs = 30000) {
     return out.length ? out : null;
   }
 
-  // Primary path: MiniLM ONNX with batching
   if (embedder) {
     const vecs = await runBatches(embedder);
     if (vecs) return vecs;
   }
 
-  // Fallback path: TF.js USE
   try {
     const ml = await import('./ml');
     const res = await ml.embedSentences(items, Math.min(1200, deadlineMs));
@@ -147,16 +139,8 @@ export async function generateQuestionFromContext(context, answerSpan) {
   const ctx = String(context || '');
   const ans = String(answerSpan || '').trim();
 
-  // If the finetuned model loaded, it will understand <hl> highlights.
-  let prompt = `generate question: ${ctx.replace(ans, `<hl>${ans}<hl>`)}`;
-  try {
-    const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
-    const text = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';
-    if (text) return text.replace(/\s+/g, ' ').trim();
-  } catch {}
-
-  // Fallback prompting style for base t5-small
-  prompt = `generate question: context: ${ctx} answer: ${ans}`;
+  // Base T5 prompting (no special tokens guaranteed)
+  const prompt = `generate question: context: ${ctx} answer: ${ans}`;
   try {
     const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
     const text = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';

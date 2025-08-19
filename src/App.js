@@ -21,28 +21,178 @@ import "./App.css";
 import { prewarmAI, summarisePointwise, embedTexts, generateQuestionFromContext } from "./utils/ai";
 import { extractTextFromPDF, splitSentences, normalizeText, isAuthorish, looksLikeHeadingStrong, extractKeyPhrases, buildTheoryQuestions } from "./utils/textProcessor";
 
-function HeroAtom() { /* unchanged */ return (
-  <div className="hero-atom mx-auto">
-    <div className="nucleus"></div>
-    <div className="orbit orbit-1"><div className="electron" /></div>
-    <div className="orbit orbit-2"><div className="electron" /></div>
-    <div className="orbit orbit-3"><div className="electron" /></div>
-    <div className="orbit orbit-4"><div className="electron" /></div>
-    <div className="orbit orbit-5"><div className="electron" /></div>
-  </div>
-); }
-
-function LandingCTA() { /* unchanged */ return (
-  <section className="max-w-6xl mx-auto px-6 py-14">
-    <div className="border rounded-xl p-8 md:p-10 text-center bg-card card-glow">
-      <h3 className="text-xl md:text-2xl font-semibold mb-3">Ready to study faster?</h3>
-      <p className="text-foreground/80 mb-5">Open Skriptio Studio and generate your study kit in seconds.</p>
-      <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm">
-        Open Studio <ArrowRight size={16} />
-      </Link>
+function HeroAtom() {
+  return (
+    <div className="hero-atom mx-auto">
+      <div className="nucleus"></div>
+      <div className="orbit orbit-1"><div className="electron" /></div>
+      <div className="orbit orbit-2"><div className="electron" /></div>
+      <div className="orbit orbit-3"><div className="electron" /></div>
+      <div className="orbit orbit-4"><div className="electron" /></div>
+      <div className="orbit orbit-5"><div className="electron" /></div>
     </div>
-  </section>
-); }
+  );
+}
+
+function LandingCTA() {
+  return (
+    <section className="max-w-6xl mx-auto px-6 py-14">
+      <div className="border rounded-xl p-8 md:p-10 text-center bg-card card-glow">
+        <h3 className="text-xl md:text-2xl font-semibold mb-3">Ready to study faster?</h3>
+        <p className="text-foreground/80 mb-5">Open Skriptio Studio and generate your study kit in seconds.</p>
+        <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm">
+          Open Studio <ArrowRight size={16} />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function Landing() {
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  return (
+    <div className="min-h-screen hero-gradient text-foreground">
+      <Helmet>
+        <title>Skriptio — Study kits from your notes & PDFs</title>
+        <meta name="description" content="Skriptio turns your PDFs & notes into a complete study kit in seconds. A 10‑question quiz, smart flashcards, and a 7‑day plan — all in your browser." />
+        <link rel="canonical" href="https://skriptio.sidahq.com/" />
+      </Helmet>
+
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="font-semibold tracking-tight">Skriptio</div>
+          <div className="flex items-center gap-2">
+            <nav className="hidden md:flex items-center gap-6 text-sm text-foreground/80 mr-2">
+              <a href="#how">How it works</a>
+              <a href="#features">Features</a>
+              <a href="#usecases">Use cases</a>
+              <a href="#faq">FAQ</a>
+              <Link to="/merch">Merch</Link>
+            </nav>
+            <ThemeToggle className="md:hidden" />
+            <button aria-label="Open menu" aria-expanded={mobileOpen} className="md:hidden p-2 rounded-md border border-border" onClick={() => setMobileOpen(o => !o)}>
+              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
+            </button>
+            <ThemeToggle className="hidden md:inline-flex" />
+            <Link to="/studio" className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm text-sm">
+              Open Studio <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-background/95 shadow">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
+              <a href="#how" onClick={() => setMobileOpen(false)}>How it works</a>
+              <a href="#features" onClick={() => setMobileOpen(false)}>Features</a>
+              <a href="#usecases" onClick={() => setMobileOpen(false)}>Use cases</a>
+              <a href="#faq" onClick={() => setMobileOpen(false)}>FAQ</a>
+              <Link to="/merch" onClick={() => setMobileOpen(false)}>Merch</Link>
+              <Link to="/studio" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-sm w-max">Open Studio <ArrowRight size={14} /></Link>
+            </div>
+          </div>
+        )}
+      </header>
+
+      <main>
+        {/* Hero */}
+        <section className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-6 items-center">
+          <div>
+            <p className="gold-pill inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm mb-4">
+              <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
+              A product by Aceel AI
+            </p>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
+            <p className="text-foreground/80 mb-5">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
+            <div className="flex items-center gap-3">
+              <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
+                Try Skriptio Free <ArrowRight size={16} />
+              </Link>
+              <a href="#how" className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm">How it works</a>
+            </div>
+            <div className="flex items-center gap-5 mt-5 text-sm text-foreground/80">
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Fast & minimal</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Private (runs in your browser)</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Saves hours of prep</div>
+            </div>
+          </div>
+          <div className="hidden md:block hero-aside">
+            <div className="hero-anchor">
+              <HeroAtom />
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how" className="max-w-6xl mx-auto px-6 py-10">
+          <h2 className="section-title text-2xl font-semibold mb-6">How it works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Card className="card-glow"><CardHeader><CardTitle>Step 1</CardTitle><CardDescription>Add your material</CardDescription></CardHeader><CardContent className="text-sm text-foreground/80">Paste text notes or upload a PDF. You can combine both in one session.</CardContent></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Step 2</CardTitle><CardDescription>Generate your kit</CardDescription></CardHeader><CardContent className="text-sm text-foreground/80">Skriptio builds a quiz, flashcards, and a 7‑day plan directly in your browser.</CardContent></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Step 3</CardTitle><CardDescription>Study efficiently</CardDescription></CardHeader><CardContent className="text-sm text-foreground/80">Practice with active recall, flip flashcards, and follow your daily plan.</CardContent></Card>
+          </div>
+        </section>
+
+        {/* Use cases */}
+        <section id="usecases" className="max-w-6xl mx-auto px-6 py-10">
+          <h2 className="section-title text-2xl font-semibold mb-6">Use cases</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Card className="card-glow"><CardHeader><CardTitle>Students</CardTitle><CardDescription>Turn class notes and PDFs into practice kits before exams.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Instructors</CardTitle><CardDescription>Create quick quizzes and handouts from lecture material.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Teams</CardTitle><CardDescription>Share learning kits internally using private links.</CardDescription></CardHeader></Card>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="max-w-6xl mx_auto px-6 py-10">
+          <h2 className="section-title text-2xl font-semibold mb-6">Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Card className="card-glow"><CardHeader><CardTitle>Tough quizzes</CardTitle><CardDescription>10 MCQs per kit: concept, property, and formula items tuned by difficulty.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Smart flashcards</CardTitle><CardDescription>Concise fronts, context‑rich backs derived from the text you provide.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>7‑Day plans</CardTitle><CardDescription>Clustered topics with daily objectives for steady, guided progress.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied quizzes.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Private by design</CardTitle><CardDescription>Runs 100% in your browser after load. No servers, no data sharing.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Fast & responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
+          </div>
+        </section>
+
+        {/* About */}
+        <section id="about" className="max-w-6xl mx-auto px-6 py-10">
+          <h2 className="section-title text-2xl font-semibold mb-3">About Skriptio</h2>
+          <p className="text-foreground/80 max-w-3xl">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.</p>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="max-w-6xl mx-auto px-6 py-10">
+          <h2 className="section-title text-2xl font-semibold mb-3">FAQ</h2>
+          <p className="text-foreground/70 mb-6">Answers to common questions.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Card className="card-glow"><CardHeader><CardTitle>Do I need an internet connection?</CardTitle><CardDescription>No. Skriptio runs entirely in your browser after the initial page load.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Can I use both PDF and text?</CardTitle><CardDescription>Yes. You can upload a PDF and also paste text notes in the same session.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>What kind of quiz is generated?</CardTitle><CardDescription>A 10‑question mix of concept checks, property questions, and formula items derived from your content. Difficulty modes change the composition.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Do you save my content?</CardTitle><CardDescription>No. Everything runs in your browser session — nothing is sent to servers or saved.</CardDescription></CardHeader></Card>
+          </div>
+        </section>
+
+        <LandingCTA />
+      </main>
+
+      <FloatingMenu />
+
+      <footer className="border-t border-border py-6">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 items-center">
+          <div className="text-sm flex items-center gap-2"><Mail size={16}/> aceel@sidahq.com</div>
+          <div className="text-center text-sm">© {new Date().getFullYear()} Aceel AI</div>
+          <div className="flex items-center gap-3 justify-end text-foreground/80">
+            <a href="#" aria-label="Instagram"><Instagram size={18}/></a>
+            <a href="#" aria-label="Twitter"><Twitter size={18}/></a>
+            <a href="#" aria-label="LinkedIn"><Linkedin size={18}/></a>
+            <a href="#" aria-label="Facebook"><Facebook size={18}/></a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
 
 function EmptyState({ label }) {
   return (
@@ -74,7 +224,6 @@ async function buildKitFromContent(rawText, title, difficulty) {
     .join(' ');
   const sentences = splitSentences(cleaned);
 
-  // Embedding-based selection of diverse sentences/topics (robust)
   let chosenIdxs = [];
   try {
     const vecs = await embedTexts(sentences);
@@ -182,7 +331,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
   return { title: title || (cleaned.split(/\n+/)[0] || 'Study Kit'), quiz, flashcards, plan, theory };
 }
 
-function QuizBlock({ quiz, selected, setSelected, evaluated }) { /* unchanged */
+function QuizBlock({ quiz, selected, setSelected, evaluated }) {
   return (
     <div className="space-y-4">
       {quiz.map((q, i) => {
@@ -222,7 +371,6 @@ export function Studio() {
     try {
       const file = e.target.files && e.target.files[0];
       if (!file) { setFileMeta(null); return; }
-      // Quick peek: get page count using pdfjs without loading entire content
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const arrayBuffer = await file.arrayBuffer();
@@ -270,9 +418,7 @@ export function Studio() {
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         <StudioNav />
 
-        {/* Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Add Content */}
           <div className="lg:col-span-1 space-y-4">
             <Card className="bg-card border border-black/70 dark:border-white/60">
               <CardHeader>
@@ -323,7 +469,6 @@ export function Studio() {
             </Card>
           </div>
 
-          {/* Right: Toolbar + Tabs */}
           <div className="lg:col-span-2 space-y-4">
             <div className="toolbar">
               <button className="btn" disabled>Download Quiz PDF</button>
