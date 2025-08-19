@@ -7,7 +7,7 @@ import { Input } from "../components/ui/input";
 import ThemeToggle from "../components/ThemeToggle";
 import FloatingMenu from "../components/FloatingMenu";
 import StudioNav from "../components/StudioNav";
-import { extractTextFromPDF, splitSentences, looksLikeHeadingStrong, isAuthorish, normalizeText } from "../utils/textProcessor";
+import { extractTextFromPDF, splitSentences, looksLikeHeadingStrong, isAuthorish, normalizeText, ensureSentence } from "../utils/textProcessor";
 import { getJsPDF } from "../utils/pdf";
 import { embedSentences, centralityRank, prewarmML } from "../utils/ml";
 import { Helmet } from "react-helmet-async";
