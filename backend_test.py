@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Backend URL from supervisor configuration
-BACKEND_URL = "https://webapp-repair.preview.emergentagent.com"
+BACKEND_URL = "https://studysmart-ai.preview.emergentagent.com"
 
 def create_test_pdf():
     """Create a simple PDF with 'Hello OCR' text for testing"""
