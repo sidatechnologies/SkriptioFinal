@@ -172,32 +172,6 @@ function jaccard(a, b) {
   const uni = A.size + B.size - inter; return uni === 0 ? 0 : inter / uni;
 }
 
-function distinctFillOptions(correct, pool = [], needed = 4) {
-  const selected = [String(correct || '').trim()].filter(Boolean);
-  const seen = new Set(selected.map(s => s.toLowerCase()));
-  const addIf = (opt) => {
-    const norm = String(opt || '').trim(); if (!norm) return false;
-    if (seen.has(norm.toLowerCase())) return false;
-    // avoid near duplicates
-    if (selected.some(s => jaccard(s, norm) >= 0.55)) return false;
-    selected.push(norm); seen.add(norm.toLowerCase()); return true;
-  };
-  for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
-  // Limit generic fillers to at most 1 to avoid low-quality option sets
-  const generics = ['Implementation details', 'General concepts', 'Background theory', 'Best practices'];
-  let gi = 0; let genericCount = 0;
-  while (selected.length < needed && gi < generics.length && genericCount < 1) { if (addIf(generics[gi++])) genericCount++; }
-  // If still short, create minor variants of the correct to keep length/grammar comparable
-  const variants = [
-    String(correct || '').replace(/\s+is\s+/gi, ' can be '),
-    String(correct || '').replace(/\s+may\s+/gi, ' must '),
-    String(correct || '').replace(/\s+often\s+/gi, ' sometimes ')
-  ];
-  for (const v of variants) { if (selected.length >= needed) break; addIf(ensureSentence(v)); }
-  while (selected.length < needed) selected.push('Background theory');
-  return selected.slice(0, needed);
-}
-
 // ---------- New: MCQ distractor transformers ----------
 function flipNegations(text) {
   let t = ' ' + String(text || '') + ' ';
@@ -274,6 +248,51 @@ function buildDistractors(correct, phrases, sourceText) {
     if (out.length >= 3) break;
   }
   return out;
+}
+
+function normalizeToLength(text, target = 120) {
+  let t = ensureSentence(String(text || ''));
+  const min = Math.max(60, Math.floor(target * 0.65));
+  const max = Math.floor(target * 1.15);
+  if (t.length < min) {
+    t = t.replace(/\.$/, '') + ' In practice, this may vary under specific constraints.';
+  }
+  if (t.length > max) {
+    const cut = t.slice(0, max - 1);
+    const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'));
+    t = (idx > 20 ? cut.slice(0, idx) : cut).replace(/[,:;]$/, '') + '.';
+  }
+  return ensureSentence(t);
+}
+
+function distinctFillOptions(correct, pool = [], needed = 4) {
+  const selected = [];
+  const seen = new Set();
+  const addIf = (opt) => {
+    const norm = normalizeToLength(opt, Math.max(100, String(correct||'').length));
+    const key = norm.toLowerCase();
+    if (!norm || seen.has(key)) return false;
+    if (selected.some(s => jaccard(s, norm) >= 0.55)) return false;
+    selected.push(norm); seen.add(key); return true;
+  };
+  addIf(String(correct || '').trim());
+  for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
+  // Create minor variants of the correct to keep length/grammar comparable
+  const variants = [tweakModals(correct), flipNegations(correct), perturbNumbers(correct)];
+  for (const v of variants) { if (selected.length >= needed) break; if (v) addIf(v); }
+  // As a last resort, allow at most one generic, not more
+  const GENERIC_POOL = ['A related but inaccurate claim about the topic.', 'A broad contextual statement that does not match the material.'];
+  let usedGeneric = false;
+  let gi = 0;
+  while (selected.length < needed && gi < GENERIC_POOL.length && !usedGeneric) {
+    if (addIf(GENERIC_POOL[gi++])) usedGeneric = true;
+  }
+  // If still short, duplicate slight modal variants to reach 4
+  while (selected.length < needed) {
+    const v = tweakModals(selected[selected.length - 1] || correct);
+    if (!addIf(v)) break;
+  }
+  return selected.slice(0, needed);
 }
 
 // -------------------- Artifact builder with improved MCQs/Flashcards/Plan --------------------
@@ -381,7 +400,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     if (usedOptionKeys.has(setKey)) {
       // Replace last distractor with a slight modal tweak to keep unique
       const alt = tweakModals(correct);
-      if (alt && normKey(alt) !== normKey(correct)) placed.arranged[placed.arranged.length - 1] = alt;
+      if (alt && normKey(alt) !== normKey(correct)) placed.arranged[placed.arranged.length - 1] = normalizeToLength(alt, Math.max(100, correct.length));
     }
     usedOptionKeys.add(placed.arranged.map(normKey).sort().join('|'));
 
