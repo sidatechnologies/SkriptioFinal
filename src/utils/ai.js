@@ -1,10 +1,8 @@
 /* Frontend-only AI pipelines using Transformers.js with the exact models requested.
    Models:
    - Summarisation: t5-small
-   - Question Generation: valhalla/t5-small-qa-qg-hl (highlight format "<hl>answer<hl>" with prefix "generate question:")
-   - Embeddings: sentence-transformers/all-MiniLM-L6-v2 (via ONNX web-hosted mirror) — Option A approved
-
-   All loads are lazy with short timeouts and safe fallbacks to keep UI responsive.
+   - Question Generation: try valhalla/t5-small-qa-qg-hl; if unavailable in web format, fall back to t5-small.
+   - Embeddings: Xenova/all-MiniLM-L6-v2 (ONNX mirror of requested MiniLM) with batching and safe fallbacks.
 */
 
 import { env, pipeline } from '@xenova/transformers';
@@ -43,7 +41,14 @@ export async function getSummarizer(deadlineMs = 0) {
 
 export async function getQG(deadlineMs = 0) {
   if (_qgPromise) return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
-  _qgPromise = pipeline('text2text-generation', 'valhalla/t5-small-qa-qg-hl');
+  // Try the requested finetune first
+  try {
+    _qgPromise = pipeline('text2text-generation', 'valhalla/t5-small-qa-qg-hl');
+    const p = deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
+    if (p) return p;
+  } catch {}
+  // Fallback to base t5-small (ONNX web mirror) for QG prompting
+  _qgPromise = pipeline('text2text-generation', 'Xenova/t5-small');
   return deadlineMs ? await withTimeout(_qgPromise, deadlineMs) : await _qgPromise;
 }
 
@@ -90,37 +95,68 @@ export async function summarisePointwise(text, length = 'short') {
   return out;
 }
 
-// Embeddings helper (MiniLM via ONNX mirror). Fallback to USE if anything fails.
+// Embeddings helper with batching and truncation to avoid WASM OOM
 export async function embedTexts(texts, deadlineMs = 30000) {
-  try {
-    const embedder = await getEmbedder(deadlineMs);
-    if (embedder) {
-      const res = await embedder(texts, { pooling: 'mean', normalize: true });
-      const arr = Array.isArray(res) ? res : res?.data || res;
-      if (Array.isArray(arr) && Array.isArray(arr[0])) return arr;
-      if (res?.tolist) return res.tolist();
-      if (res?.data && res?.dims) {
-        const out = [];
-        for (let i = 0; i < (res.dims[0] || 0); i++) out.push(Array.from(res.data.slice(i * res.dims[1], (i + 1) * res.dims[1])));
-        return out;
+  const arr = (texts || []).map(t => String(t || '').slice(0, 512)); // hard cap length per item
+  const maxN = 160; // limit total sentences to embed
+  const items = arr.slice(0, maxN);
+
+  let embedder = null;
+  try { embedder = await getEmbedder(Math.min(12000, deadlineMs)); } catch {}
+
+  async function runBatches(ppl) {
+    const out = [];
+    const batchSize = 16;
+    for (let i = 0; i < items.length; i += batchSize) {
+      const chunk = items.slice(i, i + batchSize);
+      try {
+        const res = await ppl(chunk, { pooling: 'mean', normalize: true });
+        const data = Array.isArray(res) ? res : res?.data || res;
+        if (Array.isArray(data) && Array.isArray(data[0])) out.push(...data);
+        else if (res?.tolist) out.push(...res.tolist());
+        else if (res?.data && res?.dims) {
+          for (let r = 0; r < res.dims[0]; r++) out.push(Array.from(res.data.slice(r * res.dims[1], (r + 1) * res.dims[1])));
+        }
+      } catch (e) {
+        console.warn('Batch embedding failed, breaking to fallback', e?.message || e);
+        return null;
       }
     }
-  } catch {}
-  // Fallback: TF.js USE
+    return out.length ? out : null;
+  }
+
+  // Primary path: MiniLM ONNX with batching
+  if (embedder) {
+    const vecs = await runBatches(embedder);
+    if (vecs) return vecs;
+  }
+
+  // Fallback path: TF.js USE
   try {
     const ml = await import('./ml');
-    const arr = await ml.embedSentences(texts, Math.min(1200, deadlineMs));
-    return arr;
+    const res = await ml.embedSentences(items, Math.min(1200, deadlineMs));
+    return res;
   } catch {
     return null;
   }
 }
 
 export async function generateQuestionFromContext(context, answerSpan) {
-  const qg = await getQG(25000);
+  const qg = await getQG(15000);
   if (!qg) return null;
-  const highlighted = String(context || '').replace(answerSpan, `<hl>${answerSpan}<hl>`);
-  const prompt = `generate question: ${highlighted}`;
+  const ctx = String(context || '');
+  const ans = String(answerSpan || '').trim();
+
+  // If the finetuned model loaded, it will understand <hl> highlights.
+  let prompt = `generate question: ${ctx.replace(ans, `<hl>${ans}<hl>`)}`;
+  try {
+    const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
+    const text = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';
+    if (text) return text.replace(/\s+/g, ' ').trim();
+  } catch {}
+
+  // Fallback prompting style for base t5-small
+  prompt = `generate question: context: ${ctx} answer: ${ans}`;
   try {
     const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
     const text = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';
