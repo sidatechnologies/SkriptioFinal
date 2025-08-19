@@ -391,7 +391,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   // 7-day plan
   const days = [];
   // 7-day plan — pick 7 distinct topics by phrase centrality/signature
-  let topics = (phrases.length ? phrases : Array.from({ length: 14 }, (_, i) => `Topic ${i+1}`));
+  let topics = (phrases.length ? phrases.filter(p => !isGenericTopic(p)).slice(0,14) : Array.from({ length: 14 }, (_, i) => `Topic ${i+1}`));
   // Deduplicate phrase signatures (first 2 tokens)
   const seenP = new Set();
   const uniqP = [];
