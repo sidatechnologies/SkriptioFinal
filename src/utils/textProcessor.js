@@ -195,10 +195,12 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const phrases = extractKeyPhrases(text, 24);
 
   // Helpers for global de-duplication across the quiz
-  function normKey(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
   const usedCorrects = new Set();
   const usedOptionKeys = new Set();
   const globalOptionCount = new Map(); // ensure option text appears at most once across quiz
+  const usedBank = []; // global bank of option texts to avoid semantic repeats across questions
+  function globallyNovel(s) { try { const t = String(s||''); for (const u of usedBank) { if (jaccard(t, u) >= 0.6) return false; } return true; } catch { return true; } }
 
   function uniqueOptions(arr) {
     const out = []; const seen = new Set();
