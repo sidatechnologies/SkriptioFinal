@@ -295,7 +295,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       } catch {}
       if (!definition) definition = s;
       const defCorrect = ensureCaseAndPeriod('', summarizeSentence(definition, 150));
-      const candObjs = baseSentences.filter(x => !x.toLowerCase().includes(term.toLowerCase()) && normKey(x) !== normKey(definition))
+      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(definition))
         .map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
         .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
       const pool = uniqueOptions(candObjs.map(o => o.txt));
