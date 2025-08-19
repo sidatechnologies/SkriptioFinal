@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./com
 import { Textarea } from "./components/ui/textarea";
 import { Input } from "./components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "./components/ui/toggle-group";
 import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
 import StudioSummariser from "./pages/StudioSummariser";
