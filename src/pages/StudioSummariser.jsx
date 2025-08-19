@@ -29,29 +29,15 @@ export default function StudioSummariser() {
     try {
       const file = e.target.files && e.target.files[0];
       setHasFile(!!file);
-      if (!file) { setFileMeta(null); setPreviewURL(""); return; }
-      // Read basic PDF meta (pages)
+      if (!file) { setFileMeta(null); return; }
+      // Read basic PDF meta (pages) without rendering (prevents TT undefined font warnings)
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       setFileMeta({ name: file.name, size: file.size, pages: pdf.numPages || 0 });
-      // Simple first-page thumbnail preview using canvas
-      try {
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 0.4 });
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        setPreviewURL(canvas.toDataURL('image/png'));
-      } catch {
-        setPreviewURL("");
-      }
     } catch {
       setFileMeta(null);
-      setPreviewURL("");
     }
   }
 
