@@ -1,6 +1,6 @@
 import React from "react";
-import { Link, Route, Routes } from "react-router-dom";
-import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail, Menu } from "lucide-react";
+import { Link, Route, Routes, useLocation, useParams, useNavigate } from "react-router-dom";
+import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, Share2, Link as LinkIcon } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import StudioNav from "./components/StudioNav";
 import { Button } from "./components/ui/button";
@@ -21,6 +21,9 @@ import "./App.css";
 import { prewarmAI, summarisePointwise, generateQuestionFromContext } from "./utils/ai";
 import { extractTextFromPDF, splitSentences, normalizeText, isAuthorish, looksLikeHeadingStrong, extractKeyPhrases, buildTheoryQuestions, generateArtifacts } from "./utils/textProcessor";
 import { embedSentences, selectTopSentences, bestSentenceForPhrase, tryEnhanceArtifacts } from "./utils/ml";
+import { prewarmPDF, getJsPDF } from "./utils/pdf";
+import { b64uEncodeObject, fromB64Url } from "./utils/b64url";
+import pako from "pako";
 
 function HeroAtom() {
   return (
@@ -213,7 +216,7 @@ function useKitState() {
   const [selected, setSelected] = React.useState({});
   const [evaluated, setEvaluated] = React.useState(false);
 
-  React.useEffect(() => { prewarmAI(); }, []);
+  React.useEffect(() => { prewarmAI(); prewarmPDF(); }, []);
 
   return { difficulty, setDifficulty, titleRef, notesRef, fileRef, fileMeta, setFileMeta, generating, setGenerating, kit, setKit, selected, setSelected, evaluated, setEvaluated };
 }
@@ -375,6 +378,44 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
 
 export function Studio() {
   const { difficulty, setDifficulty, titleRef, notesRef, fileRef, fileMeta, setFileMeta, generating, setGenerating, kit, setKit, selected, setSelected, evaluated, setEvaluated } = useKitState();
+  const location = useLocation();
+  const params = useParams();
+  const navigate = useNavigate();
+  const logoRef = React.useRef(null);
+
+  // Decode shared kit if present in hash
+  React.useEffect(() => {
+    try {
+      if (location.hash && location.hash.includes('#s=')) {
+        const token = location.hash.split('#s=')[1];
+        if (token) {
+          const bytes = fromB64Url(token);
+          const jsonBytes = pako.inflate(bytes);
+          const text = new TextDecoder().decode(jsonBytes);
+          const payload = JSON.parse(text);
+          if (payload && payload.kit) {
+            setKit(payload.kit);
+            if (payload.title && titleRef.current) titleRef.current.value = payload.title;
+            setSelected({}); setEvaluated(false);
+          }
+        }
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Preload logo as data URL for PDFs
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/assets/aceel-logo.png');
+        const blob = await res.blob();
+        const reader = new FileReader();
+        reader.onload = () => { logoRef.current = reader.result; };
+        reader.readAsDataURL(blob);
+      } catch {}
+    })();
+  }, []);
 
   async function onFileChange(e) {
     try {
@@ -412,6 +453,131 @@ export function Studio() {
   }
 
   function onEvaluate() { setEvaluated(true); }
+
+  // ---------- PDF helpers ----------
+  async function withDoc(title, cb) {
+    const jsPDF = await getJsPDF(2000);
+    if (!jsPDF) return;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const margin = 40; let y = margin;
+
+    // Header: logo + title
+    try {
+      if (logoRef.current) {
+        doc.addImage(logoRef.current, 'PNG', margin, y - 10, 80, 32);
+      }
+    } catch {}
+    doc.setFontSize(14);
+    doc.text(title || 'Skriptio', margin + 90, y + 10);
+    y += 40;
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+    function ensureSpace(linesNeeded = 0) {
+      if (y + linesNeeded > pageHeight - margin - 20) {
+        addFooter();
+        doc.addPage();
+        y = margin;
+        // header on new page (logo small)
+        try { if (logoRef.current) doc.addImage(logoRef.current, 'PNG', margin, y - 10, 60, 24); } catch {}
+        y += 30;
+      }
+    }
+    function addFooter() {
+      const footer = 'aceel@sidahq.com | skriptio.sidahq.com';
+      doc.setFontSize(10);
+      doc.text(footer, doc.internal.pageSize.getWidth()/2, pageHeight - 20, { align: 'center' });
+    }
+    function writeHeading(text) {
+      doc.setFontSize(12); doc.setFont(undefined, 'bold');
+      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin*2);
+      ensureSpace(wrapped.length * 14 + 6);
+      doc.text(wrapped, margin, y);
+      y += wrapped.length * 14 + 6;
+      doc.setFont(undefined, 'normal');
+    }
+    function writePara(text) {
+      doc.setFontSize(11);
+      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin*2);
+      ensureSpace(wrapped.length * 14 + 8);
+      doc.text(wrapped, margin, y);
+      y += wrapped.length * 14 + 8;
+    }
+    function writeBullets(items) {
+      doc.setFontSize(11);
+      for (const it of items) {
+        const wrapped = doc.splitTextToSize('• ' + it, doc.internal.pageSize.getWidth() - margin*2);
+        ensureSpace(wrapped.length * 14 + 4);
+        doc.text(wrapped, margin, y);
+        y += wrapped.length * 14 + 4;
+      }
+    }
+
+    await cb({ doc, yRef: { get: () => y, set: (v) => { y = v; } }, writeHeading, writePara, writeBullets, addFooter, ensureSpace, margin });
+    addFooter();
+    doc.save((title || 'skriptio') + '.pdf');
+  }
+
+  async function downloadQuizPDF() {
+    if (!kit?.quiz?.length) return;
+    await withDoc((kit.title ? kit.title + ' — Quiz' : 'Quiz'), async ({ doc, yRef, writeHeading, writePara, writeBullets, ensureSpace, margin }) => {
+      writeHeading('Quiz');
+      kit.quiz.forEach((q, i) => {
+        writePara(`${i+1}. ${q.question}`);
+        const opts = q.options || [];
+        const labels = ['A', 'B', 'C', 'D'];
+        opts.forEach((op, oi) => writePara(`${labels[oi]}. ${op}`));
+        yRef.set(yRef.get() + 6);
+      });
+    });
+  }
+  async function downloadFlashcardsPDF() {
+    if (!kit?.flashcards?.length) return;
+    await withDoc((kit.title ? kit.title + ' — Flashcards' : 'Flashcards'), async ({ doc, writeHeading, writePara }) => {
+      writeHeading('Flashcards');
+      kit.flashcards.forEach((fc, i) => {
+        writeHeading(`${i+1}. ${fc.front}`);
+        writePara(fc.back);
+      });
+    });
+  }
+  async function downloadTheoryPDF() {
+    if (!kit?.theory?.length) return;
+    await withDoc((kit.title ? kit.title + ' — Theory' : 'Theory'), async ({ writeHeading, writePara }) => {
+      writeHeading('Theory Questions');
+      kit.theory.forEach((t, i) => writePara(`${i+1}. ${t}`));
+    });
+  }
+  async function downloadPlanPDF() {
+    if (!kit?.plan?.length) return;
+    await withDoc((kit.title ? kit.title + ' — 7‑Day Plan' : '7‑Day Plan'), async ({ writeHeading, writeBullets }) => {
+      writeHeading('7‑Day Plan');
+      kit.plan.forEach((d) => { writeHeading(d.title); writeBullets(d.objectives || []); });
+    });
+  }
+
+  // ---------- Share / Copy Link ----------
+  function buildShareLink() {
+    if (!kit || (!kit.quiz?.length && !kit.flashcards?.length && !kit.plan?.length && !kit.theory?.length)) return '';
+    const payload = { v: 1, ts: Date.now(), title: titleRef.current?.value || kit.title || 'Study Kit', kit };
+    const token = b64uEncodeObject(payload);
+    const slug = (titleRef.current?.value || kit.title || 'study-kit').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'study-kit';
+    const url = `${window.location.origin}/studio/${slug}/shared#s=${token}`;
+    return url;
+  }
+  async function onShare() {
+    try {
+      const url = buildShareLink(); if (!url) return;
+      if (navigator.share) {
+        await navigator.share({ title: 'Skriptio Study Kit', url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard');
+      }
+    } catch {}
+  }
+  async function onCopyLink() {
+    try { const url = buildShareLink(); if (!url) return; await navigator.clipboard.writeText(url); alert('Link copied'); } catch {}
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -479,13 +645,13 @@ export function Studio() {
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <div className="toolbar">
-              <button className="btn" disabled>Download Quiz PDF</button>
-              <button className="btn" disabled>Download Flashcards PDF</button>
-              <button className="btn" disabled>Download Theory PDF</button>
-              <button className="btn" disabled>Download 7‑Day Plan PDF</button>
-              <button className="btn" disabled>Share</button>
-              <button className="btn" disabled>Copy Link</button>
+            <div className="toolbar flex flex-wrap gap-2">
+              <Button className="btn" variant="outline" onClick={downloadQuizPDF} disabled={!kit?.quiz?.length}><FileText size={16} className="mr-2"/>Quiz PDF</Button>
+              <Button className="btn" variant="outline" onClick={downloadFlashcardsPDF} disabled={!kit?.flashcards?.length}><FileText size={16} className="mr-2"/>Flashcards PDF</Button>
+              <Button className="btn" variant="outline" onClick={downloadTheoryPDF} disabled={!kit?.theory?.length}><FileText size={16} className="mr-2"/>Theory PDF</Button>
+              <Button className="btn" variant="outline" onClick={downloadPlanPDF} disabled={!kit?.plan?.length}><FileText size={16} className="mr-2"/>7‑Day Plan PDF</Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Share" onClick={onShare} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><Share2 size={18} /></Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><LinkIcon size={18} /></Button>
             </div>
 
             <Tabs defaultValue="quiz" className="studio-tabs-wrap">

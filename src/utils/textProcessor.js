@@ -189,6 +189,85 @@ function distinctFillOptions(correct, pool = [], needed = 4) {
   return selected.slice(0, needed);
 }
 
+// ---------- New: MCQ distractor transformers ----------
+function flipNegations(text) {
+  let t = ' ' + String(text || '') + ' ';
+  t = t.replace(/\s+is\s+/gi, ' is not ');
+  t = t.replace(/\s+are\s+/gi, ' are not ');
+  t = t.replace(/\s+includes\s+/gi, ' excludes ');
+  t = t.replace(/\s+require(s)?\s+/gi, ' does not require ');
+  t = t.replace(/\s+must\s+/gi, ' may ');
+  t = t.replace(/\s+only\s+/gi, ' often ');
+  t = t.replace(/\s+always\s+/gi, ' often ');
+  t = t.replace(/\s+never\s+/gi, ' sometimes ');
+  return ensureSentence(t.trim());
+}
+function perturbNumbers(text) {
+  const s = String(text || '');
+  const rx = /(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)(%?)/;
+  const m = s.match(rx);
+  if (!m) return '';
+  const numStr = m[1].replace(/,/g, '');
+  const isPct = !!m[2];
+  const num = parseFloat(numStr);
+  if (!isFinite(num)) return '';
+  const delta = Math.max(1, Math.round(num * 0.01));
+  const cand = Math.random() < 0.5 ? num - delta : num + delta;
+  const nstr = isPct ? cand.toFixed(1) + '%' : String(cand);
+  const out = s.replace(rx, nstr);
+  return ensureSentence(out);
+}
+function tweakModals(text) {
+  let t = ' ' + String(text || '') + ' ';
+  t = t.replace(/\s+must\s+/gi, ' may ');
+  t = t.replace(/\s+shall\s+/gi, ' should ');
+  t = t.replace(/\s+only\s+/gi, ' often ');
+  t = t.replace(/\s+all\s+/gi, ' many ');
+  t = t.replace(/\s+none\s+/gi, ' some ');
+  return ensureSentence(t.trim());
+}
+function titleCase(str) {
+  return String(str || '').split(/\s+/).map(w => w ? w[0].toUpperCase() + w.slice(1) : '').join(' ').trim();
+}
+function pickEntityFromSentence(s) {
+  const toks = String(s||'').split(/\s+/);
+  for (const w of toks) {
+    if (/^[A-Z][A-Za-z0-9\-]{3,}$/.test(w)) return w;
+  }
+  // fallback: longest non-stopword token
+  let best = ''; for (const w of toks) { const wl = w.replace(/[^A-Za-z]/g, '').toLowerCase(); if (STOPWORDS.has(wl)) continue; if (w.length > best.length) best = w; }
+  return best || toks[0] || '';
+}
+function entitySwap(text, phrases = []) {
+  const ent = pickEntityFromSentence(text);
+  if (!ent) return '';
+  const repl = (phrases || []).find(p => !new RegExp(`\\b${ent.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(String(text||'')) && p.length >= Math.min(4, ent.length));
+  if (!repl) return '';
+  const out = String(text).replace(new RegExp(`\\b${ent.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'g'), repl);
+  return ensureSentence(out);
+}
+function tooSimilar(a, b) { try { return jaccard(a, b) >= 0.6; } catch { return false; } }
+function notInSource(sent, src) { try { return !src || !src.toLowerCase().includes(String(sent||'').toLowerCase()); } catch { return true; } }
+
+function buildDistractors(correct, phrases, sourceText) {
+  const c = ensureSentence(correct);
+  const cands = [flipNegations(c), perturbNumbers(c), tweakModals(c), entitySwap(c, phrases)].filter(Boolean);
+  const out = [];
+  const seen = new Set([c.toLowerCase()]);
+  for (const x of cands) {
+    const t = ensureSentence(x);
+    if (!t) continue;
+    if (seen.has(t.toLowerCase())) continue;
+    if (tooSimilar(t, c)) continue;
+    if (!notInSource(t, sourceText)) continue;
+    seen.add(t.toLowerCase());
+    out.push(t);
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+// -------------------- Artifact builder with improved MCQs/Flashcards/Plan --------------------
 export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
   const text = String(rawText || '');
   const allSents = splitSentences(text);
@@ -204,19 +283,6 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
   // Phrases/terms for term-definition items
   const phrases = extractKeyPhrases(text, 40);
-  const BAN_WORDS = new Set(['step','steps','choose','choosing','best','algorithm','algorithms','machine','learning','problem','data','model','models','process','procedure']);
-  function isGenericTopic(p){
-    const w = String(p||'').toLowerCase().trim();
-    if (!w) return true;
-    const toks = w.split(/\s+/);
-    const sw = toks.filter(t => STOPWORDS.has(t)).length;
-    if (sw / Math.max(1,toks.length) > 0.5) return true;
-    if (toks.length <= 1) return true;
-    if (BAN_WORDS.has(w)) return true;
-    if (/(^|\s)(step|steps|choose|choosing|best|algorithm|algorithms)($|\s)/.test(w)) return true;
-    return false;
-  }
-
 
   // Helpers for global de-duplication across the quiz
   function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
@@ -224,25 +290,15 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const usedOptionKeys = new Set();
   const usedSentenceKeys = new Set(); // avoid reusing same base sentence across questions
   const globalOptionCount = new Map(); // ensure option text appears at most once across quiz
-  const globalSigCount = new Map(); // limit reuse of leading token signatures
   const usedBank = []; // global bank of option texts to avoid semantic repeats across questions
   function globallyNovel(s) { try { const t = String(s||''); for (const u of usedBank) { if (jaccard(t, u) >= 0.6) return false; } return true; } catch { return true; } }
-  function optionSignature(s) { try { const toks = tokenize(s).filter(t => !STOPWORDS.has(t)); return toks.slice(0,3).join(' '); } catch { return ''; } }
-
-  function uniqueOptions(arr) {
-    const out = []; const seen = new Set();
-    for (const a of arr) { const k = normKey(a); if (!k || seen.has(k)) continue; seen.add(k); out.push(a); if (out.length >= 14) break; }
-    return out;
-  }
   function notOverused(opt) { return (globalOptionCount.get(normKey(opt)) || 0) < 1; }
 
-  // Build quiz with 3 rotating types for variety
   const total = 10;
   const quiz = [];
   let si = 0, pi = 0;
 
   function pickSentence() {
-    // pick next sentence that is not used and is globally novel
     for (let t = 0; t < baseSentences.length; t++) {
       const idx = (si + t) % baseSentences.length;
       const s = baseSentences[idx];
@@ -254,17 +310,23 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       usedSentenceKeys.add(key);
       return s;
     }
-    // fallback first
     const s = baseSentences[si % baseSentences.length] || '';
     si++;
     usedSentenceKeys.add(normKey(s));
     return s;
   }
 
+  function placeDeterministically(choices, correct, seed = 0) {
+    const n = choices.length;
+    const idx = Math.min(n - 1, (seed * 7 + 3) % n);
+    const arranged = [...choices];
+    const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
+    return { arranged, idx };
+  }
+
   while (quiz.length < total && baseSentences.length > 0) {
     const typeIdx = quiz.length % 3; // 0: statement, 1: term, 2: fact
 
-    // Pick a distinct correct sentence
     let s = pickSentence();
     let correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
     let guard = 0;
@@ -275,101 +337,77 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     }
     usedCorrects.add(normKey(correct));
 
-    let question = 'Which statement is supported by the material?';
+    let question = 'Which statement is accurate based on the material?';
     let opts = [];
 
-    if (typeIdx === 0) {
-      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(s)).map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 140)) }))
-        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
-      const pool = uniqueOptions(candObjs.map(o => o.txt));
-      const distinct = distinctFillOptions(correct, pool, 4);
-      opts = distinct;
-    } else if (typeIdx === 1) {
+    if (typeIdx === 1) {
+      // term definition
       const term = phrases[pi % Math.max(1, phrases.length)] || 'the topic';
       pi++;
-      question = `Which option best describes: ${term}?`;
-      let definition = '';
+      question = `Which option best describes ${term} as used in the material?`;
+      let definition = s;
       try {
         const ml = await import('./ml');
-        definition = await ml.bestSentenceForPhrase(term, baseSentences, 220);
+        const best = await ml.bestSentenceForPhrase(term, baseSentences, 220);
+        if (best) definition = best;
       } catch {}
-      if (!definition) definition = s;
       const defCorrect = ensureCaseAndPeriod('', summarizeSentence(definition, 150));
-      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(definition))
-        .map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
-        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
-      const pool = uniqueOptions(candObjs.map(o => o.txt));
-      opts = distinctFillOptions(defCorrect, pool, 4);
+      const d = buildDistractors(defCorrect, phrases, text);
+      opts = distinctFillOptions(defCorrect, d, 4);
       correct = defCorrect;
+    } else if (typeIdx === 2) {
+      question = 'Which of the following aligns with the material?';
+      const d = buildDistractors(correct, phrases, text);
+      opts = distinctFillOptions(correct, d, 4);
     } else {
-      const snippet = ensureCaseAndPeriod('', summarizeSentence(s, 120));
-      question = `Which is true regarding this topic?`;
-      const candObjs = baseSentences.filter(x => normKey(x) !== normKey(s)).map(z => ({ raw: z, txt: ensureCaseAndPeriod('', summarizeSentence(z, 130)) }))
-        .filter(o => notOverused(o.txt) && globallyNovel(o.txt));
-      const pool = uniqueOptions(candObjs.map(o => o.txt));
-      opts = distinctFillOptions(snippet, pool, 4);
-      correct = opts[0];
+      question = 'Which statement is accurate based on the material?';
+      const d = buildDistractors(correct, phrases, text);
+      opts = distinctFillOptions(correct, d, 4);
     }
 
-    // If still not enough, expand pool aggressively with unseen sentences
-    if (opts.length < 4) {
-      const extra = [];
-      for (let j = 0; j < baseSentences.length && extra.length < 20; j++) {
-        const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[j], 130));
-        if (notOverused(cand) && globallyNovel(cand) && normKey(cand) !== normKey(correct)) extra.push(cand);
-      }
-      const filled = distinctFillOptions(correct, uniqueOptions(extra), 4);
-      opts = filled;
-    }
+    // Deterministic placement seeded by question index
+    const placed = placeDeterministically(opts, correct, quiz.length);
 
-    // Place correct deterministically and ensure option-set uniqueness across quiz
-    const arranged = [...opts];
-    // deterministic placement seeded by question index to vary positions across quiz
-    const idx = (quiz.length * 7 + 3) % 4;
-    const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
-
-    const setKey = arranged.map(normKey).sort().join('|');
+    const setKey = placed.arranged.map(normKey).sort().join('|');
     if (usedOptionKeys.has(setKey)) {
-      // Replace last distractor with a never-seen sentence
-      let replacement = '';
-      for (let k = 0; k < baseSentences.length; k++) {
-        const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[(si + k) % baseSentences.length], 130));
-        if (notOverused(cand) && globallyNovel(cand) && !arranged.some(o => normKey(o) === normKey(cand))) { replacement = cand; break; }
-      }
-      if (replacement) arranged[arranged.length - 1] = replacement;
+      // Replace last distractor with a slight modal tweak to keep unique
+      const alt = tweakModals(correct);
+      if (alt && normKey(alt) !== normKey(correct)) placed.arranged[placed.arranged.length - 1] = alt;
     }
-    usedOptionKeys.add(arranged.map(normKey).sort().join('|'));
+    usedOptionKeys.add(placed.arranged.map(normKey).sort().join('|'));
 
-    // Mark global usage so the same option text isn't reused elsewhere
-    for (const o of arranged) {
+    for (const o of placed.arranged) {
       const key = normKey(o);
       globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1);
       usedBank.push(o);
     }
 
-    quiz.push({ id: `q-${quiz.length}`, type: typeIdx === 1 ? 'term' : (typeIdx === 2 ? 'fact' : 'statement'), question, options: arranged, answer_index: idx, explanation: '' });
+    quiz.push({ id: `q-${quiz.length}`, type: typeIdx === 1 ? 'term' : (typeIdx === 2 ? 'fact' : 'statement'), question, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
-  // Pad if short with generated uniques
+  // Pad if short
   while (quiz.length < total) {
     const s = baseSentences[quiz.length % Math.max(1, baseSentences.length)] || text || 'The material describes a topic.';
     const correct = ensureCaseAndPeriod('', summarizeSentence(s, 150));
-    let pool = [];
-    for (let j = 0; j < baseSentences.length && pool.length < 20; j++) {
-      const cand = ensureCaseAndPeriod('', summarizeSentence(baseSentences[j], 130));
-      if (notOverused(cand) && globallyNovel(cand) && normKey(cand) !== normKey(correct)) pool.push(cand);
-    }
-    const opts2 = distinctFillOptions(correct, uniqueOptions(pool), 4);
-    const arranged = [...opts2];
-    // deterministic placement seeded by question index to vary positions across quiz
-    const idx = (quiz.length * 7 + 3) % 4;
-    const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
-    for (const o of arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
-    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: arranged, answer_index: idx, explanation: '' });
+    const d = buildDistractors(correct, phrases, text);
+    const opts2 = distinctFillOptions(correct, d, 4);
+    const placed = placeDeterministically(opts2, correct, quiz.length);
+    for (const o of placed.arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
+    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is accurate based on the material?`, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
-  // Flashcards — use diverse sentences
-  // Flashcards: pick top diverse 12 sentences by centrality; avoid duplicates by signature
+  // Flashcards — per-card titles
+  function titleFromSentence(s, phrases) {
+    const raw = String(s || '').trim();
+    const colonIdx = raw.indexOf(':');
+    if (colonIdx > 0 && colonIdx < 60) return titleCase(raw.slice(0, colonIdx));
+    // Try phrase containment
+    for (const p of phrases || []) { if (new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(raw)) return titleCase(p); }
+    // Else pick top non-stopword tokens
+    const toks = tokenize(raw).filter(t => !STOPWORDS.has(t)).slice(0, 4);
+    return titleCase(toks.join(' ') || 'Key Idea');
+  }
+
   let flashBase = baseSentences.slice(0, 40);
   try {
     const ml = await import('./ml');
@@ -383,29 +421,40 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     if (!seenSig.has(sig)) { seenSig.add(sig); flashPicked.push(s); }
     if (flashPicked.length >= 12) break;
   }
-  const flashcards = (flashPicked.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
-  if (flashcards.length === 0 && text.trim()) flashcards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
+  const flashcards = (flashPicked.map((s, i) => ({ front: titleFromSentence(s, phrases), back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
+  if (flashcards.length === 0 && text.trim()) flashcards.push({ front: titleFromSentence(text, phrases), back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
 
-  // 7-day plan
-  const days = [];
-  // 7-day plan — pick 7 distinct topics by phrase centrality/signature
-  let topics = (phrases.length ? phrases.filter(p => !isGenericTopic(p)).slice(0,14) : Array.from({ length: 14 }, (_, i) => `Topic ${i+1}`));
+  // 7-day plan with variety
+  const OBJECTIVES = [
+    'Explain the core idea and key terms for {topic}.',
+    'Create 3 example scenarios; contrast with a near‑miss case for {topic}.',
+    'Derive 5 flashcards and self‑test twice (spaced) on {topic}.',
+    'Solve 3 practice questions; write one explained solution about {topic}.',
+    'Teach‑back: write a 6–8 sentence explanation for a peer on {topic}.',
+    'Build a quick mind map; note dependencies, risks, and assumptions for {topic}.',
+    'Review mistakes; do a timed self‑test; summarize lessons on {topic}.',
+    'List common pitfalls and how to avoid them in {topic}.',
+    'Summarize {topic} in 5 bullet points and one counter‑example.',
+    'Relate {topic} to a real‑world use case with trade‑offs.'
+  ];
+
+  let topics = (phrases.length ? phrases.slice(0,14) : Array.from({ length: 14 }, (_, i) => `Topic ${i+1}`));
   // Deduplicate phrase signatures (first 2 tokens)
   const seenP = new Set();
   const uniqP = [];
   for (const p of topics) { const sig = String(p).split(/\s+/).slice(0,2).join(' ').toLowerCase(); if (!seenP.has(sig)) { seenP.add(sig); uniqP.push(p); } }
   topics = uniqP.slice(0, 14);
-  for (let i = 0; i < Math.min(7, topics.length || 7); i++) {
-    const p = topics[i] || `Topic ${i+1}`;
-    days.push({ title: `Day ${i + 1}: ${p}`, objectives: [
-      `Review the core idea behind ${p}.`,
-      `Write a short explanation of ${p} in 3–4 sentences.`,
-      `Do a quick self‑test on ${p}.`
-    ]});
-  }
-  while (days.length < 7) days.push({ title: `Day ${days.length + 1}: Review`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary', 'Timed self‑test (10 mins)' ]});
 
-  // Build 10 theory questions using phrases and sentences
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const p = topics[i] || `Topic ${i+1}`;
+    const templates = [];
+    let start = (i * 3) % OBJECTIVES.length;
+    while (templates.length < 3) { templates.push(OBJECTIVES[(start++) % OBJECTIVES.length]); }
+    const objectives = templates.map(t => ensureSentence(t.replace('{topic}', p)));
+    days.push({ title: `Day ${i + 1}: ${p}`, objectives });
+  }
+
   const theory = buildTheoryQuestions(text, phrases, 10);
   return { title, quiz: quiz.slice(0, total), flashcards: flashcards.slice(0, 12), plan: days.slice(0, 7), theory };
 }
