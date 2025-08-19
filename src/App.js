@@ -316,6 +316,7 @@ export default function App() {
       <Route path="/studio/kit/*" element={<KitRoute />} />
       <Route path="/studio/:title/:code" element={<Studio />} />
       <Route path="/studio/summariser" element={<StudioSummariser />} />
+      <Route path="/studio/resume" element={<ResumeBuilder />} />
       <Route path="/merch" element={<Merch />} />
     </Routes>
   );
