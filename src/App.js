@@ -103,7 +103,7 @@ export function Studio() {
   const handleGenerate = async () => {
     if (loading) return;
     const hasText = (text || '').trim().length > 0;
-    if (!hasText &amp;&amp; !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
+    if (!hasText && !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
     setLoading(true); setLoadingStep('Reading input');
     try {
       let full = hasText ? text : '';
@@ -206,7 +206,7 @@ export function Studio() {
                   <div className="grid gap-2">
                     {q.options.map((opt, idx) => {
                       const selected = answers[q.id] === idx;
-                      const correctNow = evaluated &amp;&amp; idx === q.answer_index;
+                      const correctNow = evaluated && idx === q.answer_index;
                       return (
                         <button key={idx} onClick={() => onPickOption(q.id, idx)} className={`text-left px-3 py-2 rounded-md border quiz-option ${selected ? 'quiz-option--selected' : ''} ${correctNow ? 'ring-2 ring-emerald-500' : ''}`}>
                           <span className="quiz-letter mr-2">{String.fromCharCode(65 + idx)}.</span> {opt}
