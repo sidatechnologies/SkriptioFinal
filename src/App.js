@@ -106,9 +106,9 @@ function Landing() {
               <a href="#how" className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm">How it works</a>
             </div>
             <div className="flex items-center gap-5 mt-5 text-sm text-foreground/80">
-              <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-foreground/70"></span> Fast &amp; minimal</div>
-              <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-foreground/70"></span> Private (runs in your browser)</div>
-              <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-foreground/70"></span> Saves hours of prep</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Fast &amp; minimal</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Private (runs in your browser)</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Saves hours of prep</div>
             </div>
           </div>
           <div className="hidden md:flex justify-end">
