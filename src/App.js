@@ -20,6 +20,7 @@ import "./App.css";
 // New AI helpers
 import { prewarmAI } from "./utils/ai";
 import { extractTextFromPDF, splitSentences, normalizeText, isAuthorish, looksLikeHeadingStrong, extractKeyPhrases, buildTheoryQuestions } from "./utils/textProcessor";
+import { embedSentences, selectTopSentences, bestSentenceForPhrase, tryEnhanceArtifacts } from "./utils/ml";
 
 function HeroAtom() {
   return (
