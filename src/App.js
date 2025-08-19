@@ -71,7 +71,7 @@ function Landing() {
   );
 }
 
-function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div&gt;); }
+function EmptyState({ label }) { return (<div className="border border-dashed border-border rounded-lg p-8 text-center text-foreground/70 text-sm">{label}</div>); }
 
 export function Studio() {
   const navigate = useNavigate();
@@ -89,20 +89,20 @@ export function Studio() {
   const [difficulty, setDifficulty] = useState('balanced');
   const [includeFormulas, setIncludeFormulas] = useState(true);
   const [showExplanations, setShowExplanations] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() =&gt; (typeof window !== 'undefined' ? window.innerWidth &gt;= 768 : true));
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
   const [theory, setTheory] = useState([]);
 
-  useEffect(() =&gt; { prewarmPDF(); prewarmML(); }, []);
-  useEffect(() =&gt; { const onResize = () =&gt; setIsDesktop(window.innerWidth &gt;= 768); window.addEventListener('resize', onResize); return () =&gt; window.removeEventListener('resize', onResize); }, []);
+  useEffect(() => { prewarmPDF(); prewarmML(); }, []);
+  useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth >= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
 
-  const ensureJsPDF = async () =&gt; { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
-  const addHeader = (doc) =&gt; { try { doc.setFont('helvetica', 'normal'); } catch {} };
-  const addFooter = (doc) =&gt; { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
-  const lineWrap = (doc, text, x, y, maxWidth) =&gt; { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) =&gt; { const ph = doc.internal.pageSize.getHeight(); if (y &gt; ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
+  const ensureJsPDF = async () => { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
+  const addHeader = (doc) => { try { doc.setFont('helvetica', 'normal'); } catch {} };
+  const addFooter = (doc) => { const ph = doc.internal.pageSize.getHeight(); const pw = doc.internal.pageSize.getWidth(); doc.setFontSize(10); doc.text("skriptio.sidahq.com | aceel@sidahq.com", pw / 2, ph - 10, { align: "center" }); };
+  const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y > ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
 
-  const handleGenerate = async () =&gt; {
+  const handleGenerate = async () => {
     if (loading) return;
-    const hasText = (text || '').trim().length &gt; 0;
+    const hasText = (text || '').trim().length > 0;
     if (!hasText &amp;&amp; !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
     setLoading(true); setLoadingStep('Reading input');
     try {
@@ -110,7 +110,7 @@ export function Studio() {
       if (file) {
         const quick = extractTextFromPDFQuick(file, { maxPages: 24, totalBudgetMs: 4500 });
         const fullSlow = extractTextFromPDF(file, { maxPages: 24 });
-        const pdfText = (await Promise.race([quick, new Promise(r =&gt; setTimeout(() =&gt; r(null), 4800))])) || (await fullSlow);
+        const pdfText = (await Promise.race([quick, new Promise(r => setTimeout(() => r(null), 4800))])) || (await fullSlow);
         full = [full, pdfText].filter(Boolean).join('\n');
       }
       setLoadingStep('Generating study kit');
@@ -123,10 +123,10 @@ export function Studio() {
     } catch (e) { toast({ title: 'Generation failed', description: String(e?.message || e) }); } finally { setLoading(false); setLoadingStep(''); }
   };
 
-  const onPickOption = (qid, idx) =&gt; {
-    setAnswers(prev =&gt; ({ ...prev, [qid]: idx }));
+  const onPickOption = (qid, idx) => {
+    setAnswers(prev => ({ ...prev, [qid]: idx }));
   };
-  const onEvaluate = () =&gt; {
+  const onEvaluate = () => {
     if (!result?.quiz) return;
     let sc = 0;
     for (const q of result.quiz) {
@@ -137,134 +137,134 @@ export function Studio() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground"&gt;
-      <FloatingMenu /&gt;
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border"&gt;
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
-          <Link to="/" className="font-semibold tracking-tight"&gt;Skriptio</Link&gt;
-          <div className="flex items-center gap-2"&gt;
-            <ThemeToggle /&gt;
-          </div&gt;
-        </div&gt;
-      </header&gt;
+    <div className="min-h-screen bg-background text-foreground">
+      <FloatingMenu />
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/" className="font-semibold tracking-tight">Skriptio</Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6"&gt;
-        <StudioNav /&gt;
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        <StudioNav />
 
-        <Card className="bg-card border border-black/70 dark:border-white/60"&gt;
-          <CardHeader&gt;
-            <CardTitle&gt;Study Kit Generator</CardTitle&gt;
-            <CardDescription&gt;Paste notes or upload a PDF, pick difficulty, then Generate.</CardDescription&gt;
-          </CardHeader&gt;
-          <CardContent className="space-y-4"&gt;
-            <div className="grid md:grid-cols-3 gap-3"&gt;
-              <Input placeholder="Title (optional)" value={title} onChange={e =&gt; setTitle(e.target.value)} className="studio-input-title" /&gt;
-              <div className="select-wrap"&gt;
-                <select className="select-control rounded-md px-3 pr-7 py-2" value={difficulty} onChange={e =&gt; setDifficulty(e.target.value)}&gt;
-                  <option value="balanced"&gt;Balanced</option&gt;
-                  <option value="harder"&gt;Harder</option&gt;
-                </select&gt;
-                <span className="select-arrow"&gt;<ChevronDown size={16} /&gt;</span&gt;
-              </div&gt;
-              <div className="flex items-center gap-3"&gt;
-                <label className="inline-flex items-center gap-2 text-sm"&gt;
-                  <input type="checkbox" checked={includeFormulas} onChange={e =&gt; setIncludeFormulas(e.target.checked)} /&gt;
+        <Card className="bg-card border border-black/70 dark:border-white/60">
+          <CardHeader>
+            <CardTitle>Study Kit Generator</CardTitle>
+            <CardDescription>Paste notes or upload a PDF, pick difficulty, then Generate.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-3 gap-3">
+              <Input placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} className="studio-input-title" />
+              <div className="select-wrap">
+                <select className="select-control rounded-md px-3 pr-7 py-2" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
+                  <option value="balanced">Balanced</option>
+                  <option value="harder">Harder</option>
+                </select>
+                <span className="select-arrow"><ChevronDown size={16} /></span>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={includeFormulas} onChange={e => setIncludeFormulas(e.target.checked)} />
                   Include formulas
-                </label&gt;
-                <label className="inline-flex items-center gap-2 text-sm"&gt;
-                  <input type="checkbox" checked={showExplanations} onChange={e =&gt; setShowExplanations(e.target.checked)} /&gt;
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={showExplanations} onChange={e => setShowExplanations(e.target.checked)} />
                   Show explanations
-                </label&gt;
-              </div&gt;
-            </div&gt;
-            <Textarea rows={10} placeholder="Paste notes here…" value={text} onChange={e =&gt; setText(e.target.value)} className="studio-textarea-notes" /&gt;
-            <div className="flex items-center gap-3"&gt;
-              <input ref={fileInputRef} type="file" accept="application/pdf" className="file-input-reset" onChange={e =&gt; setFile(e.target.files?.[0] || null)} /&gt;
-              <Button onClick={() =&gt; fileInputRef.current?.click()} variant="outline" className="button-upload"&gt;
-                <Upload size={16} className="mr-2" /&gt; Upload PDF
-              </Button&gt;
-              <Button onClick={handleGenerate} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90"&gt;
-                {loading ? (<&gt;<Loader2 className="mr-2 h-4 w-4 animate-spin" /&gt; {loadingStep || 'Working…'}</&gt;) : 'Generate'}
-              </Button&gt;
-            </div&gt;
-          </CardContent&gt;
-        </Card&gt;
+                </label>
+              </div>
+            </div>
+            <Textarea rows={10} placeholder="Paste notes here…" value={text} onChange={e => setText(e.target.value)} className="studio-textarea-notes" />
+            <div className="flex items-center gap-3">
+              <input ref={fileInputRef} type="file" accept="application/pdf" className="file-input-reset" onChange={e => setFile(e.target.files?.[0] || null)} />
+              <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="button-upload">
+                <Upload size={16} className="mr-2" /> Upload PDF
+              </Button>
+              <Button onClick={handleGenerate} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {loadingStep || 'Working…'}</>) : 'Generate'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {result ? (
-          <Tabs defaultValue="quiz" className="studio-tabs-wrap"&gt;
-            <TabsList&gt;
-              <TabsTrigger value="quiz"&gt;Quiz</TabsTrigger&gt;
-              <TabsTrigger value="cards"&gt;Flashcards</TabsTrigger&gt;
-              <TabsTrigger value="plan"&gt;7‑Day Plan</TabsTrigger&gt;
-              <TabsTrigger value="theory"&gt;Theory Qs</TabsTrigger&gt;
-            </TabsList&gt;
+          <Tabs defaultValue="quiz" className="studio-tabs-wrap">
+            <TabsList>
+              <TabsTrigger value="quiz">Quiz</TabsTrigger>
+              <TabsTrigger value="cards">Flashcards</TabsTrigger>
+              <TabsTrigger value="plan">7‑Day Plan</TabsTrigger>
+              <TabsTrigger value="theory">Theory Qs</TabsTrigger>
+            </TabsList>
 
-            <TabsContent value="quiz" className="space-y-4"&gt;
-              {result.quiz.map((q) =&gt; (
-                <div key={q.id} className="border rounded-md p-4"&gt;
-                  <div className="font-medium mb-2"&gt;{q.question}</div&gt;
-                  <div className="grid gap-2"&gt;
-                    {q.options.map((opt, idx) =&gt; {
+            <TabsContent value="quiz" className="space-y-4">
+              {result.quiz.map((q) => (
+                <div key={q.id} className="border rounded-md p-4">
+                  <div className="font-medium mb-2">{q.question}</div>
+                  <div className="grid gap-2">
+                    {q.options.map((opt, idx) => {
                       const selected = answers[q.id] === idx;
                       const correctNow = evaluated &amp;&amp; idx === q.answer_index;
                       return (
-                        <button key={idx} onClick={() =&gt; onPickOption(q.id, idx)} className={`text-left px-3 py-2 rounded-md border quiz-option ${selected ? 'quiz-option--selected' : ''} ${correctNow ? 'ring-2 ring-emerald-500' : ''}`}&gt;
-                          <span className="quiz-letter mr-2"&gt;{String.fromCharCode(65 + idx)}.</span&gt; {opt}
-                        </button&gt;
+                        <button key={idx} onClick={() => onPickOption(q.id, idx)} className={`text-left px-3 py-2 rounded-md border quiz-option ${selected ? 'quiz-option--selected' : ''} ${correctNow ? 'ring-2 ring-emerald-500' : ''}`}>
+                          <span className="quiz-letter mr-2">{String.fromCharCode(65 + idx)}.</span> {opt}
+                        </button>
                       );
                     })}
-                  </div&gt;
-                </div&gt;
+                  </div>
+                </div>
               ))}
-              <div className="flex items-center gap-3"&gt;
-                <Button onClick={onEvaluate} disabled={evaluated} className="bg-primary text-primary-foreground"&gt;{evaluated ? 'Evaluated' : 'Evaluate'}</Button&gt;
-                {evaluated ? <div className="text-sm"&gt;Score: <span className="font-semibold"&gt;{score} / {result.quiz.length}</span&gt;</div&gt; : null}
-              </div&gt;
-            </TabsContent&gt;
+              <div className="flex items-center gap-3">
+                <Button onClick={onEvaluate} disabled={evaluated} className="bg-primary text-primary-foreground">{evaluated ? 'Evaluated' : 'Evaluate'}</Button>
+                {evaluated ? <div className="text-sm">Score: <span className="font-semibold">{score} / {result.quiz.length}</span></div> : null}
+              </div>
+            </TabsContent>
 
-            <TabsContent value="cards" className="grid md:grid-cols-2 gap-3"&gt;
-              {result.flashcards.map((c, i) =&gt; (
-                <Card key={i} className="border"&gt;
-                  <CardHeader&gt;<CardTitle className="text-base"&gt;{c.front}</CardTitle&gt;</CardHeader&gt;
-                  <CardContent&gt;<p className="text-sm"&gt;{c.back}</p&gt;</CardContent&gt;
-                </Card&gt;
+            <TabsContent value="cards" className="grid md:grid-cols-2 gap-3">
+              {result.flashcards.map((c, i) => (
+                <Card key={i} className="border">
+                  <CardHeader><CardTitle className="text-base">{c.front}</CardTitle></CardHeader>
+                  <CardContent><p className="text-sm">{c.back}</p></CardContent>
+                </Card>
               ))}
-            </TabsContent&gt;
+            </TabsContent>
 
-            <TabsContent value="plan" className="grid md:grid-cols-2 gap-3"&gt;
-              {result.plan.map((d, i) =&gt; (
-                <Card key={i} className="border"&gt;
-                  <CardHeader&gt;<CardTitle className="text-base"&gt;{d.title}</CardTitle&gt;</CardHeader&gt;
-                  <CardContent&gt;
-                    <ul className="list-disc pl-5 space-y-1"&gt;
-                      {d.objectives.map((o, j) =&gt; <li key={j} className="plan-objective"&gt;{o}</li&gt;)}
-                    </ul&gt;
-                  </CardContent&gt;
-                </Card&gt;
+            <TabsContent value="plan" className="grid md:grid-cols-2 gap-3">
+              {result.plan.map((d, i) => (
+                <Card key={i} className="border">
+                  <CardHeader><CardTitle className="text-base">{d.title}</CardTitle></CardHeader>
+                  <CardContent>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {d.objectives.map((o, j) => <li key={j} className="plan-objective">{o}</li>)}
+                    </ul>
+                  </CardContent>
+                </Card>
               ))}
-            </TabsContent&gt;
+            </TabsContent>
 
-            <TabsContent value="theory" className="space-y-2"&gt;
-              {theory.map((t, i) =&gt; <div key={i} className="border rounded-md p-3 text-sm"&gt;{t}</div&gt;)}
-            </TabsContent&gt;
-          </Tabs&gt;
+            <TabsContent value="theory" className="space-y-2">
+              {theory.map((t, i) => <div key={i} className="border rounded-md p-3 text-sm">{t}</div>)}
+            </TabsContent>
+          </Tabs>
         ) : (
-          <EmptyState label="Generate to see your quiz, flashcards, plan and theory questions here." /&gt;
+          <EmptyState label="Generate to see your quiz, flashcards, plan and theory questions here." />
         )}
-      </main&gt;
-    </div&gt;
+      </main>
+    </div>
   );
 }
 
 export default function App() {
   return (
-    <Routes&gt;
-      <Route path="/" element={<Landing /&gt;} /&gt;
-      <Route path="/studio" element={<StudioHub /&gt;} /&gt;
-      <Route path="/studio/kit/*" element={<KitRoute /&gt;} /&gt;
-      <Route path="/studio/:title/:code" element={<Studio /&gt;} /&gt;
-      <Route path="/studio/summariser" element={<StudioSummariser /&gt;} /&gt;
-      <Route path="/merch" element={<Merch /&gt;} /&gt;
-    </Routes&gt;
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/studio" element={<StudioHub />} />
+      <Route path="/studio/kit/*" element={<KitRoute />} />
+      <Route path="/studio/:title/:code" element={<Studio />} />
+      <Route path="/studio/summariser" element={<StudioSummariser />} />
+      <Route path="/merch" element={<Merch />} />
+    </Routes>
   );
 }
