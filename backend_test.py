@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Backend URL from supervisor configuration
-BACKEND_URL = "https://edugpt-features.preview.emergentagent.com"
+BACKEND_URL = "https://brainboost-gen.preview.emergentagent.com"
 
 def create_test_pdf():
     """Create a simple PDF with 'Hello OCR' text for testing"""
