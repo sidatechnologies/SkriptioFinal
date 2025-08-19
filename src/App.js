@@ -3,7 +3,7 @@ import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { Loader2, Upload, FileText, ListChecks, BookOpen, Calendar, ArrowRight, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, ChevronDown, Zap, Shield, Clock } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import StudioNav from "./components/StudioNav";
-import { extractTextFromPDF, generateArtifacts, generateUUID, buildTheoryQuestions, extractKeyPhrases } from "./utils/textProcessor";
+import { extractTextFromPDF, generateArtifacts, generateUUID, buildTheoryQuestions, extractKeyPhrases, ensureSentence } from "./utils/textProcessor";
 import { prewarmML } from "./utils/ml";
 import { prewarmPDF, getJsPDF } from "./utils/pdf";
 import { Button } from "./components/ui/button";
