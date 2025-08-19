@@ -247,7 +247,7 @@ export function Studio() {
     setLoading(true); setLoadingStep('Reading input');
     try {
       let full = hasText ? text : '';
-      if (file) { const pdfText = await extractTextFromPDF(file); full = [full, pdfText].filter(Boolean).join('\n'); }
+      if (file) { const pdfText = await extractTextFromPDF(file, { maxPages: 24 }); full = [full, pdfText].filter(Boolean).join('\n'); }
       setLoadingStep('Generating study kit');
       const kit = await generateArtifacts(full, (title || '').trim() || null, { difficulty, includeFormulas, explain: showExplanations });
       setResult(kit); setAnswers({}); setScore(null); setEvaluated(false);
