@@ -42,41 +42,21 @@ export default function Merch() {
         <meta property="og:url" content="https://skriptio.sidahq.com/merch" />
         <meta property="og:image" content="/assets/aceel-logo.png" />
       </Helmet>
-      {/* Header (full navbar like landing) */}
+      {/* Header (no menubar, small Open Studio) */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="font-semibold tracking-tight">Skriptio</div>
           </Link>
           <div className="flex items-center gap-2">
-            <nav className="hidden lg:flex items-center gap-6 text-sm text-foreground/80 mr-2">
-              <Link to="/">Home</Link>
-              <Link to="/studio">Studio</Link>
-
-            </nav>
-            <div className="hidden lg:inline-flex"><Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button></div>
-            {/* Mobile/Tablet controls */}
             <ThemeToggle className="lg:hidden" />
-            <button aria-label="Open menu" aria-expanded={mobileOpen} className="p-2 rounded-md border border-border lg:hidden" onClick={() => setMobileOpen(prev => !prev)}>
-              {mobileOpen ? <span className="inline-block text-base">✕</span> : <Menu size={18} />}
-            </button>
-            {/* Desktop theme toggle */}
+            <Button size="sm" onClick={() => navigate('/studio')} className="bg-primary text-primary-foreground hover:bg-primary/90">Open Studio</Button>
             <ThemeToggle className="hidden lg:inline-flex" />
           </div>
         </div>
       </header>
 
-      {/* Mobile menu (only Home + Studio) */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-x-0 top-16 z-50 border-b border-border bg-background/95 shadow-lg">
-          <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm max-h-[calc(100vh-4rem)] overflow-y-auto">
-            <Link to="/" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Home</Link>
-            <Link to="/studio" className="hover:text-foreground" onClick={() => setMobileOpen(false)}>Studio</Link>
-          </div>
-        </div>
-      )}
-
-      {/* Global Floating menu on Merch */}
+      {/* Floating menu on Merch */}
       <FloatingMenu />
 
       <main className="max-w-6xl mx-auto px-6 py-10">

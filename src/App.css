@@ -40,7 +40,7 @@ input[type=file] { display: none; }
 
 /* Custom select control (used for mobile StudioNav + difficulty) */
 .select-wrap { position: relative; display: inline-block; }
-.select-control { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #fff; color: #000; border: 1.5px solid #000; padding-right: 1.75rem; }
+.select-control { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #fff; color: #000; border: 1.5px solid #000; padding-right: 1.75rem; font-size: 0.9rem; }
 .dark .select-control { background-color: #000; color: #fff; border-color: #fff; }
 .select-arrow { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.9; color: #000; }
 .dark .select-arrow { color: #fff; }
@@ -68,25 +68,19 @@ input[type=file] { display: none; }
 .float-delay-1 { animation-delay: .6s; }
 .float-delay-2 { animation-delay: 1.2s; }
 
-@keyframes fadeSlideUp { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
-.fade-slide-in { animation: fadeSlideUp .5s ease both; }
-
-/* Bigger hero atom with many orbits */
-.hero-atom { position: relative; width: 420px; height: 420px; margin: 0; transform: translateX(0); }
-.hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 30px rgba(245,197,66,0.4); }
+/* Small hero atom with 5 orbits */
+.hero-atom { position: relative; width: 300px; height: 300px; margin: 0; }
+.hero-atom .nucleus { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; background: #F5C542; border-radius: 9999px; transform: translate(-50%, -50%); box-shadow: 0 0 24px rgba(245,197,66,0.4); }
 .hero-atom .orbit { position: absolute; inset: 0; margin: auto; border: 1px dashed rgba(0,0,0,0.18); border-radius: 9999px; transform: rotate(0deg); }
 .dark .hero-atom .orbit { border-color: rgba(255,255,255,0.15); }
-.hero-atom .electron { position: absolute; width: 8px; height: 8px; background: #111; border-radius: 9999px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+.hero-atom .electron { position: absolute; width: 7px; height: 7px; background: #111; border-radius: 9999px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
 .dark .hero-atom .electron { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.7); }
 @keyframes spinOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.orbit-1 { width: 140px; height: 140px; animation: spinOrbit 6s linear infinite; }
-.orbit-2 { width: 200px; height: 200px; animation: spinOrbit 9s linear infinite; }
-.orbit-3 { width: 260px; height: 260px; animation: spinOrbit 12s linear infinite; }
-.orbit-4 { width: 320px; height: 320px; animation: spinOrbit 15s linear infinite; }
-.orbit-5 { width: 360px; height: 360px; animation: spinOrbit 18s linear infinite; }
-.orbit-6 { width: 400px; height: 400px; animation: spinOrbit 22s linear infinite; }
-.orbit-7 { width: 420px; height: 420px; animation: spinOrbit 26s linear infinite; }
-.hero-atom .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
+.orbit-1 { width: 130px; height: 130px; animation: spinOrbit 6s linear infinite; }
+.orbit-2 { width: 180px; height: 180px; animation: spinOrbit 9s linear infinite; }
+.orbit-3 { width: 220px; height: 220px; animation: spinOrbit 12s linear infinite; }
+.orbit-4 { width: 260px; height: 260px; animation: spinOrbit 15s linear infinite; }
+.orbit-5 { width: 300px; height: 300px; animation: spinOrbit 18s linear infinite; }
 .hero-atom .orbit .electron { top: 50%; left: 100%; transform: translate(-50%, -50%); }
 @media (max-width: 1024px) { .hero-atom { display: none; } }
 
