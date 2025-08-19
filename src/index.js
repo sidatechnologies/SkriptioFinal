@@ -21,19 +21,23 @@ root.render(
   </React.StrictMode>,
 );
 
-// Service Worker: disable in preview/dev to avoid cache-related black screens
+// Service Worker: in preview/dev, register a kill-switch SW once to purge old caches
 if ('serviceWorker' in navigator) {
   const isProd = process.env.NODE_ENV === 'production';
   const isPreview = /preview\.emergentagent\.com$/.test(window.location.hostname);
   if (isProd && !isPreview) {
-    // Only register SW for real production domains (not preview)
+    // Real production: keep normal SW
     window.addEventListener('load', () => {
       try { navigator.serviceWorker.register('/sw.js'); } catch (e) { /* noop */ }
     });
   } else {
-    // Ensure any previously registered SW is removed to prevent stale JS caching
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach(r => r.unregister().catch(() => {}));
-    }).catch(() => {});
+    // Preview/dev: ensure any previous SW is updated to a kill-switch then unregistered
+    window.addEventListener('load', () => {
+      try { navigator.serviceWorker.register('/sw.js'); } catch (e) { /* ignore */ }
+      // Also request registrations to be removed
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach(r => r.unregister().catch(() => {}));
+      }).catch(() => {});
+    });
   }
 }
