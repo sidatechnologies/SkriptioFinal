@@ -117,7 +117,7 @@ export async function embedTexts(texts, deadlineMs = 30000) {
 export async function generateQuestionFromContext(context, answerSpan) {
   const qg = await getQG(25000);
   if (!qg) return null;
-  const highlighted = String(context || '').replace(answerSpan, `&lt;hl&gt;${answerSpan}&lt;hl&gt;`);
+  const highlighted = String(context || '').replace(answerSpan, `<hl>${answerSpan}<hl>`);
   const prompt = `generate question: ${highlighted}`;
   try {
     const res = await qg(prompt, { max_new_tokens: 64, temperature: 0.7 });
