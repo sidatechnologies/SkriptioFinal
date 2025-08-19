@@ -190,7 +190,7 @@ export default function StudioSummariser() {
                 <div className="text-xs text-foreground/70">AI mode: {aiUsed ? 'On-device (Universal Sentence Encoder)' : 'Fallback (non-AI heuristic)'} • Private — runs locally</div>
                 {summary.length ? (
                   <ul className="list-disc pl-5 text-sm space-y-2">
-                    {summary.map((s, i) => <li key={i}>{s}</li>)}
+                    {summary.map((s, i) => <li key={i}>{ensureSentence(s)}</li>)}
                   </ul>
                 ) : (
                   <div className="text-sm text-foreground/70">Your summary will appear here once generated.</div>
