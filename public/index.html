@@ -27,7 +27,28 @@
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
         
-
+        <!-- Preview kill-switch: unregister any old SW & clear caches once, then reload -->
+        <script>
+          (function(){
+            try {
+              var host = location.hostname;
+              if (/preview\.emergentagent\.com$/.test(host) && !sessionStorage.getItem('sw_kill_once')) {
+                sessionStorage.setItem('sw_kill_once', '1');
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(regs){
+                    regs.forEach(function(r){ try { r.unregister(); } catch(e){} });
+                    return caches.keys();
+                  }).then(function(keys){
+                    return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+                  }).finally(function(){
+                    // Short delay to allow unregister to settle
+                    setTimeout(function(){ location.reload(); }, 150);
+                  });
+                }
+              }
+            } catch (e) {}
+          })();
+        </script>
 
         <!-- Analytics removed to keep the app fully frontend-only and avoid external API calls. -->
     </body>
