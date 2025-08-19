@@ -828,7 +828,7 @@ export function buildFlashcards(sentences, phrases, total = 12, docTitle = '') {
   let i = 0;
   while (cards.length < total && i < pool.length) {
     const v = pool[i++];
-    const back = ensureCaseAndPeriod('A.', v.length <= 280 ? v : v.slice(0, 277) + '.');
+    const back = ensureCaseAndPeriod('', v.length <= 280 ? v : v.slice(0, 277) + '.');
     cards.push({ front: 'Key idea?', back });
   }
   return cards.slice(0, total);
