@@ -13,6 +13,7 @@ import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
 import StudioSummariser from "./pages/StudioSummariser";
 import KitRoute from "./pages/KitRoute";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import FloatingMenu from "./components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 import "./App.css";
