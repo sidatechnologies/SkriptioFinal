@@ -73,7 +73,17 @@ export default function StudioSummariser() {
       }
       const cleaned = cleanInputText(combined);
       if (!cleaned) { setError('No readable content found in the input.'); return; }
-      const points = await summarisePointwise(cleaned, length);
+      let points = await summarisePointwise(cleaned, length);
+      if (!points || points.length === 0) {
+        // Fallback: extractive summary using sentence ranking (fast, on-device)
+        const sents = splitSentences(cleaned);
+        try {
+          const top = await selectTopSentences(sents, length === 'long' ? 12 : length === 'medium' ? 9 : 6, 200);
+          points = (top || []).map(t => ensureSentence(t));
+        } catch {
+          points = (sents || []).slice(0, length === 'long' ? 12 : length === 'medium' ? 9 : 6).map(t => ensureSentence(t));
+        }
+      }
       setBullets(points || []);
     } catch (e) {
       console.error(e);
