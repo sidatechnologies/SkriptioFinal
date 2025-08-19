@@ -123,3 +123,7 @@ input[type=file] { display: none; }
 /* Ensure light theme uses strong black borders for Studio cards/buttons */
 :root.light .border-border, .light .border-border { border-color: rgba(0,0,0,0.7) !important; }
 :root.light .button-upload, :root.light .studio-input-title, :root.light .studio-textarea-notes { border-color: rgba(0,0,0,0.7) !important; }
+
+/* Toolbar helpers */
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; }
+.toolbar .btn { padding: 8px 12px; border:1px solid var(--border); border-radius:6px; font-size: 0.9rem; }
