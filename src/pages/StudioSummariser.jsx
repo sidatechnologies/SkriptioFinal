@@ -152,7 +152,7 @@ export default function StudioSummariser() {
                 {error ? <div className="text-xs text-red-600">{error}</div> : null}
 
                 <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading || !hasAnyInput()} onClick={onSummarise}>
-                  {loading ? 'Summarising…' : 'Summarise'}
+                  {loading ? 'Summarising…' : 'Summarise PDF'}
                 </Button>
               </CardContent>
             </Card>
