@@ -1,7 +1,7 @@
 /* Frontend-only AI pipelines using Transformers.js with the exact models requested.
    Models:
-   - Summarisation: t5-small (from prompt, lightweight option). Note: facebook/bart-large-cnn is heavy for browser; t5-small is allowed and fast.
-   - Question Generation: valhalla/t5-small-qa-qg-hl (highlight format &quot;&lt;hl&gt;answer&lt;hl&gt;&quot; with prefix &quot;generate question:&quot;)
+   - Summarisation: t5-small (from prompt, lightweight option).
+   - Question Generation: valhalla/t5-small-qa-qg-hl (highlight format "<hl>answer<hl>" with prefix "generate question:")
    - Embeddings: sentence-transformers/all-MiniLM-L6-v2 (feature-extraction) for similarity, dedup, distractors
 
    All loads are lazy with short timeouts and safe fallbacks to keep UI responsive.
@@ -9,11 +9,8 @@
 
 import { env, pipeline } from '@xenova/transformers';
 
-// Keep downloads small and avoid verbose logs
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-// Prefer WebGPU if available, else WASM
-// env.backends.onnx.wasm.wasmPaths is already configured globally for other tools if needed
 
 let _summarizerPromise = null;
 let _qgPromise = null;
@@ -27,7 +24,6 @@ async function withTimeout(promise, ms) {
 }
 
 export function prewarmAI() {
-  // Warm the smallest models during idle time
   try {
     if (!_embedPromise) {
       if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -63,9 +59,8 @@ export async function summarisePointwise(text, length = 'short') {
   if (!model) return [];
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
   if (!clean) return [];
-  // Chunk text for t5-small
   const targetChars = length === 'long' ? 4000 : length === 'medium' ? 2200 : 1200;
-  const chunkSize = 900; // conservative for t5-small
+  const chunkSize = 900;
   const chunks = [];
   for (let i = 0; i < Math.min(clean.length, targetChars); i += chunkSize) {
     chunks.push(clean.slice(i, i + chunkSize));
@@ -80,9 +75,7 @@ export async function summarisePointwise(text, length = 'short') {
       if (txt) outputs.push(txt.trim());
     } catch {}
   }
-  // Split to bullets
   const bullets = outputs.join(' ').split(/\s*\n|\s*\d+\.|\s*\-\s+/).map(s => s.trim()).filter(s => s.length > 0);
-  // Normalize
   const seen = new Set();
   const out = [];
   for (const b of bullets) {
@@ -97,18 +90,27 @@ export async function summarisePointwise(text, length = 'short') {
   return out;
 }
 
-// Embeddings helper (returns array of Float32Array or arrays)
+// Embeddings helper: try MiniLM via Transformers.js; if unavailable (404), fall back to USE (TensorFlow.js) to keep UX responsive
 export async function embedTexts(texts, deadlineMs = 30000) {
-  const embedder = await getEmbedder(deadlineMs);
-  if (!embedder) return null;
   try {
-    const res = await embedder(texts, { pooling: 'mean', normalize: true });
-    // transformers.js returns Tensor or array; normalize to array of arrays
-    const arr = Array.isArray(res) ? res : res?.data || res;
-    if (Array.isArray(arr) && Array.isArray(arr[0])) return arr;
-    if (res?.tolist) return res.tolist();
-    if (res?.data) return Array.from({ length: res.dims?.[0] || 0 }, (_, i) => Array.from(res.data.slice(i * res.dims[1], (i + 1) * res.dims[1])));
-    return null;
+    const embedder = await getEmbedder(deadlineMs);
+    if (embedder) {
+      const res = await embedder(texts, { pooling: 'mean', normalize: true });
+      const arr = Array.isArray(res) ? res : res?.data || res;
+      if (Array.isArray(arr) && Array.isArray(arr[0])) return arr;
+      if (res?.tolist) return res.tolist();
+      if (res?.data && res?.dims) {
+        const out = [];
+        for (let i = 0; i < (res.dims[0] || 0); i++) out.push(Array.from(res.data.slice(i * res.dims[1], (i + 1) * res.dims[1])));
+        return out;
+      }
+    }
+  } catch {}
+  // Fallback path (browser-only) using TF.js Universal Sentence Encoder
+  try {
+    const ml = await import('./ml');
+    const arr = await ml.embedSentences(texts, Math.min(1200, deadlineMs));
+    return arr;
   } catch {
     return null;
   }
