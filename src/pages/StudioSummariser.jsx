@@ -21,7 +21,6 @@ export default function StudioSummariser() {
   const [bullets, setBullets] = React.useState([]);
   const [error, setError] = React.useState("");
   const [fileMeta, setFileMeta] = React.useState(null);
-  const [previewURL, setPreviewURL] = React.useState("");
 
   React.useEffect(() => { prewarmAI(); }, []);
 
