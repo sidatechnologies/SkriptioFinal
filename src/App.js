@@ -235,7 +235,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
 
   let chosenIdxs = [];
   try {
-    const vecs = await embedTexts(sentences);
+    const vecs = await embedSentences(sentences);
     if (vecs && vecs.length) {
       const picked = [];
       const used = new Set();
