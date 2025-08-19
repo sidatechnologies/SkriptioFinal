@@ -995,7 +995,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     try {
       const s = await bestSentenceForPhrase(term, sentences, 160);
       if (!s) continue;
-      const back = ensureCaseAndPeriod('A.', s.length <= 280 ? s : s.slice(0, 277) + '.');
+      const back = ensureCaseAndPeriod('', s.length <= 280 ? s : s.slice(0, 277) + '.');
       defineCards.push({ front: `Define: ${term}`, back });
       if (defineCards.length >= 8) break;
     } catch {}
