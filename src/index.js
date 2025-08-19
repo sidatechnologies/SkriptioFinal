@@ -21,23 +21,22 @@ root.render(
   </React.StrictMode>,
 );
 
-// Service Worker: in preview/dev, register a kill-switch SW once to purge old caches
+// Service Worker kill-switch: Unregister any existing SWs and clear caches once (prevents stale black screens).
 if ('serviceWorker' in navigator) {
-  const isProd = process.env.NODE_ENV === 'production';
-  const isPreview = /preview\.emergentagent\.com$/.test(window.location.hostname);
-  if (isProd && !isPreview) {
-    // Real production: keep normal SW
-    window.addEventListener('load', () => {
-      try { navigator.serviceWorker.register('/sw.js'); } catch (e) { /* noop */ }
-    });
-  } else {
-    // Preview/dev: ensure any previous SW is updated to a kill-switch then unregistered
-    window.addEventListener('load', () => {
-      try { navigator.serviceWorker.register('/sw.js'); } catch (e) { /* ignore */ }
-      // Also request registrations to be removed
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        regs.forEach(r => r.unregister().catch(() => {}));
-      }).catch(() => {});
-    });
-  }
+  window.addEventListener('load', () => {
+    const onceKey = 'sw_kill_once_v2';
+    // Unregister all active registrations
+    navigator.serviceWorker.getRegistrations()
+      .then((regs) => regs.forEach((r) => { try { r.unregister(); } catch (e) {} }))
+      .catch(() => {});
+    // Clear caches and reload once
+    if (!sessionStorage.getItem(onceKey)) {
+      sessionStorage.setItem(onceKey, '1');
+      if (window.caches) {
+        caches.keys()
+          .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+          .finally(() => setTimeout(() => { try { location.reload(); } catch {} }, 150));
+      }
+    }
+  });
 }
