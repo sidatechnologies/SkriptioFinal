@@ -7,6 +7,7 @@ import { Button } from "./components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/ui/card";
 import { Textarea } from "./components/ui/textarea";
 import { Input } from "./components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
 import StudioSummariser from "./pages/StudioSummariser";
