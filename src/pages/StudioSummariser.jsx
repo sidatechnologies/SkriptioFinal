@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { Upload, ChevronDown } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
 import ThemeToggle from "../components/ThemeToggle";
@@ -9,6 +9,7 @@ import StudioNav from "../components/StudioNav";
 import { Helmet } from "react-helmet-async";
 
 export default function StudioSummariser() {
+  const fileRef = useRef(null);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Helmet>
@@ -38,10 +39,10 @@ export default function StudioSummariser() {
                   <option value="medium">Medium</option>
                   <option value="long">Long</option>
                 </select>
-                <span className="select-arrow">▼</span>
+                <span className="select-arrow"><ChevronDown size={16} /></span>
               </div>
-              <input type="file" accept="application/pdf" className="file-input-reset" />
-              <Button variant="outline" className="button-upload">
+              <input ref={fileRef} type="file" accept="application/pdf" className="file-input-reset" />
+              <Button onClick={() => fileRef.current?.click()} variant="outline" className="button-upload">
                 <Upload size={16} className="mr-2" /> Upload PDF
               </Button>
             </div>

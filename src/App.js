@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import { ArrowRight, ChevronDown, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import StudioNav from "./components/StudioNav";
 import { Button } from "./components/ui/button";
@@ -15,6 +15,21 @@ import FloatingMenu from "./components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 import "./App.css";
 
+function HeroAtom() {
+  return (
+    <div className="hero-atom mx-auto">
+      <div className="nucleus"></div>
+      <div className="orbit orbit-1"><div className="electron" /></div>
+      <div className="orbit orbit-2"><div className="electron" /></div>
+      <div className="orbit orbit-3"><div className="electron" /></div>
+      <div className="orbit orbit-4"><div className="electron" /></div>
+      <div className="orbit orbit-5"><div className="electron" /></div>
+      <div className="orbit orbit-6"><div className="electron" /></div>
+      <div className="orbit orbit-7"><div className="electron" /></div>
+    </div>
+  );
+}
+
 function Landing() {
   return (
     <div className="min-h-screen hero-gradient text-foreground">
@@ -23,6 +38,7 @@ function Landing() {
         <meta name="description" content="Turn your PDFs and notes into quizzes, flashcards and a 7‑day plan — all in your browser." />
         <link rel="canonical" href="https://skriptio.sidahq.com/" />
       </Helmet>
+
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="font-semibold tracking-tight">Skriptio</div>
@@ -34,30 +50,84 @@ function Landing() {
           </div>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <p className="gold-pill inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm mb-4">
-            <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
-            A product by Aceel AI
-          </p>
-          <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-4">Study kits from your notes &amp; PDFs</h1>
-          <p className="text-foreground/80 mb-6">Paste notes or upload a PDF. Get a 10‑question quiz, flashcards and a 7‑day plan — instantly. Runs fully in your browser.</p>
-          <div className="flex items-center gap-3">
-            <Link to="/studio" className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
-              Open Studio <ArrowRight size={16} />
-            </Link>
-            <a href="#how" className="inline-flex items-center gap-2 px-4 py-2 border rounded-md">How it works</a>
+
+      <main>
+        {/* Hero */}
+        <section className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <p className="gold-pill inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm mb-4">
+              <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
+              A product by Aceel AI
+            </p>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-4">Study kits from your notes &amp; PDFs</h1>
+            <p className="text-foreground/80 mb-6">Paste notes or upload a PDF. Get a 10‑question quiz, flashcards and a 7‑day plan — instantly. Runs fully in your browser.</p>
+            <div className="flex items-center gap-3">
+              <Link to="/studio" className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+                Open Studio <ArrowRight size={16} />
+              </Link>
+              <a href="#how" className="inline-flex items-center gap-2 px-4 py-2 border rounded-md">How it works</a>
+            </div>
           </div>
-        </div>
-        <div className="hidden md:block">
-          <div className="hero-atom mx-auto">
-            <div className="nucleus"></div>
-            <div className="orbit orbit-3"><div className="electron"></div></div>
-            <div className="orbit orbit-4"><div className="electron"></div></div>
-            <div className="orbit orbit-5"><div className="electron"></div></div>
+          <div className="hidden md:block">
+            <HeroAtom />
           </div>
-        </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="max-w-6xl mx-auto px-6 py-12">
+          <h2 className="section-title text-2xl font-semibold mb-6">Everything you need to study smarter</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Card className="hero-card card-glow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><FileText size={18}/> Quiz</CardTitle>
+                <CardDescription>10 questions to test understanding across your material.</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="hero-card card-glow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ListChecks size={18}/> Flashcards</CardTitle>
+                <CardDescription>Front/back cards to quickly drill key ideas and definitions.</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="hero-card card-glow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Calendar size={18}/> 7‑Day Plan</CardTitle>
+                <CardDescription>A simple weekly plan so you know exactly what to review.</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how" className="max-w-6xl mx-auto px-6 py-12">
+          <h2 className="section-title text-2xl font-semibold mb-6">How it works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Card className="card-glow"><CardHeader><CardTitle>1. Add content</CardTitle><CardDescription>Paste notes or choose a PDF.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>2. Review tabs</CardTitle><CardDescription>Quiz, Flashcards, Plan, Theory — all laid out.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>3. Study</CardTitle><CardDescription>Use the plan and cards to prepare efficiently.</CardDescription></CardHeader></Card>
+          </div>
+        </section>
+
+        {/* About */}
+        <section id="about" className="max-w-6xl mx-auto px-6 py-12">
+          <h2 className="section-title text-2xl font-semibold mb-3">About</h2>
+          <p className="text-foreground/80 max-w-3xl">Skriptio is a minimal study toolkit. It mirrors the exact UI from our Studio so you can see how everything looks in both themes. This UI-only version preserves all visuals without performing any processing.</p>
+        </section>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-6">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 items-center">
+          <div className="text-sm flex items-center gap-2"><Mail size={16}/> aceel@sidahq.com</div>
+          <div className="text-center text-sm">© {new Date().getFullYear()} Skriptio</div>
+          <div className="flex items-center gap-3 justify-end text-foreground/80">
+            <a href="#" aria-label="Instagram"><Instagram size={18}/></a>
+            <a href="#" aria-label="Twitter"><Twitter size={18}/></a>
+            <a href="#" aria-label="LinkedIn"><Linkedin size={18}/></a>
+            <a href="#" aria-label="Facebook"><Facebook size={18}/></a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -69,6 +139,7 @@ function EmptyState({ label }) {
 }
 
 export function Studio() {
+  const fileRef = React.useRef(null);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <FloatingMenu />
@@ -112,8 +183,8 @@ export function Studio() {
             </div>
             <Textarea rows={10} placeholder="Paste notes here…" className="studio-textarea-notes" />
             <div className="flex items-center gap-3">
-              <input type="file" accept="application/pdf" className="file-input-reset" />
-              <Button variant="outline" className="button-upload">
+              <input ref={fileRef} type="file" accept="application/pdf" className="file-input-reset" />
+              <Button onClick={() => fileRef.current?.click()} variant="outline" className="button-upload">
                 <Upload size={16} className="mr-2" /> Upload PDF
               </Button>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
