@@ -125,6 +125,21 @@
 
 
 ## frontend:
+  - task: "Fix root '/' blank screen by redirecting Landing to /studio (fallback UI)"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Visiting https://skriptio.sidahq.com/ shows an all-black page."
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Landing component to redirect to /studio using useNavigate in useEffect and added a minimal fallback link. /studio is confirmed working; root will work after redeploy."
+
   - task: "Fix preview black screen by disabling Service Worker and unregistering existing SW"
     implemented: true
     working: "NA"
