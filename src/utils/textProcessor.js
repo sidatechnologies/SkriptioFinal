@@ -405,5 +405,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   }
   while (days.length < 7) days.push({ title: `Day ${days.length + 1}: Review`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary', 'Timed self‑test (10 mins)' ]});
 
-  return { title, quiz: quiz.slice(0, total), flashcards: flashcards.slice(0, 12), plan: days.slice(0, 7) };
+  // Build 10 theory questions using phrases and sentences
+  const theory = buildTheoryQuestions(text, phrases, 10);
+  return { title, quiz: quiz.slice(0, total), flashcards: flashcards.slice(0, 12), plan: days.slice(0, 7), theory };
 }
