@@ -107,7 +107,8 @@ export function Studio() {
   };
 
   const onPickOption = (qid, idx) => {
-    setAnswers(prev => ({ ...prev, [qid]: idx }));
+    // UI-only replica: disable option selection
+    return;
   };
   const onEvaluate = () => {
     if (!result?.quiz) return;
