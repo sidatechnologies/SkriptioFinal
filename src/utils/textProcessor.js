@@ -200,8 +200,10 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const usedOptionKeys = new Set();
   const usedSentenceKeys = new Set(); // avoid reusing same base sentence across questions
   const globalOptionCount = new Map(); // ensure option text appears at most once across quiz
+  const globalSigCount = new Map(); // limit reuse of leading token signatures
   const usedBank = []; // global bank of option texts to avoid semantic repeats across questions
   function globallyNovel(s) { try { const t = String(s||''); for (const u of usedBank) { if (jaccard(t, u) >= 0.6) return false; } return true; } catch { return true; } }
+  function optionSignature(s) { try { const toks = tokenize(s).filter(t => !STOPWORDS.has(t)); return toks.slice(0,3).join(' '); } catch { return ''; } }
 
   function uniqueOptions(arr) {
     const out = []; const seen = new Set();
