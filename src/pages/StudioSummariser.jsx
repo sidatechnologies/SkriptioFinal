@@ -166,7 +166,26 @@ export default function StudioSummariser() {
                   <Button size="sm" variant="outline" disabled={!bullets.length} onClick={onCopy}>
                     <Copy size={14} className="mr-1" /> Copy
                   </Button>
-                  <Button size="sm" disabled>Download Summary PDF</Button>
+                  <Button size="sm" onClick={async () => {
+                    const jsPDF = await getJsPDF(1500);
+                    if (!jsPDF || !bullets.length) return;
+                    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+                    const margin = 56; // 0.78in
+                    const maxWidth = 482; // 595pt - 2*56 - approx bullet space
+                    doc.setFont('Helvetica','');
+                    doc.setFontSize(14);
+                    doc.text('Summary', margin, margin);
+                    doc.setFontSize(11);
+                    let y = margin + 18;
+                    const leading = 16;
+                    for (let i=0; i<bullets.length; i++) {
+                      const lines = doc.splitTextToSize(`• ${bullets[i]}`, maxWidth);
+                      if (y + leading * lines.length > 812) { doc.addPage(); y = margin; }
+                      doc.text(lines, margin, y);
+                      y += leading * (lines.length + 0.5);
+                    }
+                    doc.save('summary.pdf');
+                  }} disabled={!bullets.length}>Download Summary PDF</Button>
                 </div>
               </div>
               <CardContent>
