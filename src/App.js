@@ -102,26 +102,9 @@ export function Studio() {
   const lineWrap = (doc, text, x, y, maxWidth) => { const lines = doc.splitTextToSize(text, maxWidth); lines.forEach((ln) => { const ph = doc.internal.pageSize.getHeight(); if (y > ph - 20) { addFooter(doc); doc.addPage(); addHeader(doc); y = 32; } doc.text(ln, x, y); y += 7; }); return y; };
 
   const handleGenerate = async () => {
-    if (loading) return;
-    const hasText = (text || '').trim().length > 0;
-    if (!hasText && !file) { toast({ title: 'Add content', description: 'Paste notes or upload a PDF first.' }); return; }
-    setLoading(true); setLoadingStep('Reading input');
-    try {
-      let full = hasText ? text : '';
-      if (file) {
-        const quick = extractTextFromPDFQuick(file, { maxPages: 24, totalBudgetMs: 4500 });
-        const fullSlow = extractTextFromPDF(file, { maxPages: 24 });
-        const pdfText = (await Promise.race([quick, new Promise(r => setTimeout(() => r(null), 4800))])) || (await fullSlow);
-        full = [full, pdfText].filter(Boolean).join('\n');
-      }
-      setLoadingStep('Generating study kit');
-      const kit = await generateArtifacts(full, (title || '').trim() || null, { difficulty, includeFormulas, explain: showExplanations });
-      setResult(kit); setAnswers({}); setScore(null); setEvaluated(false);
-      const phrases = extractKeyPhrases(full, 18);
-      const theoryQs = buildTheoryQuestions(full, phrases, 10, { difficulty, docTitle: (title || '').trim() });
-      setTheory(theoryQs);
-      toast({ title: 'Study kit ready', description: 'Review the quiz, flashcards, plan, and theory tabs.' });
-    } catch (e) { toast({ title: 'Generation failed', description: String(e?.message || e) }); } finally { setLoading(false); setLoadingStep(''); }
+    // UI-only replica: disable generation functionality
+    toast({ title: 'Demo mode', description: 'Functionality is disabled in this UI-only build.' });
+    return;
   };
 
   const onPickOption = (qid, idx) => {
