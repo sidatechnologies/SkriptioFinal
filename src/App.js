@@ -233,10 +233,10 @@ export function Studio() {
                 <div>
                   <div className="text-sm mb-2">Difficulty</div>
                   <div>
-                    <div className="segmented">
-                      <button className="item">Balanced</button>
-                      <button className="item">Harder</button>
-                      <button className="item">Expert</button>
+                    <div className="segmented" role="tablist" aria-label="Difficulty">
+                      <button className="item active" role="tab" aria-selected="true">Balanced</button>
+                      <button className="item" role="tab" aria-selected="false">Harder</button>
+                      <button className="item" role="tab" aria-selected="false">Expert</button>
                     </div>
                   </div>
                 </div>
