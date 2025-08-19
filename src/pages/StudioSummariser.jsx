@@ -9,7 +9,8 @@ import StudioNav from "../components/StudioNav";
 import FloatingMenu from "../components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 import { prewarmAI, summarisePointwise } from "../utils/ai";
-import { extractTextFromPDF, extractTextFromPDFHighAcc, normalizeText, looksLikeHeadingStrong, isAuthorish, splitSentences } from "../utils/textProcessor";
+import { extractTextFromPDF, normalizeText, looksLikeHeadingStrong, isAuthorish, splitSentences } from "../utils/textProcessor";
+import { selectTopSentences } from "../utils/ml";
 import { getJsPDF } from "../utils/pdf";
 
 export default function StudioSummariser() {
