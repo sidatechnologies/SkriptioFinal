@@ -384,8 +384,6 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     if (flashPicked.length >= 12) break;
   }
   const flashcards = (flashPicked.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
-
-  const flashcards = (flashBase.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
   if (flashcards.length === 0 && text.trim()) flashcards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
 
   // 7-day plan
