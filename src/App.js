@@ -17,6 +17,10 @@ import FloatingMenu from "./components/FloatingMenu";
 import { Helmet } from "react-helmet-async";
 import "./App.css";
 
+// New AI helpers
+import { prewarmAI, summarisePointwise, embedTexts, generateQuestionFromContext } from "./utils/ai";
+import { extractTextFromPDF, splitSentences, normalizeText, isAuthorish, looksLikeHeadingStrong, extractKeyPhrases, buildTheoryQuestions } from "./utils/textProcessor";
+
 function HeroAtom() {
   return (
     <div className="hero-atom mx-auto">
@@ -198,9 +202,213 @@ function EmptyState({ label }) {
   );
 }
 
-export function Studio() {
+function useKitState() {
+  const [difficulty, setDifficulty] = React.useState('balanced');
+  const titleRef = React.useRef(null);
+  const notesRef = React.useRef(null);
   const fileRef = React.useRef(null);
-  const [difficulty, setDifficulty] = React.useState("balanced");
+
+  const [generating, setGenerating] = React.useState(false);
+  const [kit, setKit] = React.useState({ quiz: [], flashcards: [], plan: [], theory: [], title: '' });
+  const [selected, setSelected] = React.useState({});
+  const [evaluated, setEvaluated] = React.useState(false);
+
+  React.useEffect(() => { prewarmAI(); }, []);
+
+  return { difficulty, setDifficulty, titleRef, notesRef, fileRef, generating, setGenerating, kit, setKit, selected, setSelected, evaluated, setEvaluated };
+}
+
+async function buildKitFromContent(rawText, title, difficulty) {
+  // Clean & sentence split
+  const cleaned = normalizeText(rawText)
+    .split(/\n+/)
+    .filter(line => line && !isAuthorish(line) && !looksLikeHeadingStrong(line))
+    .join(' ');
+  const sentences = splitSentences(cleaned);
+  // Embedding-based selection of diverse sentences/topics
+  let chosenIdxs = [];
+  try {
+    const vecs = await embedTexts(sentences);
+    if (vecs && vecs.length) {
+      // greedy MMR-like selection for diversity
+      const picked = [];
+      const used = new Set();
+      const k = Math.min(10, sentences.length);
+      let cur = 0;
+      for (let i = 0; i < vecs.length; i++) { if (vecs[i]) { cur = i; break; } }
+      picked.push(cur); used.add(cur);
+      while (picked.length < k) {
+        let best = -1; let bestScore = -Infinity;
+        for (let i = 0; i < vecs.length; i++) {
+          if (used.has(i)) continue;
+          // relevance to average of picked
+          let rel = 0;
+          for (const pi of picked) {
+            const a = vecs[i], b = vecs[pi];
+            let dot = 0, na = 0, nb = 0;
+            for (let d = 0; d < a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
+            const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-8);
+            rel += sim;
+          }
+          rel /= picked.length;
+          // diversity penalty: similarity to most similar picked
+          let div = -Infinity;
+          for (const pi of picked) {
+            const a = vecs[i], b = vecs[pi];
+            let dot = 0, na = 0, nb = 0;
+            for (let d = 0; d < a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
+            const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-8);
+            if (sim > div) div = sim;
+          }
+          const lambda = difficulty === 'expert' ? 0.8 : difficulty === 'harder' ? 0.75 : 0.7;
+          const score = lambda * rel - (1 - lambda) * div;
+          if (score > bestScore) { bestScore = score; best = i; }
+        }
+        if (best === -1) break;
+        picked.push(best); used.add(best);
+        if (picked.length >= k) break;
+      }
+      chosenIdxs = picked;
+    }
+  } catch {}
+  if (!chosenIdxs.length) {
+    // fallback: take first 10 valid sentences
+    chosenIdxs = Array.from({ length: Math.min(10, sentences.length) }, (_, i) => i);
+  }
+
+  // Build flashcards (topics = key phrases)
+  const phrases = extractKeyPhrases(cleaned, 18);
+  const flashcards = phrases.slice(0, 12).map(p => ({ front: p, back: sentences.find(s => s.toLowerCase().includes(p.toLowerCase())) || sentences[0] || p }));
+
+  // Build quiz questions with QG
+  const quiz = [];
+  for (let qi = 0; qi < Math.min(10, chosenIdxs.length); qi++) {
+    const si = chosenIdxs[qi];
+    const context = sentences[si] || '';
+    if (!context) continue;
+    // choose an answer span from key phrases in this context
+    let cand = phrases.find(p => context.toLowerCase().includes(p.toLowerCase()));
+    if (!cand) {
+      const words = context.split(/\s+/);
+      const start = Math.max(1, Math.floor(words.length/2) - 3);
+      cand = words.slice(start, start + 4).join(' ');
+    }
+    let question = await generateQuestionFromContext(context, cand);
+    if (!question || question.length < 10) {
+      // fallback: transform to a which-of-these style
+      question = `Which statement best describes: ${cand}?`;
+    }
+    // Build options using nearest sentences as distractors
+    const distracts = [];
+    for (let j = 0; j < sentences.length && distracts.length < 6; j++) {
+      if (j === si) continue;
+      const s = sentences[j];
+      if (!s || s.length < 40) continue;
+      if (s.toLowerCase().includes(cand.toLowerCase())) continue;
+      distracts.push(s);
+    }
+    const correct = context;
+    const optionsPool = [correct, ...distracts].slice(0, 6).map(s => s.length > 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
+    // Deduplicate and ensure 4 options
+    const uniq = [];
+    const seen = new Set();
+    for (const op of optionsPool) {
+      const k = op.toLowerCase(); if (seen.has(k)) continue; seen.add(k); uniq.push(op);
+      if (uniq.length >= 4) break;
+    }
+    while (uniq.length < 4) uniq.push("Background theory.");
+    // Place correct randomly
+    const idx = Math.floor(Math.random() * 4);
+    const arranged = uniq.slice(0,4);
+    const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
+    const explanationBullets = await summarisePointwise(context, 'short');
+    quiz.push({ id: `q-${qi}`, question, options: arranged, answer_index: idx, explanation: explanationBullets[0] || 'Derived from the provided material.' });
+  }
+  while (quiz.length < 10) {
+    const s = sentences[quiz.length % Math.max(1, sentences.length)] || cleaned;
+    const opts = [s, ...sentences.filter(x => x !== s)].slice(0,4);
+    while (opts.length < 4) opts.push('General concepts.');
+    quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is supported by the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
+  }
+
+  // 7-Day plan — concrete objectives per topic
+  const plan = Array.from({ length: 7 }, (_, i) => {
+    const topic = phrases[i] || `Topic ${i + 1}`;
+    return { title: `Day ${i + 1}: ${topic}`,
+      objectives: [
+        `Understand the core idea behind ${topic}.`,
+        `Write a 4–6 sentence explanation of ${topic} with an example.`,
+        `Create 3 flashcards focusing on definitions, properties, and pitfalls of ${topic}.`
+      ] };
+  });
+
+  // Theory questions (10)
+  const theory = buildTheoryQuestions(cleaned, phrases, 10);
+
+  return { title: title || (cleaned.split(/\n+/)[0] || 'Study Kit'), quiz, flashcards, plan, theory };
+}
+
+function QuizBlock({ quiz, selected, setSelected, evaluated }) {
+  return (
+    <div className="space-y-4">
+      {quiz.map((q, i) => {
+        const picked = selected[q.id];
+        return (
+          <div key={q.id} className="border rounded-md p-4">
+            <div className="font-medium mb-3">{i + 1}. {q.question}</div>
+            <div className="space-y-2">
+              {q.options.map((op, oi) => {
+                const isCorrect = evaluated && oi === q.answer_index;
+                const isWrong = evaluated && picked === oi && oi !== q.answer_index;
+                return (
+                  <label key={oi} className={`flex items-start gap-2 p-2 rounded-md border cursor-pointer ${isCorrect ? 'border-green-600 bg-green-600/10' : isWrong ? 'border-red-600 bg-red-600/10' : 'border-border'}`}>
+                    <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() => setSelected(s => ({ ...s, [q.id]: oi }))} />
+                    <span className="text-sm leading-relaxed">{op}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {evaluated && (
+              <div className="mt-2 text-sm text-foreground/80">
+                {selected[q.id] === q.answer_index ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{q.options[q.answer_index]}</span>
+                {q.explanation ? <div className="mt-1">Explanation: {q.explanation}</div> : null}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function Studio() {
+  const { difficulty, setDifficulty, titleRef, notesRef, fileRef, generating, setGenerating, kit, setKit, selected, setSelected, evaluated, setEvaluated } = useKitState();
+
+  async function onGenerate() {
+    try {
+      setGenerating(true); setEvaluated(false); setSelected({});
+      let combined = '';
+      const notes = notesRef.current?.value || '';
+      if (notes) combined += notes + '\n';
+      const file = fileRef.current?.files && fileRef.current.files[0];
+      if (file) {
+        const pdfText = await extractTextFromPDF(file, { maxPages: 60 });
+        combined += '\n' + pdfText;
+      }
+      const title = titleRef.current?.value || '';
+      const built = await buildKitFromContent(combined, title, difficulty);
+      setKit(built);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function onEvaluate() {
+    setEvaluated(true);
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
@@ -225,8 +433,8 @@ export function Studio() {
                 <CardDescription>Paste raw text or upload a PDF. Processing happens in your browser.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input placeholder="Title (optional)" className="studio-input-title" />
-                <Textarea rows={10} placeholder="Paste text here (supports LaTeX like $...$)" className="studio-textarea-notes" />
+                <Input placeholder="Title (optional)" className="studio-input-title" ref={titleRef} />
+                <Textarea rows={10} placeholder="Paste text here (supports LaTeX like $...$)" className="studio-textarea-notes" ref={notesRef} />
                 <div className="text-xs text-foreground/70">Tip: You can combine PDF + pasted notes. Math formulas in text are preserved.</div>
                 <input ref={fileRef} type="file" accept="application/pdf" className="file-input-reset" />
                 <Button onClick={() => fileRef.current?.click()} variant="outline" className="button-upload w-full">
@@ -258,7 +466,7 @@ export function Studio() {
                     <li>Very large PDFs may take longer to process in the browser.</li>
                   </ul>
                 </div>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Generate Study Kit</Button>
+                <Button onClick={onGenerate} disabled={generating} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">{generating ? 'Generating…' : 'Generate Study Kit'}</Button>
               </CardContent>
             </Card>
           </div>
@@ -283,20 +491,57 @@ export function Studio() {
               </TabsList>
               <TabsContent value="quiz">
                 <Card className="kit-surface">
-                  <div className="kit-toolbar">Quiz</div>
+                  <div className="kit-toolbar flex items-center justify-between">
+                    <div>Quiz</div>
+                    {kit.quiz?.length ? <Button size="sm" onClick={onEvaluate} disabled={evaluated}>Evaluate</Button> : null}
+                  </div>
                   <CardContent>
-                    <div className="text-center text-sm text-foreground/70 py-10">Your quiz will appear here once generated.</div>
+                    {kit.quiz?.length ? (
+                      <QuizBlock quiz={kit.quiz} selected={selected} setSelected={setSelected} evaluated={evaluated} />
+                    ) : (
+                      <div className="text-center text-sm text-foreground/70 py-10">Your quiz will appear here once generated.</div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
               <TabsContent value="flashcards">
-                <Card className="kit-surface"><div className="kit-toolbar">Flashcards</div><CardContent><EmptyState label="No flashcards yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">Flashcards</div><CardContent>
+                  {kit.flashcards?.length ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {kit.flashcards.map((fc, i) => (
+                        <div key={i} className="border rounded-md p-4">
+                          <div className="font-medium">{fc.front}</div>
+                          <div className="mt-2 text-sm text-foreground/80">{fc.back}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <EmptyState label="No flashcards yet." />}
+                </CardContent></Card>
               </TabsContent>
               <TabsContent value="plan">
-                <Card className="kit-surface"><div className="kit-toolbar">7‑Day Plan</div><CardContent><EmptyState label="No plan yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">7‑Day Plan</div><CardContent>
+                  {kit.plan?.length ? (
+                    <div className="space-y-3">
+                      {kit.plan.map((d, i) => (
+                        <div key={i} className="border rounded-md p-4">
+                          <div className="font-medium mb-1">{d.title}</div>
+                          <ul className="list-disc pl-5 text-sm text-foreground/80 space-y-1">
+                            {d.objectives.map((o, j) => (<li key={j}>{o}</li>))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <EmptyState label="No plan yet." />}
+                </CardContent></Card>
               </TabsContent>
               <TabsContent value="theory">
-                <Card className="kit-surface"><div className="kit-toolbar">Theory Qs</div><CardContent><EmptyState label="No theory questions yet." /></CardContent></Card>
+                <Card className="kit-surface"><div className="kit-toolbar">Theory Qs</div><CardContent>
+                  {kit.theory?.length ? (
+                    <ol className="list-decimal pl-5 space-y-2 text-sm">
+                      {kit.theory.map((q, i) => (<li key={i}>{q}</li>))}
+                    </ol>
+                  ) : <EmptyState label="No theory questions yet." />}
+                </CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>
