@@ -111,13 +111,8 @@ export function Studio() {
     return;
   };
   const onEvaluate = () => {
-    if (!result?.quiz) return;
-    let sc = 0;
-    for (const q of result.quiz) {
-      if (answers[q.id] === q.answer_index) sc++;
-    }
-    setScore(sc);
-    setEvaluated(true);
+    // UI-only replica: disable evaluation functionality
+    return;
   };
 
   return (
