@@ -937,7 +937,7 @@ function buildStudyPlan(phrases, sentences, k = 7) {
     const dTasks = [pick(0), pick(i + 1), pick(i + 2)];
     days.push({ title: `Day ${i + 1}: ${p}`, objectives: dTasks });
   }
-  while (days.length < 7) { const n = days.length + 1; days.push({ title: `Day ${n}: Synthesis`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary connecting the main ideas', 'Do a timed self‑test (10 mins) and review mistakes' ] }); }
+  while (days.length < 7) { const n = days.length + 1; const labels = ['Consolidation','Integration','Mastery','Review and self‑test','Recap and drill']; const label = labels[(n - 1) % labels.length]; days.push({ title: `Day ${n}: ${label}`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary connecting the main ideas', 'Do a timed self‑test (10 mins) and review mistakes' ] }); }
   return days.slice(0, 7);
 }
 
