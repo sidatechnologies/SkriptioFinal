@@ -313,6 +313,9 @@
       - working: "NA"
         agent: "main"
         comment: "Global guardrails: unique correct answers across quiz when possible, textual-similarity thresholds on options, and Jaccard-based question dedup."
+      - working: "NA"
+        agent: "main"
+        comment: "Added stronger filtering: ban generic topics (‘Study Kit’, ‘Synthesis’, headings), enforce per-question paraphrased distractors and sentence formatting, and harmonize option lengths/casing with finalizeOptions."
   - task: "Hide correct answers on-screen until Evaluate; reveal after evaluation"
     implemented: true
     working: "NA"
