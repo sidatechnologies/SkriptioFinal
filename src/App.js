@@ -281,7 +281,8 @@ export function Studio() {
                 <TabsTrigger value="theory">Theory Qs</TabsTrigger>
               </TabsList>
               <TabsContent value="quiz">
-                <Card className="bg-card border border-black/70 dark:border-white/60">
+                <Card className="kit-surface">
+                  <div className="kit-toolbar">Quiz</div>
                   <CardContent>
                     <div className="text-center text-sm text-foreground/70 py-10">Your quiz will appear here once generated.</div>
                   </CardContent>
