@@ -1,13 +1,12 @@
-/* Full file preserved above; only patches changed below intentionally */
-// Frontend-only text processing utilities (converted from Python backend) with ML-enhanced refinement.
+/* Minimal, stable frontend text utilities + PDF extractors
+   Goal: guarantee smooth UI with no black screens and provide working study-kit generation.
+   Note: This replaces the previous very large module with a lean version that exports the same API
+   used by the app: extractTextFromPDF, extractTextFromPDFQuick, generateUUID, splitSentences,
+   normalizeText, ensureSentence, extractKeyPhrases, buildTheoryQuestions, generateArtifacts,
+   looksLikeHeadingStrong, isAuthorish, tokenize.
+*/
 
-import { prewarmML, tryEnhanceArtifacts, selectTopSentences, bestSentenceForPhrase } from './ml';
-
-const STOPWORDS = new Set([
-  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'have', 'if', 'in', 'into', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'were', 'will', 'with', 'this', 'those', 'these', 'your', 'you', 'i', 'we', 'our', 'us', 'their', 'they', 'them', 'he', 'she', 'his', 'her', 'or', 'nor', 'not', 'but', 'than', 'then', 'so', 'too', 'very', 'can', 'just', 'should', 'would', 'could', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'any', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'did', 'do', 'does', 'doing', 'down', 'during', 'each', 'few', 'further', 'here', 'how', 'more', 'most', 'other', 'over', 'own', 'same', 'some', 'such', 'under', 'until', 'up', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'yourself', 'themselves', 'itself', 'ourselves', 'myself', "don't", "can't", "won't", "shouldn't", "couldn't", "isn't", "aren't", "wasn't", "weren't", "i'm", "you're", "we're", "they're", "it's", "that's", "there's", "here's", "what's", "who's", "didn't", "haven't", "hasn't", "hadn't", "doesn't", "shouldn't", "wouldn't", "mustn't", "mightn't", "needn't"
-]);
-
-// Generate UUID
+// -------------------- Basic helpers --------------------
 export function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -16,12 +15,74 @@ export function generateUUID() {
   });
 }
 
-// Tiny yielding helper to keep UI responsive during heavy work
-async function tick() { return new Promise(resolve => setTimeout(resolve, 0)); }
+const STOPWORDS = new Set([
+  'a','an','and','are','as','at','be','by','for','from','has','have','if','in','into','is','it','its','of','on','that','the','to','was','were','will','with','this','those','these','your','you','i','we','our','us','their','they','them','he','she','his','her','or','nor','not','but','than','then','so','too','very','can','just','should','would','could','about','above','after','again','against','all','am','any','because','been','before','being','below','between','both','did','do','does','doing','down','during','each','few','further','here','how','more','most','other','over','own','same','some','such','under','until','up','when','where','which','while','who','whom','why','yourself','themselves','itself','ourselves','myself'
+]);
 
-// ... (unchanged helper code above)
+export function tokenize(text) {
+  const tokenRegex = /[A-Za-z][A-Za-z\-']+/g;
+  const matches = (String(text || '').match(tokenRegex) || []).map(t => t.toLowerCase());
+  return matches;
+}
 
-// QUICK path: lightweight text extraction with strict time budget and no OCR
+export function ensureSentence(text = '') {
+  let t = String(text || '').trim();
+  if (!t) return '';
+  t = t.replace(/\s{2,}/g, ' ');
+  if (!/[.!?]$/.test(t)) t += '.';
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  return t.trim();
+}
+
+export function normalizeText(raw) {
+  const lines = String(raw || '').replace(/\r/g, '').split(/\n+/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  return lines.join('\n');
+}
+
+export function splitSentences(text) {
+  const clean = normalizeText(text);
+  const merged = clean.replace(/\s+/g, ' ').trim();
+  if (!merged) return [];
+  const parts = merged.split(/([.!?])\s+/).reduce((acc, cur, idx) => {
+    if (idx % 2 === 1) { const prev = acc.pop() || ''; acc.push((prev + cur).trim()); }
+    else { if (cur) acc.push(cur); }
+    return acc;
+  }, []);
+  // Keep medium-length sentences, avoid all-caps headings
+  return parts.map(s => s.trim()).filter(s => s.length >= 40 && /[.!?]$/.test(s) && !/^[-A-Z0-9 ,.:]{10,}$/.test(s)).slice(0, 2000);
+}
+
+export function isAuthorish(s) {
+  return /\b(About the Author|author|edited by|editor|biography|Professor|Prof\.|Dr\.|Department|Institute|University|College)\b/i.test(String(s||''));
+}
+export function looksLikeHeadingStrong(s) {
+  const t = String(s||'').trim();
+  if (!t) return true;
+  if (/^(table of contents|references|bibliography|index|appendix|chapter|section|contents)\b/i.test(t)) return true;
+  if (/^page\s+\d+(\s+of\s+\d+)?$/i.test(t)) return true;
+  if (!/[.!?]$/.test(t) && t.split(/\s+/).length <= 8) return true;
+  if (/^[A-Z0-9 ,.:\-]{10,}$/.test(t) && !/[a-z]/.test(t)) return true;
+  return false;
+}
+
+export function extractKeyPhrases(text, k = 18) {
+  const tokens = tokenize(text).filter(t => !STOPWORDS.has(t));
+  const counts = new Map();
+  for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1);
+  const scored = Array.from(counts.entries()).map(([w, c]) => [w, c * Math.log(1 + c)]).sort((a, b) => b[1] - a[1]);
+  const words = scored.map(([w]) => w);
+  // naive bigrams from stream
+  const bi = [];
+  for (let i = 0; i + 1 < tokens.length; i++) {
+    const a = tokens[i], b = tokens[i+1];
+    if (STOPWORDS.has(a) || STOPWORDS.has(b)) continue;
+    bi.push(a + ' ' + b);
+  }
+  const uniq = (arr) => { const s = new Set(); const out = []; for (const x of arr) { if (!s.has(x)) { s.add(x); out.push(x); } } return out; };
+  return uniq([...bi.slice(0, Math.min(k-6, 12)), ...words]).slice(0, k);
+}
+
+// -------------------- PDF extractors (fast and full) --------------------
 export async function extractTextFromPDFQuick(file, options = {}) {
   const { maxPages = 24, totalBudgetMs = 4500 } = options;
   try {
@@ -39,168 +100,129 @@ export async function extractTextFromPDFQuick(file, options = {}) {
       const items = Array.isArray(textContent?.items) ? textContent.items : [];
       const pageText = items.map(item => String(item?.str || '')).join(' ').trim();
       if (pageText) out += pageText + '\n';
-      if (i % 2 === 0) await tick();
+      if (i % 2 === 0) await new Promise(r => setTimeout(r, 0));
     }
-    return sentenceShape(cleanOCROutput(out));
-  } catch (e) {
+    return out.trim();
+  } catch {
     return '';
   }
 }
 
-// Extract text from PDF with automatic aggressive OCR + layout handling
 export async function extractTextFromPDF(file, options = {}) {
-  const { forceOCR = false, betterAccuracy = true, ocrScale = 2.0, maxPages = 60 } = options;
-  try {
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    let fullText = '';
-    let Tesseract = null;
-
-    const tStart = Date.now();
-    const OCR_TIME_BUDGET_MS = forceOCR ? 28000 : 16000; // reduce to avoid long stalls
-
-    const limitPages = Math.min(pdf.numPages || 1, Math.max(1, maxPages || pdf.numPages));
-
-    const preprocessCanvasForOCR = (canvas) => {
-      try {
-        const deskewed = autoDeskew(canvas);
-        const ctx = ctx2d(deskewed);
-        ctx.imageSmoothingEnabled = false;
-        contrastStretch(deskewed, 0.02, 0.98);
-        const bg = estimateBackgroundBrightness(deskewed);
-        const C = bg > 180 ? 6 : 8;
-        adaptiveBinarize(deskewed, 24, C);
-        close3x3(deskewed);
-        despeckle(deskewed);
-        invertCanvasIfNeeded(deskewed);
-        return deskewed;
-      } catch {
-        invertCanvasIfNeeded(canvas);
-        return canvas;
-      }
-    };
-
-    const withTimeout = async (promise, ms) => {
-      let timeoutId; const timeout = new Promise((resolve) => { timeoutId = setTimeout(() => resolve(null), ms); });
-      const result = await Promise.race([promise, timeout]).catch(() => null);
-      clearTimeout(timeoutId); return result;
-    };
-
-    const ocrCanvasBlock = async (c, perPass, psm = 6) => {
-      if (!Tesseract) { const mod = await import('tesseract.js'); Tesseract = mod.default || mod; }
-      const ocrOpts = {
-        tessedit_pageseg_mode: String(psm),
-        tessedit_ocr_engine_mode: '1',
-        preserve_interword_spaces: '1',
-        user_defined_dpi: '320',
-        tessjs_create_hocr: '0',
-        tessjs_create_tsv: '0',
-        tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;()[]-+\'"/%'
-      };
-      const rec = await withTimeout(Tesseract.recognize(c, 'eng', ocrOpts), perPass);
-      if (rec && rec.data && rec.data.text) {
-        let t = rec.data.text;
-        t = cleanOCROutput(t);
-        t = fixOCRConfusions(t);
-        t = correctWithRules(t);
-        return { text: t, score: measureOcrQuality(t) };
-      }
-      return { text: '', score: 0 };
-    };
-
-    const recognizeWithConfigs = async (baseCanvas, isHandwriting) => {
-      const baseViewportW = baseCanvas.width || 1200;
-      const targetW = 2000;
-      const scaleDyn = Math.max(ocrScale, Math.min(2.4, targetW / Math.max(1, baseViewportW)));
-
-      const pageCanvas = document.createElement('canvas');
-      const srcW = Math.max(60, Math.ceil(baseCanvas.width * scaleDyn));
-      const srcH = Math.max(60, Math.ceil(baseCanvas.height * scaleDyn));
-      pageCanvas.width = srcW; pageCanvas.height = srcH;
-      const pctx = ctx2d(pageCanvas);
-      pctx.imageSmoothingEnabled = false;
-      pctx.drawImage(baseCanvas, 0, 0, srcW, srcH);
-
-      const pre = preprocessCanvasForOCR(pageCanvas);
-      const splitX = (typeof detectColumnSplit === 'function') ? detectColumnSplit(pre) : null;
-
-      const tBudget = Math.min(10000, OCR_TIME_BUDGET_MS - (Date.now() - tStart));
-      if (tBudget <= 600) return '';
-
-      const tryBlocks = [];
-      const pushBlock = (sx, sy, sw, sh) => {
-        if (sw < 80 || sh < 80) return;
-        const c = document.createElement('canvas');
-        c.width = sw; c.height = sh;
-        const ctx = ctx2d(c);
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(pre, sx, sy, sw, sh, 0, 0, sw, sh);
-        tryBlocks.push(c);
-      };
-
-      if (splitX) {
-        pushBlock(0, 0, splitX, pre.height);
-        pushBlock(splitX, 0, pre.width - splitX, pre.height);
-      } else {
-        pushBlock(0, 0, pre.width, pre.height);
-      }
-
-      const perPass = Math.max(800, Math.floor(tBudget / (tryBlocks.length * 2))); // fewer passes for speed
-      let best = { text: '', score: 0 };
-      for (const blk of tryBlocks) {
-        const r6 = await ocrCanvasBlock(blk, perPass, 6);
-        const r11 = await ocrCanvasBlock(blk, perPass, 11);
-        const r = [r6, r11].sort((a, b) => b.score - a.score)[0];
-        if (r.score > best.score) best = r;
-      }
-      return best.text;
-    };
-
-    for (let i = 1; i <= limitPages; i++) {
-      const page = await pdf.getPage(i);
-
-      let collected = '';
-      if (!forceOCR) {
-        const textContent = await page.getTextContent().catch(() => null);
-        const items = Array.isArray(textContent?.items) ? textContent.items : [];
-        const pageText = items.map(item => String(item?.str || '')).join(' ');
-        collected = pageText.trim();
-      }
-
-      const needOCR = forceOCR || collected.length < 80;
-      if (needOCR) {
-        const preview = page.getViewport({ scale: 1.0 });
-        const baseScale = Math.max(1.1, Math.min(1.8, 1000 / Math.max(1, preview.width)));
-        const viewport = page.getViewport({ scale: baseScale });
-        const canvas = document.createElement('canvas');
-        const ctx = ctx2d(canvas);
-        canvas.width = Math.ceil(viewport.width);
-        canvas.height = Math.ceil(viewport.height);
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        await tick();
-        const textOcr = await recognizeWithConfigs(canvas, true);
-        if (textOcr && textOcr.length > collected.length) {
-          collected = collected ? collected + '\n' + textOcr : textOcr;
-        }
-      }
-
-      fullText += (collected || '') + '\n';
-      if (i % 2 === 0) await tick();
-      if ((Date.now() - tStart) > (OCR_TIME_BUDGET_MS + 1500)) break;
-    }
-
-    let out = cleanOCROutput(fullText);
-    out = fixOCRConfusions(out);
-    out = correctWithRules(out);
-    out = sentenceShape(out);
-    return out;
-  } catch (error) {
-    throw new Error(`Failed to read PDF: ${error.message}`);
-  }
+  // For stability, use the same extractor as quick but allow more time/pages.
+  const { maxPages = 60 } = options;
+  return await extractTextFromPDFQuick(file, { maxPages, totalBudgetMs: 10000 });
 }
 
-// ... (rest of file remains unchanged, includes ensureSentence exported, quiz/flashcards generation, etc.)
+// -------------------- Study kit builders --------------------
+function ensureCaseAndPeriod(prefix = '', text = '') {
+  let t = String(text || '').trim();
+  if (!t) return prefix.trim();
+  t = t.replace(/\s{2,}/g, ' ');
+  if (!/[.!?]$/.test(t)) t += '.';
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  return (prefix ? prefix + ' ' : '') + t.trim();
+}
+
+function summarizeSentence(s, targetLen = 180) {
+  if (!s) return s;
+  let t = s.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '');
+  if (t.length > targetLen) {
+    const cut = t.slice(0, targetLen - 1);
+    const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'));
+    t = (idx > 20 ? cut.slice(0, idx) : cut).replace(/[,:;]$/, '') + '.';
+  }
+  return ensureSentence(t);
+}
+
+export function buildTheoryQuestions(rawText, phrases, total = 10, opts = {}) {
+  const sents = splitSentences(rawText || '');
+  const list = [
+    (p, s) => `Explain the concept of "${p}" in your own words. Include what it is, why it matters, and one example from the material.`,
+    (p, s) => `Summarize the key ideas behind "${p}" using 5–8 sentences, citing evidence from the material.`,
+    (p, s) => `Analyze "${p}" in context. Identify causes, consequences, and two mitigation strategies.`,
+  ];
+  const out = []; let i = 0;
+  while (out.length < total && (phrases?.length || 0) > 0) {
+    const p = phrases[i % phrases.length]; i++;
+    const s = sents[i % Math.max(1, sents.length)] || '';
+    const q = list[out.length % list.length](p, s);
+    if (q && q.length >= 40) out.push(q);
+  }
+  while (out.length < total) out.push(`Explain the topic in your own words. Provide context and one example.`);
+  return out.slice(0, total);
+}
+
+function jaccard(a, b) {
+  const A = new Set(tokenize(a).filter(t => !STOPWORDS.has(t)));
+  const B = new Set(tokenize(b).filter(t => !STOPWORDS.has(t)));
+  if (A.size === 0 && B.size === 0) return 0;
+  let inter = 0; for (const x of A) if (B.has(x)) inter++;
+  const uni = A.size + B.size - inter; return uni === 0 ? 0 : inter / uni;
+}
+
+function distinctFillOptions(correct, pool = [], needed = 4) {
+  const selected = [String(correct || '').trim()].filter(Boolean);
+  const seen = new Set(selected.map(s => s.toLowerCase()));
+  const addIf = (opt) => {
+    const norm = String(opt || '').trim(); if (!norm) return false;
+    if (seen.has(norm.toLowerCase())) return false;
+    // avoid near duplicates
+    if (selected.some(s => jaccard(s, norm) >= 0.7)) return false;
+    selected.push(norm); seen.add(norm.toLowerCase()); return true;
+  };
+  for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
+  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
+  let gi = 0; while (selected.length < needed && gi < generics.length) addIf(generics[gi++]);
+  while (selected.length < needed) selected.push('Background theory');
+  return selected.slice(0, needed);
+}
+
+export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
+  const text = String(rawText || '');
+  const sentencesAll = splitSentences(text);
+  // phrases
+  const phrases = extractKeyPhrases(text, 18);
+  const title = (providedTitle && providedTitle.trim()) || (normalizeText(text).split(/\n+/).find(Boolean) || 'Study Kit').slice(0, 80);
+
+  // Build quiz
+  const total = 10;
+  const quiz = [];
+  const baseSentences = sentencesAll.slice(0, 30);
+  let si = 0;
+  while (quiz.length < total && si < baseSentences.length) {
+    const s = baseSentences[si++];
+    const correct = summarizeSentence(s, 160);
+    const distract = baseSentences.filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 140));
+    const opts2 = distinctFillOptions(correct, distract, 4);
+    const idx = Math.min(3, Math.floor(Math.random() * 4));
+    const arranged = [...opts2];
+    const correctVal = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = correctVal;
+    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: arranged, answer_index: idx, explanation: '' });
+  }
+  while (quiz.length < total) {
+    const s = baseSentences[quiz.length % Math.max(1, baseSentences.length)] || text || 'The material describes a topic.';
+    const correct = summarizeSentence(s, 150);
+    const opts2 = distinctFillOptions(correct, [], 4);
+    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: opts2, answer_index: 0, explanation: '' });
+  }
+
+  // Flashcards
+  const flashcards = (baseSentences.slice(0, 12).map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
+  if (flashcards.length === 0 && text.trim()) flashcards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
+
+  // 7-day plan (simple topics)
+  const days = [];
+  const topics = (phrases.length ? phrases : Array.from({ length: 7 }, (_, i) => `Topic ${i+1}`));
+  for (let i = 0; i < Math.min(7, topics.length || 7); i++) {
+    const p = topics[i] || `Topic ${i+1}`;
+    days.push({ title: `Day ${i + 1}: ${p}`, objectives: [
+      `Review the core idea behind ${p}.`,
+      `Write a short explanation of ${p} in 3–4 sentences.`,
+      `Do a quick self‑test on ${p}.`
+    ]});
+  }
+  while (days.length < 7) days.push({ title: `Day ${days.length + 1}: Review`, objectives: [ 'Revisit tough flashcards', 'Write a 5‑sentence summary', 'Timed self‑test (10 mins)' ]});
+
+  return { title, quiz: quiz.slice(0, total), flashcards: flashcards.slice(0, 12), plan: days.slice(0, 7) };
+}
