@@ -426,11 +426,11 @@
 
 - task: "Summariser: prevent crashes and drop author/institution lines; better title"
   implemented: true
-  working: false
+  working: "NA"
   file: "/app/src/pages/StudioSummariser.jsx, /app/src/utils/textProcessor.js"
-  stuck_count: 1
+  stuck_count: 0
   priority: "high"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "NA"
       agent: "main"
@@ -438,6 +438,9 @@
     - working: false
       agent: "testing"
       comment: "❌ FAIL: Summariser default state incorrect - Medium is highlighted as default instead of Short. Expected Short to be active (bg-white text-black classes) but found Medium has these classes. Summarise button correctly disabled without file selection. Page loads without crashes and UI is stable."
+    - working: "NA"
+      agent: "main"
+      comment: "Fixed default to Short explicitly and removed aggressive word-merge rule causing mergedwords in summaries. Render bullets with proper sentence casing and periods via ensureSentence."
 - task: "Handwriting OCR quality: force OCR + preprocessing"
   implemented: true
   working: true
