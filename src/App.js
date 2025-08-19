@@ -92,7 +92,8 @@ export function Studio() {
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
   const [theory, setTheory] = useState([]);
 
-  useEffect(() => { prewarmPDF(); prewarmML(); }, []);
+  // UI-only mode: disable any prewarm side-effects
+  useEffect(() => { /* disabled in UI-only replica */ }, []);
   useEffect(() => { const onResize = () => setIsDesktop(window.innerWidth >= 768); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
 
   const ensureJsPDF = async () => { const maybe = await getJsPDF(1200); if (maybe) return maybe; const mod = await import('jspdf'); return mod.jsPDF; };
