@@ -88,7 +88,7 @@ export async function summarisePointwise(text, length = 'short') {
   for (const ch of chunks) {
     const input = `summarize: ${ch}`;
     try {
-      const res = await model(input, { max_new_tokens: 80, temperature: 0.7 });
+      const res = await model(input, { max_new_tokens: 64, temperature: 0.5, do_sample: false });
       const txt = (Array.isArray(res) ? res[0]?.generated_text : res?.[0]?.generated_text) || '';
       if (txt) outputs.push(txt.trim());
     } catch {}
