@@ -337,7 +337,8 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     }
     const opts2 = distinctFillOptions(correct, uniqueOptions(pool), 4);
     const arranged = [...opts2];
-    const idx = Math.min(3, Math.floor(Math.random() * 4));
+    // deterministic placement seeded by question index to vary positions across quiz
+    const idx = (quiz.length * 7 + 3) % 4;
     const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
     for (const o of arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
     quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: arranged, answer_index: idx, explanation: '' });
