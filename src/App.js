@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail, Menu, Brain, Plus, Lock, Zap, Layers } from "lucide-react";
+import { ArrowRight, ChevronDown, Upload, FileText, ListChecks, Calendar, Instagram, Twitter, Linkedin, Facebook, Mail, Menu } from "lucide-react";
 import ThemeToggle from "./components/ThemeToggle";
 import StudioNav from "./components/StudioNav";
 import { Button } from "./components/ui/button";
@@ -8,7 +8,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./com
 import { Textarea } from "./components/ui/textarea";
 import { Input } from "./components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "./components/ui/toggle-group";
 import Merch from "./pages/Merch";
 import StudioHub from "./pages/StudioHub";
 import StudioSummariser from "./pages/StudioSummariser";
@@ -199,6 +198,7 @@ function EmptyState({ label }) {
 
 export function Studio() {
   const fileRef = React.useRef(null);
+  const [difficulty, setDifficulty] = React.useState("balanced");
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/60 border-b border-border">
@@ -232,12 +232,10 @@ export function Studio() {
                 </Button>
                 <div>
                   <div className="text-sm mb-2">Difficulty</div>
-                  <div>
-                    <div className="segmented" role="tablist" aria-label="Difficulty">
-                      <button className="item active" role="tab" aria-selected="true">Balanced</button>
-                      <button className="item" role="tab" aria-selected="false">Harder</button>
-                      <button className="item" role="tab" aria-selected="false">Expert</button>
-                    </div>
+                  <div className="segmented" role="tablist" aria-label="Difficulty">
+                    <button className={`item ${difficulty==='balanced'?'active':''}`} role="tab" aria-selected={difficulty==='balanced'} onClick={()=>setDifficulty('balanced')}>Balanced</button>
+                    <button className={`item ${difficulty==='harder'?'active':''}`} role="tab" aria-selected={difficulty==='harder'} onClick={()=>setDifficulty('harder')}>Harder</button>
+                    <button className={`item ${difficulty==='expert'?'active':''}`} role="tab" aria-selected={difficulty==='expert'} onClick={()=>setDifficulty('expert')}>Expert</button>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
