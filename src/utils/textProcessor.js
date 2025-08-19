@@ -180,26 +180,100 @@ function distinctFillOptions(correct, pool = [], needed = 4) {
 
 export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
   const text = String(rawText || '');
-  const sentencesAll = splitSentences(text);
-  // phrases
-  const phrases = extractKeyPhrases(text, 18);
+  const allSents = splitSentences(text);
   const title = (providedTitle && providedTitle.trim()) || (normalizeText(text).split(/\n+/).find(Boolean) || 'Study Kit').slice(0, 80);
 
-  // Build quiz
+  // Try to rank sentences for variety; fallback to first N
+  let baseSentences = allSents.slice(0, 40);
+  try {
+    const ml = await import('./ml');
+    const ranked = await ml.selectTopSentences(allSents, 40, 200);
+    if (Array.isArray(ranked) && ranked.length) baseSentences = ranked;
+  } catch {}
+
+  // Phrases/terms for term-definition items
+  const phrases = extractKeyPhrases(text, 24);
+
+  // Helpers for global de-duplication across the quiz
+  function normKey(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  const usedCorrects = new Set();
+  const usedOptionKeys = new Set();
+
+  function uniqueOptions(arr) {
+    const out = []; const seen = new Set();
+    for (const a of arr) { const k = normKey(a); if (!k || seen.has(k)) continue; seen.add(k); out.push(a); if (out.length >= 8) break; }
+    return out;
+  }
+
+  // Build quiz with 3 rotating types for variety
   const total = 10;
   const quiz = [];
-  const baseSentences = sentencesAll.slice(0, 30);
-  let si = 0;
+  let si = 0, pi = 0;
+
   while (quiz.length < total && si < baseSentences.length) {
-    const s = baseSentences[si++];
-    const correct = summarizeSentence(s, 160);
-    const distract = baseSentences.filter(x => x !== s).slice(0, 6).map(z => summarizeSentence(z, 140));
-    const opts2 = distinctFillOptions(correct, distract, 4);
+    const typeIdx = quiz.length % 3; // 0: statement, 1: term, 2: focus
+
+    // Pick a distinct correct sentence
+    let s = baseSentences[si++] || '';
+    let correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
+    let guard = 0;
+    while (usedCorrects.has(normKey(correct)) && guard < 12 && si < baseSentences.length) {
+      s = baseSentences[si++];
+      correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
+      guard++;
+    }
+    usedCorrects.add(normKey(correct));
+
+    let question = 'Which statement is supported by the material?';
+    let opts = [];
+
+    if (typeIdx === 0) {
+      // Statement support (existing style) but with stronger distractor variety
+      const pool = baseSentences.filter(x => x !== s).slice(0, 20).map(z => summarizeSentence(z, 140));
+      const distinct = distinctFillOptions(correct, uniqueOptions(pool), 4);
+      opts = distinct;
+    } else if (typeIdx === 1) {
+      // Term → definition
+      const term = phrases[pi % Math.max(1, phrases.length)] || 'the topic';
+      pi++;
+      question = `Which option best describes: ${term}?`;
+      let definition = '';
+      try {
+        const ml = await import('./ml');
+        definition = await ml.bestSentenceForPhrase(term, baseSentences, 200);
+      } catch {}
+      if (!definition) definition = s;
+      const defCorrect = ensureCaseAndPeriod('\u2014', summarizeSentence(definition, 150));
+      const otherDefs = baseSentences.filter(x => !x.toLowerCase().includes(term.toLowerCase()) && x !== definition).slice(0, 18).map(z => summarizeSentence(z, 130));
+      opts = distinctFillOptions(defCorrect, uniqueOptions(otherDefs), 4);
+      // Replace correct with defCorrect for uniqueness tracking
+      correct = defCorrect;
+    } else {
+      // Focused fact: "Which is true regarding <snippet>?"
+      const snippet = summarizeSentence(s, 120);
+      question = `Which is true regarding this topic?`;
+      const alt = baseSentences.filter(x => x !== s).slice(0, 18).map(z => summarizeSentence(z, 130));
+      opts = distinctFillOptions(snippet, uniqueOptions(alt), 4);
+      correct = opts[0];
+    }
+
+    // Place correct deterministically and ensure global option-set uniqueness
+    const arranged = [...opts];
     const idx = Math.min(3, Math.floor(Math.random() * 4));
-    const arranged = [...opts2];
-    const correctVal = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = correctVal;
-    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: arranged, answer_index: idx, explanation: '' });
+    const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
+    const setKey = arranged.map(normKey).sort().join('|');
+    if (usedOptionKeys.has(setKey)) {
+      // If options collide with a previous question, tweak by rotating one distractor
+      const rotated = arranged.slice(0, 3).concat(baseSentences[(si + quiz.length) % Math.max(1, baseSentences.length)] || '').map(x => ensureCaseAndPeriod('', summarizeSentence(x || '', 130)));
+      const fixed = distinctFillOptions(c0, uniqueOptions(rotated), 4);
+      arranged.splice(0, arranged.length, ...fixed);
+    }
+    usedOptionKeys.add(arranged.map(normKey).sort().join('|'));
+
+    quiz.push({ id: `q-${quiz.length}`, type: typeIdx === 1 ? 'term' : (typeIdx === 2 ? 'fact' : 'statement'), question, options: arranged, answer_index: idx, explanation: '' });
   }
+
+  // Pad if short
   while (quiz.length < total) {
     const s = baseSentences[quiz.length % Math.max(1, baseSentences.length)] || text || 'The material describes a topic.';
     const correct = summarizeSentence(s, 150);
@@ -207,11 +281,12 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is supported by the material?`, options: opts2, answer_index: 0, explanation: '' });
   }
 
-  // Flashcards
-  const flashcards = (baseSentences.slice(0, 12).map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
+  // Flashcards — use diverse sentences
+  const flashBase = baseSentences.slice(0, 16);
+  const flashcards = (flashBase.map((s, i) => ({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
   if (flashcards.length === 0 && text.trim()) flashcards.push({ front: 'Key idea?', back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
 
-  // 7-day plan (simple topics)
+  // 7-day plan
   const days = [];
   const topics = (phrases.length ? phrases : Array.from({ length: 7 }, (_, i) => `Topic ${i+1}`));
   for (let i = 0; i < Math.min(7, topics.length || 7); i++) {
