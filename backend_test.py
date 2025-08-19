@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Backend URL from supervisor configuration
-BACKEND_URL = "https://studio-fix.preview.emergentagent.com"
+BACKEND_URL = "https://dark-enigma-1.preview.emergentagent.com"
 
 def create_test_pdf():
     """Create a simple PDF with 'Hello OCR' text for testing"""
