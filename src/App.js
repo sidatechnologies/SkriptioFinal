@@ -390,7 +390,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     try {
       // Only when there is a long run of single-letter tokens
       if (!/\b(?:[A-Za-z]\s){5,}[A-Za-z]\b/.test(t)) return t;
-      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) =&gt; m.replace(/\s+/g, ''));
+      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) => m.replace(/\s+/g, ''));
     } catch { return t; }
   }
   const sanitize = (s) =&gt; {
