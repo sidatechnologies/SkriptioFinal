@@ -413,7 +413,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
     const jaccard = (a, b) =&gt; {
       const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
-      if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/inter : 0; // safe fallback
+      if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
     };
     const balanceLen = (text, target) =&gt; {
       let t = sanitize(text);
