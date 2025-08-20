@@ -951,7 +951,6 @@ export function Studio() {
 
             <Tabs defaultValue="flashcards" className="studio-tabs-wrap">
               <TabsList>
-                <TabsTrigger value="quiz">Quiz</TabsTrigger>
                 <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
                 <TabsTrigger value="plan">7‑Day Plan</TabsTrigger>
                 <TabsTrigger value="theory">Theory Qs</TabsTrigger>
