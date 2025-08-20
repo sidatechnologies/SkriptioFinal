@@ -706,7 +706,7 @@ export function Studio() {
   async function downloadQuizPDF() {
     if (!kit?.quiz?.length) return;
     // Local helpers to mirror on-screen repair
-    const sanitize = (s) =&gt; {
+    const sanitize = (s) => {
       try {
         let t = String(s || '');
         const pad = 'In practice, this may vary under specific constraints.';
