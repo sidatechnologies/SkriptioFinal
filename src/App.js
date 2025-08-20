@@ -202,13 +202,17 @@ function Landing() {
       <FloatingMenu />
 
       <footer className="border-t border-border py-6">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 items-center">
-          <div className="text-sm flex items-center gap-2"><Mail size={16}/> aceel@sidahq.com</div>
-          <div className="text-center text-sm">© {new Date().getFullYear()} Aceel AI</div>
-          <div className="flex items-center gap-3 justify-end text-foreground/80">
-            <a href="https://www.instagram.com/aceel.ai" aria-label="Instagram"><Instagram size={18}/></a>
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+          <div className="text-sm flex items-center gap-2 justify-center sm:justify-start">
+            <Mail size={16}/> aceel@sidahq.com
+          </div>
+          <div className="text-center text-sm order-first sm:order-none">
+            © {new Date().getFullYear()} Aceel AI
+          </div>
+          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end text-foreground/80">
+            <a href="https://instagram.com/aceel.ai" aria-label="Instagram"><Instagram size={18}/></a>
             <a href="https://x.com/aceeldotai" aria-label="Twitter"><Twitter size={18}/></a>
-            <a href="https://www.linkedin.com/company/107872150/admin/dashboard/" aria-label="LinkedIn"><Linkedin size={18}/></a>
+            <a href="https://www.linkedin.com/company/aceel-ai" aria-label="LinkedIn"><Linkedin size={18}/></a>
             <a href="" aria-label="Facebook"><Facebook size={18}/></a>
           </div>
         </div>
