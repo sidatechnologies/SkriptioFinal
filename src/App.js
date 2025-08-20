@@ -624,14 +624,51 @@ export function Studio() {
 
   async function downloadQuizPDF() {
     if (!kit?.quiz?.length) return;
-    await withDoc((kit.title ? kit.title + ' — Quiz' : 'Quiz'), async ({ doc, yRef, writeHeading, writePara, writeBullets, ensureSpace, margin }) => {
+    // Local helpers to mirror on-screen repair
+    const sanitize = (s) => {
+      try {
+        let t = String(s || '');
+        const pad = 'In practice, this may vary under specific constraints.';
+        const padNoDot = 'In practice, this may vary under specific constraints';
+        if (t.includes(pad)) t = t.split(pad).join(' ');
+        if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
+        t = t.replace(/\s+/g, ' ').trim();
+        if (t && !/[.!?]$/.test(t)) t += '.';
+        return t;
+      } catch { return s; }
+    };
+    const ensureFour = (q) => {
+      const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
+      const correct = sanitize(q.options?.[q.answer_index] ?? '');
+      const norm = (x) => String(x || '').toLowerCase();
+      const out = [];
+      const seen = new Set();
+      if (correct) { out.push(correct); seen.add(norm(correct)); }
+      for (const o of base) {
+        if (!o) continue; const k = norm(o);
+        if (seen.has(k)) continue; out.push(o); seen.add(k);
+        if (out.length >= 4) break;
+      }
+      const generics = [
+        'A related but inaccurate claim about the topic.',
+        'An unrelated statement that does not follow from the text.',
+        'A plausible but incorrect detail about the material.',
+        'A misinterpretation of the concept discussed.'
+      ];
+      for (const g of generics) { if (out.length >= 4) break; const k = norm(g); if (!seen.has(k)) { out.push(g); seen.add(k); } }
+      const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
+      const arranged = out.slice(0, 4);
+      const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
+      if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+      return { arranged, idx };
+    };
+    await withDoc((kit.title ? kit.title + ' — Quiz' : 'Quiz'), async ({ writeHeading, writePara }) => {
       writeHeading('Quiz');
       kit.quiz.forEach((q, i) => {
         writePara(`${i+1}. ${q.question}`);
-        const opts = q.options || [];
+        const fixed = ensureFour(q);
         const labels = ['A', 'B', 'C', 'D'];
-        opts.forEach((op, oi) => writePara(`${labels[oi]}. ${op}`));
-        yRef.set(yRef.get() + 6);
+        fixed.arranged.forEach((op, oi) => writePara(`${labels[oi]}. ${op}`));
       });
     });
   }
