@@ -404,14 +404,24 @@ export function Studio() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Preload logo as data URL for PDFs
+  // Preload logo (data URL + natural dimensions) for PDFs
   React.useEffect(() => {
     (async () => {
       try {
         const res = await fetch('/assets/aceel-logo.png');
         const blob = await res.blob();
+        // Read as data URL for jsPDF
         const reader = new FileReader();
-        reader.onload = () => { logoRef.current = reader.result; };
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          // Also get natural dimensions using an Image element
+          const img = new Image();
+          img.onload = () => {
+            logoRef.current = { dataUrl, width: img.naturalWidth || img.width, height: img.naturalHeight || img.height };
+            URL.revokeObjectURL(img.src);
+          };
+          img.src = URL.createObjectURL(blob);
+        };
         reader.readAsDataURL(blob);
       } catch {}
     })();
