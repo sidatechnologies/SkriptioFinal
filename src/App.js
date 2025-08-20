@@ -106,7 +106,7 @@ function Landing() {
               A product by Aceel AI
             </p>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
-            <p className="text-foreground/80 mb-5">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
+            <p className="text-foreground/80 mb-5">Upload content or paste notes — get smart flashcards, theory questions, and a 7-day plan. Stay focused and learn faster — without complex setup. PDF Summariser and Resume Generator coming soon.</p>
             <div className="flex items-center gap-3">
               <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
                 Try Skriptio Free <ArrowRight size={16} />
@@ -160,7 +160,7 @@ function Landing() {
           <h2 className="section-title text-2xl font-semibold mb-6">Use cases</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Card className="card-glow"><CardHeader><CardTitle>Students</CardTitle><CardDescription>Turn class notes and PDFs into practice kits before exams.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>Instructors</CardTitle><CardDescription>Create quick quizzes and handouts from lecture material.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Instructors</CardTitle><CardDescription>Create quick  and questions from lecture material.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Teams</CardTitle><CardDescription>Share learning kits internally using private links.</CardDescription></CardHeader></Card>
           </div>
         </section>
@@ -169,10 +169,10 @@ function Landing() {
         <section id="features" className="max-w-6xl mx-auto px-6 py-10">
           <h2 className="section-title text-2xl font-semibold mb-6">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className="card-glow"><CardHeader><CardTitle>Tough quizzes</CardTitle><CardDescription>10 MCQs per kit: concept, property, and formula items tuned by difficulty.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Tough Questions</CardTitle><CardDescription>10 Theory Questions: Answer at your convenience.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Smart flashcards</CardTitle><CardDescription>Concise fronts, context‑rich backs derived from the text you provide.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>7‑Day plans</CardTitle><CardDescription>Clustered topics with daily objectives for steady, guided progress.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied quizzes.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied output.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Private by design</CardTitle><CardDescription>Runs 100% in your browser after load. No servers, no data sharing.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Fast & responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
           </div>
@@ -181,7 +181,7 @@ function Landing() {
         {/* About */}
         <section id="about" className="max-w-6xl mx-auto px-6 py-10">
           <h2 className="section-title text-2xl font-semibold mb-3 text-center">About Skriptio</h2>
-          <p className="text-foreground/80 max-w-3xl mx-auto text-center">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.</p>
+          <p className="text-foreground/80 max-w-3xl mx-auto text-center">Skriptio turns your PDFs and notes into a complete study kit - smart flashcards, theory questions, and a 7-day plan - in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact-match questions. Everything runs locally in your browser. PDF summariser and resume generator coming soon.</p>
         </section>
 
         {/* FAQ */}
@@ -191,7 +191,7 @@ function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Card className="card-glow"><CardHeader><CardTitle>Do I need an internet connection?</CardTitle><CardDescription>No. Skriptio runs entirely in your browser after the initial page load.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Can I use both PDF and text?</CardTitle><CardDescription>Yes. You can upload a PDF and also paste text notes in the same session.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>What kind of quiz is generated?</CardTitle><CardDescription>A 10‑question mix of concept checks, property questions, and formula items derived from your content. Difficulty modes change the composition.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>What kind of questions are generated?</CardTitle><CardDescription>A 10‑question mix of concept checks, property questions, and formula items derived from your content. Difficulty modes change the composition.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Do you save my content?</CardTitle><CardDescription>No. Everything runs in your browser session — nothing is sent to servers or saved.</CardDescription></CardHeader></Card>
           </div>
         </section>
@@ -206,10 +206,10 @@ function Landing() {
           <div className="text-sm flex items-center gap-2"><Mail size={16}/> aceel@sidahq.com</div>
           <div className="text-center text-sm">© {new Date().getFullYear()} Aceel AI</div>
           <div className="flex items-center gap-3 justify-end text-foreground/80">
-            <a href="#" aria-label="Instagram"><Instagram size={18}/></a>
-            <a href="#" aria-label="Twitter"><Twitter size={18}/></a>
-            <a href="#" aria-label="LinkedIn"><Linkedin size={18}/></a>
-            <a href="#" aria-label="Facebook"><Facebook size={18}/></a>
+            <a href="https://www.instagram.com/aceel.ai" aria-label="Instagram"><Instagram size={18}/></a>
+            <a href="https://x.com/aceeldotai" aria-label="Twitter"><Twitter size={18}/></a>
+            <a href="https://www.linkedin.com/company/107872150/admin/dashboard/" aria-label="LinkedIn"><Linkedin size={18}/></a>
+            <a href="" aria-label="Facebook"><Facebook size={18}/></a>
           </div>
         </div>
       </footer>
