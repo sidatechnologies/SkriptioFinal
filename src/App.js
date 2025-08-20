@@ -619,7 +619,6 @@ export function Studio() {
         setGenerating(false);
         return;
       }
-      let combined = '';
       if (notes) combined += notes + '\n';
       if (file) {
         const pdfText = await extractTextFromPDF(file, { maxPages: 60 });
