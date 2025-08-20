@@ -406,7 +406,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       return t;
     } catch { return s; }
   };
-  const ensureFourOptions = (q) =&gt; {
+  const ensureFourOptions = (q) => {
     const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
     const correct = sanitize(q.options?.[q.answer_index] ?? '');
     const norm = (x) =&gt; String(x || '').toLowerCase();
