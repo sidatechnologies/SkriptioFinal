@@ -636,6 +636,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   for (const fc of flashcards) {
     let front = titleCase(clean(fc.front));
     let back = ensureCaseAndPeriod('', clean(fc.back));
+    if (!back) continue;
     if (front.length < 2) continue;
     const nf = normFront(front);
     const nb = normBack(back);
