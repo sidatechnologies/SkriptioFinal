@@ -1,4 +1,4 @@
-const RUNTIME_CACHE = 'skriptio-runtime-v3';
+const RUNTIME_CACHE = 'skriptio-runtime-v4';
 
 const isPreviewHost = self.location.origin.includes('preview.emergentagent.com');
 
