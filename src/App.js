@@ -993,7 +993,7 @@ export function Studio() {
                         <div key={i} className="border rounded-md p-4">
                           <div className="font-medium mb-1">{d.title}</div>
                           <ul className="list-disc pl-5 text-sm text-foreground/80 space-y-1">
-                            {d.objectives.map((o, j) => (&lt;li key={j}>{o}&lt;/li>))}
+                            {d.objectives.map((o, j) => (<li key={j}>{o}</li>))}
                           </ul>
                         </div>
                       ))}
