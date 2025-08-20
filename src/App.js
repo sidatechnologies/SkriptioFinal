@@ -329,8 +329,33 @@ async function buildKitFromContent(rawText, title, difficulty) {
     const optionsPool = [correct, ...distracts].slice(0, 6).map(s => s.length > 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
     const uniq = [];
     const seen = new Set();
-    for (const op of optionsPool) { const k = (op||'').toLowerCase(); if (!seen.has(k)) { seen.add(k); uniq.push(op); } if (uniq.length >= 4) break; }
-    while (uniq.length < 4) uniq.push("Background theory.");
+    const normKey = (s) => String(s||'').trim().replace(/[\s]+/g,' ').toLowerCase();
+    for (const op of optionsPool) {
+      const k = normKey(op);
+      if (!k || seen.has(k)) continue;
+      seen.add(k); uniq.push(op);
+      if (uniq.length >= 4) break;
+    }
+    const generics = [
+      'A related but inaccurate claim about the topic.',
+      'A plausible but incorrect detail about the material.',
+      'An unrelated statement that does not follow from the text.',
+      'A misinterpretation of the concept discussed.'
+    ];
+    let gi = 0;
+    while (uniq.length < 4 && gi < generics.length) {
+      const g = generics[gi++];
+      const k = normKey(g);
+      if (!seen.has(k)) { seen.add(k); uniq.push(g); }
+    }
+    // If still short, derive light modal variants of the correct sentence
+    function tweakModal(s) { return String(s||'').replace(/\bmay\b/gi,'must').replace(/\boften\b/gi,'always').replace(/\bsometimes\b/gi,'always'); }
+    while (uniq.length < 4) {
+      const v = tweakModal(correct);
+      const k = normKey(v);
+      if (k && !seen.has(k)) { seen.add(k); uniq.push(v); }
+      else break;
+    }
     const idx = Math.floor(Math.random() * 4);
     const arranged = uniq.slice(0,4);
     const c0 = arranged[0]; arranged[0] = arranged[idx]; arranged[idx] = c0;
