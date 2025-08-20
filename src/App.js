@@ -350,7 +350,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     }
     // If still short, derive light modal variants of the correct sentence
     function tweakModal(s) { return String(s||'').replace(/\bmay\b/gi,'must').replace(/\boften\b/gi,'always').replace(/\bsometimes\b/gi,'always'); }
-    while (uniq.length &lt; 4) {
+    while (uniq.length < 4) {
       const v = tweakModal(correct);
       const k = normKey(v);
       if (k && !seen.has(k)) { seen.add(k); uniq.push(v); }
