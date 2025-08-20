@@ -284,23 +284,39 @@ async function buildKitFromContent(rawText, title, difficulty) {
   }
 
   const phrases = extractKeyPhrases(cleaned, 18);
-  let flashcards = phrases.slice(0, 12).map(p => ({ front: p, back: sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[0] || p }));
-  // Ensure at least 8 flashcards by backfilling from phrases
-  if (flashcards.length < 8) {
-    const pool = phrases.slice(0, 24);
-    for (let i = 0; i < pool.length && flashcards.length < 8; i++) {
-      const p = pool[i];
-      if (!p) continue;
-      let best = '';
-      try { best = await bestSentenceForPhrase(p, sentences, 160); } catch {}
-      const back = best || sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
-      const front = p;
-      if (!flashcards.some(fc => (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
-        flashcards.push({ front, back });
-      }
-    }
+  // Build flashcards with instruction-style filters; only use real content backs
+  const isInstructionishLocal = (s) => {
+    const t = String(s || '').trim();
+    if (!t) return false;
+    return /in your own words/i.test(t) || /\btheory questions?\b/i.test(t) || /^\s*(?:q|question)\s*\d+\b/i.test(t) || /^explain\b/i.test(t) || /identify (?:causes|consequences)/i.test(t);
+  };
+  const uniqFronts = new Set();
+  let flashcards = [];
+  async function pickBackForPhrase(p) {
+    const pLow = String(p||'').toLowerCase();
+    // Prefer a scored best sentence if available
+    try {
+      const best = await bestSentenceForPhrase(p, sentences, 180);
+      if (best && !isInstructionishLocal(best)) return best;
+    } catch {}
+    // Else first sentence containing phrase that is not instruction-like
+    const hit = sentences.find(s => (s||'').toLowerCase().includes(pLow) && !isInstructionishLocal(s));
+    if (hit) return hit;
+    // Else any non-instruction sentence
+    const any = sentences.find(s => s && !isInstructionishLocal(s));
+    return any || '';
   }
-  flashcards = flashcards.slice(0, Math.max(8, Math.min(12, flashcards.length)));
+  for (let i = 0; i < Math.min(24, phrases.length) && flashcards.length < 12; i++) {
+    const p = phrases[i]; if (!p) continue;
+    const front = p;
+    if (uniqFronts.has(front.toLowerCase())) continue;
+    const back = await pickBackForPhrase(p);
+    if (!back || isInstructionishLocal(back)) continue;
+    uniqFronts.add(front.toLowerCase());
+    flashcards.push({ front, back });
+  }
+  // Trim: do not pad with placeholders; allow fewer cards on sparse input
+  flashcards = flashcards.slice(0, Math.max(0, Math.min(12, flashcards.length)));
 
   const quiz = [];
   for (let qi = 0; qi < Math.min(10, chosenIdxs.length); qi++) {
