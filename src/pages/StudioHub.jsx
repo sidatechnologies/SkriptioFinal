@@ -76,7 +76,9 @@ export default function StudioHub() {
             icon={<Sparkles size={18}/>} 
             title="AI PDF Summariser"
             desc="On‑device extractive summary of your PDF. Download as a formatted PDF."
-            onOpen={() => navigate('/studio/summariser')}
+            onOpen={undefined}
+            disabled={true}
+            label="Coming Soon"
           />
 
           {/* 3. Resume Builder (active) */}
