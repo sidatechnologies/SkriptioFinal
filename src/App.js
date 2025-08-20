@@ -492,7 +492,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
         'A plausible but incorrect interpretation of the content.',
         'A misreading that conflicts with the material.'
       ];
-      for (const g of generics) { if (out.length &gt;= 4) break; addIf(g); }
+      for (const g of generics) { if (out.length >= 4) break; addIf(g); }
     }
 
     const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
