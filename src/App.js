@@ -729,25 +729,24 @@ export function Studio() {
       };
       const balanceLen = (text, target) => {
         let t = sanitize(text);
-        const min = Math.max(60, Math.floor(target * 0.85));
+        const min = Math.max(60, Math.floor(target * 0.9));
         if (t.length < min) {
-          const tails = [
-            'Consider context and scope.',
-            'This may vary across scenarios.',
-            'Practical cases can differ.',
-            'Subject to policy, limits, and approvals.',
-            'Depending on jurisdiction and scope.',
-            'With safeguards, governance, and audit controls.',
-            'Under explicit authorization and oversight.',
-            'In alignment with internal procedures and risk thresholds.',
-            'As documented in the execution plan.',
-            'Based on operational requirements and compliance rules.'
+          const qualifiers = [
+            'within the organization network.',
+            'under internal policy controls.',
+            'subject to authorization requirements.',
+            'in accordance with governance standards.',
+            'under defined risk thresholds.',
+            'with appropriate safeguards and reviews.',
+            'as per established procedures.',
+            'with documented approvals in place.'
           ];
-          const pick = tails[(Math.abs(t.length + target) % tails.length)];
-          t = (t.replace(/[.!?]$/,'').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
-          if (!/[.!?]$/.test(t)) t += '.';
+          const pick = qualifiers[(Math.abs(t.length + target) % qualifiers.length)];
+          t = t.replace(/[.!?]$/,'');
+          t = t + ' ' + pick;
         }
-        return t;
+        if (!/[.!?]$/.test(t)) t = t.trim() + '.';
+        return t.trim();
       };
 
       const out = [];
