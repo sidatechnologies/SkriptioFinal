@@ -114,9 +114,18 @@ function Landing() {
               <a href="#how" className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm">How it works</a>
             </div>
             <div className="flex items-center gap-5 mt-5 text-sm text-foreground/80">
-              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Fast & minimal</div>
-              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Private (runs in your browser)</div>
-              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Saves hours of prep</div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-sm border border-foreground/60"><span className="inline-block w-2 h-2 bg-foreground/80"/></span>
+                Fast & minimal
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-foreground/60"><span className="inline-block w-2 h-2 rounded-full bg-foreground/80"/></span>
+                Private (runs in your browser)
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-sm border border-foreground/60"><span className="inline-block w-2 h-2 rotate-45 border-b-2 border-r-2 border-foreground/80"/></span>
+                Saves hours of prep
+              </div>
             </div>
           </div>
           <div className="hidden md:block hero-aside">
