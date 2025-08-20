@@ -254,7 +254,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
           for (const pi of picked) {
             const a = vecs[i], b = vecs[pi];
             let dot = 0, na = 0, nb = 0;
-            for (let d = 0; d &lt; a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
+            for (let d = 0; d < a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
             const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-8);
             rel += sim;
           }
