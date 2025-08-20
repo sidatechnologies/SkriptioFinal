@@ -429,7 +429,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       usedBank.push(o);
     }
 
-    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: QUESTION_STEM, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
   // Pad if short
