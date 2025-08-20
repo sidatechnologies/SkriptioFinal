@@ -765,7 +765,7 @@ export function Studio() {
       if (correct) addIf(correct);
 
       for (const o of base) {
-        if (out.length &gt;= 4) break;
+        if (out.length >= 4) break;
         addIf(o);
       }
 
