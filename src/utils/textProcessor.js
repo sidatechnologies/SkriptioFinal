@@ -670,6 +670,8 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     }
   }
 
+  // Final sanitization: drop instruction-like/too-short backs
+  flashcards = flashcards.filter(fc => !isInstructionish(fc.front) && !isInstructionish(fc.back) && /[A-Za-z]/.test(fc.back || '') && (fc.back || '').length >= 40);
   // Enforce final cap but do NOT pad with placeholders
   flashcards = flashcards.slice(0, Math.min(12, flashcards.length));
 
