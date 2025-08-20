@@ -269,7 +269,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
           }
           const lambda = difficulty === 'expert' ? 0.8 : difficulty === 'harder' ? 0.75 : 0.7;
           const score = lambda * rel - (1 - lambda) * div;
-          if (score &gt; bestScore) { bestScore = score; best = i; }
+          if (score > bestScore) { bestScore = score; best = i; }
         }
         if (best === -1) break;
         picked.push(best); used.add(best);
