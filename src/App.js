@@ -280,7 +280,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
   } catch {}
 
   if (!chosenIdxs.length) {
-    chosenIdxs = Array.from({ length: Math.min(10, sentences.length) }, (_, i) =&gt; i);
+    chosenIdxs = Array.from({ length: Math.min(10, sentences.length) }, (_, i) => i);
   }
 
   const phrases = extractKeyPhrases(cleaned, 18);
