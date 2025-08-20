@@ -613,8 +613,14 @@ export function Studio() {
       setGenerating(true); setEvaluated(false); setSelected({});
       let combined = '';
       const notes = notesRef.current?.value || '';
-      if (notes) combined += notes + '\n';
       const file = fileRef.current?.files && fileRef.current.files[0];
+      if (!notes && !file) {
+        alert('Please paste some text or upload a PDF before generating.');
+        setGenerating(false);
+        return;
+      }
+      let combined = '';
+      if (notes) combined += notes + '\n';
       if (file) {
         const pdfText = await extractTextFromPDF(file, { maxPages: 60 });
         combined += '\n' + pdfText;
