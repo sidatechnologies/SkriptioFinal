@@ -385,6 +385,43 @@ async function buildKitFromContent(rawText, title, difficulty) {
 }
 
 function QuizBlock({ quiz, selected, setSelected, evaluated }) {
+  const BAD_PAD_RX = /\bIn practice, this may vary under specific constraints\.?\s*$/i;
+  const sanitize = (s) => {
+    try {
+      let t = String(s || '').replace(BAD_PAD_RX, '');
+      t = t.replace(/\s+/g, ' ').trim();
+      if (!t.endsWith('.')) t += '.';
+      return t;
+    } catch { return s; }
+  };
+  const ensureFourOptions = (q) => {
+    const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
+    const correct = sanitize(q.options?.[q.answer_index] ?? '');
+    const norm = (x) => String(x || '').toLowerCase();
+    const out = [];
+    const seen = new Set();
+    // keep correct first
+    if (correct) { out.push(correct); seen.add(norm(correct)); }
+    for (const o of base) {
+      if (!o) continue; const k = norm(o);
+      if (seen.has(k)) continue; out.push(o); seen.add(k);
+      if (out.length >= 4) break;
+    }
+    const generics = [
+      'A related but inaccurate claim about the topic.',
+      'An unrelated statement that does not follow from the text.',
+      'A plausible but incorrect detail about the material.',
+      'A misinterpretation of the concept discussed.'
+    ];
+    for (const g of generics) { if (out.length >= 4) break; const k = norm(g); if (!seen.has(k)) { out.push(g); seen.add(k); } }
+    // place correct at original index deterministically
+    const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
+    const arranged = out.slice(0, 4);
+    // ensure correct is at idx
+    const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
+    if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+    return { arranged, idx };
+  };
   return (
     <div className="space-y-4">
       {quiz.map((q, i) => {
