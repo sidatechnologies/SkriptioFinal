@@ -210,23 +210,52 @@ function placeDeterministically(choices, correct, seed = 0) {
 }
 function distinctFillOptions(correct, pool, fallbackPool, allPhrases, needed = 4) {
   const selected = [correct];
-  const seen = new Set([correct.toLowerCase()]);
+  const seen = new Set([String(correct || '').trim().toLowerCase()]);
   const addIf = (opt) => {
     if (!opt) return false;
-    const norm = opt.trim();
+    const norm = String(opt).trim();
     if (!norm) return false;
-    if (seen.has(norm.toLowerCase())) return false;
+    const key = norm.toLowerCase();
+    if (seen.has(key)) return false;
     for (const s of selected) { if (tooSimilar(s, norm)) return false; }
     selected.push(norm);
-    seen.add(norm.toLowerCase());
+    seen.add(key);
     return true;
   };
-  for (const c of pool || []) { if (selected.length >= needed) break; addIf(c); }
+  for (const c of (pool || [])) { if (selected.length >= needed) break; addIf(c); }
   if (selected.length < needed) { for (const c of (fallbackPool || [])) { if (selected.length >= needed) break; addIf(c); } }
-  if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (c === correct) continue; addIf(c); } }
-  const generics = ['General concepts', 'Background theory', 'Implementation details', 'Best practices'];
-  let gi = 0; while (selected.length < needed && gi < generics.length) { addIf(generics[gi++]); }
-  return selected.slice(0, needed);
+  if (selected.length < needed) { for (const c of (allPhrases || [])) { if (selected.length >= needed) break; if (String(c).toLowerCase() === String(correct).toLowerCase()) continue; addIf(c); } }
+  // Final uniqueness pass and padding
+  const uniq = [];
+  const seen2 = new Set();
+  const jacc = (a,b) => jaccardText(a,b);
+  for (const o of selected) {
+    const k = String(o || '').toLowerCase();
+    if (!k || seen2.has(k)) continue;
+    if (uniq.some(x => jacc(x, o) >= 0.7)) continue;
+    uniq.push(o); seen2.add(k);
+    if (uniq.length >= needed) break;
+  }
+  const generics = [
+    'A related but inaccurate claim about the topic.',
+    'An unrelated statement that does not follow from the text.',
+    'A plausible but incorrect detail about the material.',
+    'A misinterpretation of the concept discussed.'
+  ];
+  let gi = 0; while (uniq.length < needed && gi < generics.length) {
+    const g = generics[gi++];
+    const k = g.toLowerCase();
+    if (!seen2.has(k)) { uniq.push(g); seen2.add(k); }
+  }
+  // As a last resort, minor modal tweak of the correct
+  const tweak = (s) => String(s||'').replace(/\bmay\b/gi,'must').replace(/\boften\b/gi,'always').replace(/\bsometimes\b/gi,'always');
+  while (uniq.length < needed) {
+    const v = tweak(correct);
+    const k = v.toLowerCase();
+    if (!seen2.has(k) && !uniq.some(x => jacc(x, v) >= 0.7)) { uniq.push(v); seen2.add(k); }
+    else break;
+  }
+  return uniq.slice(0, needed);
 }
 
 // Enhance artifacts without flattening question types. Keep stems, improve distractors, enforce per-mode uniqueness further.
