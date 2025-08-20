@@ -820,6 +820,8 @@ export function Studio() {
         const fixed = ensureFour(q);
         const labels = ['A', 'B', 'C', 'D'];
         fixed.arranged.forEach((op, oi) => writePara(`${labels[oi]}. ${op}`));
+        writePara(`Correct answer: ${labels[fixed.idx]}. ${fixed.arranged[fixed.idx]}`);
+        if (q.explanation) writePara(`Explanation: ${q.explanation}`);
       });
     });
   }
