@@ -665,7 +665,7 @@ export function Studio() {
 
     const pageHeight = doc.internal.pageSize.getHeight();
     function ensureSpace(linesNeeded = 0) {
-      if (y + linesNeeded &gt; pageHeight - margin - 20) {
+      if (y + linesNeeded > pageHeight - margin - 20) {
         addFooter();
         doc.addPage();
         y = margin;
