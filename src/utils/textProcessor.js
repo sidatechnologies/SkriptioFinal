@@ -264,7 +264,7 @@ function normalizeToLength(text, target = 120) {
   return ensureSentence(t);
 }
 
-function distinctFillOptions(correct, pool = [], needed = 4) {
+export function distinctFillOptions(correct, pool = [], needed = 4) {
   const selected = [];
   const seen = new Set();
   const addIf = (opt) => {
