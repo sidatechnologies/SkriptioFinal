@@ -1005,7 +1005,7 @@ export function Studio() {
                 <Card className="kit-surface"><div className="kit-toolbar">Theory Qs</div><CardContent>
                   {kit.theory?.length ? (
                     <ol className="list-decimal pl-5 space-y-2 text-sm">
-                      {kit.theory.map((q, i) => (&lt;li key={i}>{q}&lt;/li>))}
+                      {kit.theory.map((q, i) => (<li key={i}>{q}</li>))}
                     </ol>
                   ) : <EmptyState label="No theory questions yet." />}
                 </CardContent></Card>
