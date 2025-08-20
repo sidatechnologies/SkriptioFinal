@@ -288,7 +288,19 @@ async function buildKitFromContent(rawText, title, difficulty) {
   const isInstructionishLocal = (s) => {
     const t = String(s || '').trim();
     if (!t) return false;
-    return /in your own words/i.test(t) || /\btheory questions?\b/i.test(t) || /^\s*(?:q|question)\s*\d+\b/i.test(t) || /^explain\b/i.test(t) || /identify (?:causes|consequences)/i.test(t);
+    const patterns = [
+      /in your own words/i,
+      /\btheory questions?\b/i,
+      /\bquestions?\s*\d+\b/i,
+      /^\s*(?:q|question)\s*\d+\b/i,
+      /^explain\b/i,
+      /summariz(e|e) the key ideas/i,
+      /\banalyze\b/i,
+      /identify (?:causes|consequences)/i,
+      /include what it is[, ]+why it matters/i,
+      /one example from (?:the )?material/i
+    ];
+    return patterns.some(rx => rx.test(t));
   };
   const uniqFronts = new Set();
   let flashcards = [];
