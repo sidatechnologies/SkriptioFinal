@@ -497,7 +497,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
 
     const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
     const arranged = out.slice(0, 4);
-    const curIdx = arranged.findIndex(o =&gt; norm(o) === norm(correct));
+    const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
     if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
     return { arranged, idx };
   };
