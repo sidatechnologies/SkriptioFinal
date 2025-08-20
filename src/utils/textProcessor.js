@@ -460,8 +460,30 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     if (!seenSig.has(sig)) { seenSig.add(sig); flashPicked.push(s); }
     if (flashPicked.length >= 12) break;
   }
-  const flashcards = (flashPicked.map((s, i) => ({ front: titleFromSentence(s, phrases), back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
+  let flashcards = (flashPicked.map((s, i) => ({ front: titleFromSentence(s, phrases), back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
   if (flashcards.length === 0 && text.trim()) flashcards.push({ front: titleFromSentence(text, phrases), back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
+  // Ensure at least 8 flashcards by backfilling from phrases
+  const MIN_FC = 8;
+  if (flashcards.length < MIN_FC) {
+    const pool = phrases.slice(0, 24);
+    for (let i = 0; i < pool.length && flashcards.length < MIN_FC; i++) {
+      const p = pool[i];
+      if (!p) continue;
+      // pick best matching sentence for the phrase
+      let best = '';
+      try {
+        const ml = await import('./ml');
+        best = await ml.bestSentenceForPhrase(p, baseSentences, 160);
+      } catch {}
+      const back = ensureCaseAndPeriod('', summarizeSentence(best || (baseSentences[i] || text), 200));
+      const front = titleCase(p);
+      // de-dup by fronts
+      if (!flashcards.some(fc => (fc.front||'').toLowerCase() === front.toLowerCase())) {
+        flashcards.push({ front, back });
+      }
+    }
+  }
+  flashcards = flashcards.slice(0, Math.max(MIN_FC, Math.min(12, flashcards.length)));
 
   // 7-day plan with variety
   const OBJECTIVES = [
