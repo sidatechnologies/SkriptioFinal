@@ -286,9 +286,9 @@ async function buildKitFromContent(rawText, title, difficulty) {
   const phrases = extractKeyPhrases(cleaned, 18);
   let flashcards = phrases.slice(0, 12).map(p =&gt; ({ front: p, back: sentences.find(s =&gt; (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[0] || p }));
   // Ensure at least 8 flashcards by backfilling from phrases
-  if (flashcards.length &lt; 8) {
+  if (flashcards.length < 8) {
     const pool = phrases.slice(0, 24);
-    for (let i = 0; i &lt; pool.length && flashcards.length &lt; 8; i++) {
+    for (let i = 0; i < pool.length && flashcards.length < 8; i++) {
       const p = pool[i];
       if (!p) continue;
       let best = '';
