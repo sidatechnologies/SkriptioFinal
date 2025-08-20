@@ -563,8 +563,18 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     return b;
   }
 
-  let flashcards = (flashPicked.map((s, i) => ({ front: titleFromSentence(s, phrases), back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
-  if (flashcards.length === 0 && text.trim()) flashcards.push({ front: titleFromSentence(text, phrases), back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
+  let flashcards = await Promise.all(flashPicked.map(async (s, i) => {
+    const front = titleFromSentence(s, phrases);
+    const back0 = ensureCaseAndPeriod('', summarizeSentence(s, 200));
+    const back = await fixBack(front, back0);
+    return { front, back };
+  }));
+  if (flashcards.length === 0 && text.trim()) {
+    const front = titleFromSentence(text, phrases);
+    const back0 = ensureCaseAndPeriod('', summarizeSentence(text, 200));
+    const back = await fixBack(front, back0);
+    flashcards.push({ front, back });
+  }
   // Ensure at least 8 flashcards by backfilling from phrases
   const MIN_FC = 8;
   if (flashcards.length < MIN_FC) {
