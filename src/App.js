@@ -57,7 +57,7 @@ function Landing() {
   return (
     <div className="min-h-screen hero-gradient text-foreground">
       <Helmet>
-        <title>Skriptio — Study kits from your notes &amp; PDFs</title>
+        <title>Skriptio — Study kits from your notes & PDFs</title>
         <meta name="description" content="Skriptio turns your PDFs &amp; notes into a complete study kit in seconds. A 10‑question quiz, smart flashcards, and a 7‑day plan — all in your browser." />
         <link rel="canonical" href="https://skriptio.sidahq.com/" />
       </Helmet>
