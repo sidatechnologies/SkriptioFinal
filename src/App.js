@@ -334,7 +334,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       const k = normKey(op);
       if (!k || seen.has(k)) continue;
       seen.add(k); uniq.push(op);
-      if (uniq.length &gt;= 4) break;
+      if (uniq.length >= 4) break;
     }
     const generics = [
       'A related but inaccurate claim about the topic.',
