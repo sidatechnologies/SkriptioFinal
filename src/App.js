@@ -284,7 +284,23 @@ async function buildKitFromContent(rawText, title, difficulty) {
   }
 
   const phrases = extractKeyPhrases(cleaned, 18);
-  const flashcards = phrases.slice(0, 12).map(p => ({ front: p, back: sentences.find(s => s.toLowerCase().includes(p.toLowerCase())) || sentences[0] || p }));
+  let flashcards = phrases.slice(0, 12).map(p => ({ front: p, back: sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[0] || p }));
+  // Ensure at least 8 flashcards by backfilling from phrases
+  if (flashcards.length < 8) {
+    const pool = phrases.slice(0, 24);
+    for (let i = 0; i < pool.length && flashcards.length < 8; i++) {
+      const p = pool[i];
+      if (!p) continue;
+      let best = '';
+      try { best = await bestSentenceForPhrase(p, sentences, 160); } catch {}
+      const back = best || sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
+      const front = p;
+      if (!flashcards.some(fc => (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
+        flashcards.push({ front, back });
+      }
+    }
+  }
+  flashcards = flashcards.slice(0, Math.max(8, Math.min(12, flashcards.length)));
 
   const quiz = [];
   for (let qi = 0; qi < Math.min(10, chosenIdxs.length); qi++) {
