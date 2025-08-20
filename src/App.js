@@ -648,6 +648,8 @@ export function Studio() {
       }
       const title = titleRef.current?.value || '';
       const built = await buildKitFromContent(combined, title, difficulty);
+      // Final safety filter for flashcards: drop instruction-like/question backs
+      built.flashcards = filterFlashcards(built.flashcards);
       setKit(built);
     } catch (e) {
       console.error(e);
