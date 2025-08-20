@@ -306,6 +306,38 @@ export function distinctFillOptions(correct, pool = [], needed = 4) {
   return uniq.slice(0, needed);
 }
 
+function ensureUniqueOptions(arranged, correct) {
+  const norm = (s) => String(s || '').trim().toLowerCase();
+  const out = [];
+  const seen = new Set();
+  for (const o of arranged || []) {
+    const k = norm(o);
+    if (!k || seen.has(k)) continue;
+    out.push(o); seen.add(k);
+    if (out.length >= 4) break;
+  }
+  const generics = [
+    'A related but inaccurate claim about the topic.',
+    'An unrelated statement that does not follow from the text.',
+    'A plausible but incorrect detail about the material.',
+    'A misinterpretation of the concept discussed.'
+  ];
+  let gi = 0;
+  while (out.length < 4 && gi < generics.length) {
+    const g = generics[gi++];
+    const k = norm(g);
+    if (!seen.has(k)) { out.push(g); seen.add(k); }
+  }
+  const tweak = (s) => String(s||'').replace(/\bmay\b/gi,'must').replace(/\boften\b/gi,'always').replace(/\bsometimes\b/gi,'always');
+  while (out.length < 4) {
+    const v = tweak(correct);
+    const k = norm(v);
+    if (k && !seen.has(k)) { out.push(v); seen.add(k); }
+    else break;
+  }
+  return out.slice(0, 4);
+}
+
 // -------------------- Artifact builder with improved MCQs/Flashcards/Plan --------------------
 export async function generateArtifacts(rawText, providedTitle = null, opts = {}) {
   const text = String(rawText || '');
