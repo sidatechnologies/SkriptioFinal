@@ -21,8 +21,8 @@ export default function StudioNav() {
   const items = [
     { to: "/studio", label: "Studio" },
     { to: "/studio/kit", label: "Study Kit" },
-    { to: "/studio/summariser", label: "PDF Summariser" },
-    { to: "/studio/resume", label: "Resume Builder" },
+    { to: "/studio/summariser", label: "PDF Summariser", comingSoon: true },
+    { to: "/studio/resume", label: "Resume Builder", comingSoon: true },
   ];
 
   const current = items.find((i) => isActive(i.to)) || items[0];
@@ -38,7 +38,7 @@ export default function StudioNav() {
             onChange={(e) => navigate(e.target.value)}
           >
             {items.map((it) => (
-              <option key={it.to} value={it.to}>{it.label}</option>
+              <option key={it.to} value={it.to} disabled={it.comingSoon}>{it.label}{it.comingSoon ? ' (Coming Soon)' : ''}</option>
             ))}
           </select>
           <span className="select-arrow"><ChevronDown size={16} /></span>
@@ -49,13 +49,14 @@ export default function StudioNav() {
       <div className="hidden md:block overflow-x-visible">
         <nav className="inline-flex rounded-md overflow-hidden border border-border bg-card">
           {items.map((it, idx) => (
-            <Link
+            <span
               key={it.to}
-              to={it.to}
-              className={`px-3 py-1.5 text-sm whitespace-nowrap ${isActive(it.to) ? 'bg-white text-black' : 'bg-transparent text-foreground/80'} ${idx !== 0 ? 'border-l border-border' : ''}`}
+              onClick={it.comingSoon ? undefined : () => navigate(it.to)}
+              title={it.comingSoon ? 'Coming Soon' : undefined}
+              className={`px-3 py-1.5 text-sm whitespace-nowrap ${isActive(it.to) ? 'bg-white text-black' : 'bg-transparent text-foreground/80'} ${idx !== 0 ? 'border-l border-border' : ''} ${it.comingSoon ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {it.label}
-            </Link>
+            </span>
           ))}
         </nav>
       </div>
