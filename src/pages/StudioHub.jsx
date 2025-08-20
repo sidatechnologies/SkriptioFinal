@@ -15,7 +15,7 @@ export default function StudioHub() {
   const CardCommon = ({ icon, title, desc, onOpen, disabled = false, label = "Open" }) => (
     <Card className="bg-card border border-black/70 dark:border-white/60 relative">
       {disabled && (
-        <div className="absolute inset-0 backdrop-blur-[2px] bg-background/40 z-10 rounded-md" />
+        <div className="absolute inset-0 bg-background/30 z-10 rounded-md" />
       )}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">{icon} {title}</CardTitle>
