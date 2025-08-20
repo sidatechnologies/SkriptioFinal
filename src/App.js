@@ -225,21 +225,21 @@ async function buildKitFromContent(rawText, title, difficulty) {
   // Use robust textProcessor.generateArtifacts first; fallback to legacy pipeline if needed
   try {
     const artifacts = await generateArtifacts(rawText, title, { difficulty });
-    if (artifacts &amp;&amp; Array.isArray(artifacts.quiz) &amp;&amp; artifacts.quiz.length) {
+    if (artifacts && Array.isArray(artifacts.quiz) && artifacts.quiz.length) {
       return artifacts;
     }
   } catch {}
 
   const cleaned = normalizeText(rawText)
     .split(/\n+/)
-    .filter(line => line &amp;&amp; !isAuthorish(line) &amp;&amp; !looksLikeHeadingStrong(line))
+    .filter(line => line && !isAuthorish(line) && !looksLikeHeadingStrong(line))
     .join(' ');
   const sentences = splitSentences(cleaned);
 
   let chosenIdxs = [];
   try {
     const vecs = await embedSentences(sentences);
-    if (vecs &amp;&amp; vecs.length) {
+    if (vecs && vecs.length) {
       const picked = [];
       const used = new Set();
       const k = Math.min(10, sentences.length);
@@ -288,7 +288,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
   // Ensure at least 8 flashcards by backfilling from phrases
   if (flashcards.length &lt; 8) {
     const pool = phrases.slice(0, 24);
-    for (let i = 0; i &lt; pool.length &amp;&amp; flashcards.length &lt; 8; i++) {
+    for (let i = 0; i &lt; pool.length && flashcards.length &lt; 8; i++) {
       const p = pool[i];
       if (!p) continue;
       let best = '';
@@ -318,7 +318,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       question = `Which statement is accurate based on the material?`;
     }
     const distracts = [];
-    for (let j = 0; j &lt; sentences.length &amp;&amp; distracts.length &lt; 6; j++) {
+    for (let j = 0; j &lt; sentences.length && distracts.length &lt; 6; j++) {
       if (j === si) continue;
       const s = sentences[j];
       if (!s || s.length &lt; 40) continue;
@@ -343,7 +343,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       'A misinterpretation of the concept discussed.'
     ];
     let gi = 0;
-    while (uniq.length &lt; 4 &amp;&amp; gi &lt; generics.length) {
+    while (uniq.length &lt; 4 && gi &lt; generics.length) {
       const g = generics[gi++];
       const k = normKey(g);
       if (!seen.has(k)) { seen.add(k); uniq.push(g); }
@@ -353,7 +353,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     while (uniq.length &lt; 4) {
       const v = tweakModal(correct);
       const k = normKey(v);
-      if (k &amp;&amp; !seen.has(k)) { seen.add(k); uniq.push(v); }
+      if (k && !seen.has(k)) { seen.add(k); uniq.push(v); }
       else break;
     }
     const idx = Math.floor(Math.random() * 4);
@@ -402,7 +402,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
       t = unspaceLetters(t);
       t = t.replace(/\s+/g, ' ').trim();
-      if (t &amp;&amp; !/[.!?]$/.test(t)) t += '.';
+      if (t && !/[.!?]$/.test(t)) t += '.';
       return t;
     } catch { return s; }
   };
@@ -413,7 +413,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
     const jaccard = (a, b) =&gt; {
       const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
-      if (!A.size &amp;&amp; !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/inter : 0; // safe fallback
+      if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/inter : 0; // safe fallback
     };
     const balanceLen = (text, target) =&gt; {
       let t = sanitize(text);
@@ -457,7 +457,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       addIf(o);
     }
 
-    if (out.length &lt; 4 &amp;&amp; correct) {
+    if (out.length &lt; 4 && correct) {
       const cands = [];
       cands.push(correct.replace(/\bmay\b/gi, 'must'));
       cands.push(correct.replace(/\bmust\b/gi, 'may'));
@@ -470,7 +470,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       const numRx = /(\d+(?:\.\d+)?%?)/;
       if (numRx.test(correct)) {
         const m = correct.match(numRx);
-        const n = parseFloat((m &amp;&amp; m[1] || '0').replace('%',''));
+        const n = parseFloat((m && m[1] || '0').replace('%',''));
         if (!isNaN(n)) {
           const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
           for (const v of variants) {
@@ -498,7 +498,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
     const arranged = out.slice(0, 4);
     const curIdx = arranged.findIndex(o =&gt; norm(o) === norm(correct));
-    if (curIdx !== -1 &amp;&amp; curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+    if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
     return { arranged, idx };
   };
   return (
@@ -511,8 +511,8 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
             <div className="font-medium mb-3">{i + 1}. {q.question}</div>
             <div className="space-y-2">
               {fixed.arranged.map((op, oi) =&gt; {
-                const isCorrect = evaluated &amp;&amp; oi === fixed.idx;
-                const isWrong = evaluated &amp;&amp; picked === oi &amp;&amp; oi !== fixed.idx;
+                const isCorrect = evaluated && oi === fixed.idx;
+                const isWrong = evaluated && picked === oi && oi !== fixed.idx;
                 return (
                   <label key={oi} className={`flex items-start gap-2 p-2 rounded-md border cursor-pointer ${isCorrect ? 'border-green-600 bg-green-600/10' : isWrong ? 'border-red-600 bg-red-600/10' : 'border-border'}`}>
                     <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() =&gt; setSelected(s =&gt; ({ ...s, [q.id]: oi }))} />
@@ -521,7 +521,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
                 );
               })}
             </div>
-            {evaluated &amp;&amp; (
+            {evaluated && (
               <div className="mt-2 text-sm text-foreground/80">
                 {selected[q.id] === fixed.idx ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{fixed.arranged[fixed.idx]}</span>
                 {q.explanation ? &lt;div className="mt-1">Explanation: {q.explanation}&lt;/div> : null}
@@ -546,16 +546,16 @@ export function Studio() {
   // Decode shared kit if present in hash
   React.useEffect(() => {
     try {
-      if (location.hash &amp;&amp; location.hash.includes('#s=')) {
+      if (location.hash && location.hash.includes('#s=')) {
         const token = location.hash.split('#s=')[1];
         if (token) {
           const bytes = fromB64Url(token);
           const jsonBytes = pako.inflate(bytes);
           const text = new TextDecoder().decode(jsonBytes);
           const payload = JSON.parse(text);
-          if (payload &amp;&amp; payload.kit) {
+          if (payload && payload.kit) {
             setKit(payload.kit);
-            if (payload.title &amp;&amp; titleRef.current) titleRef.current.value = payload.title;
+            if (payload.title && titleRef.current) titleRef.current.value = payload.title;
             setSelected({}); setEvaluated(false);
           }
         }
@@ -589,7 +589,7 @@ export function Studio() {
 
   async function onFileChange(e) {
     try {
-      const file = e.target.files &amp;&amp; e.target.files[0];
+      const file = e.target.files && e.target.files[0];
       setHasFile(!!file);
       if (!file) { setFileMeta(null); return; }
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
@@ -607,8 +607,8 @@ export function Studio() {
       setGenerating(true); setEvaluated(false); setSelected({});
       let combined = '';
       const notes = notesRef.current?.value || '';
-      const file = fileRef.current?.files &amp;&amp; fileRef.current.files[0];
-      if (!notes &amp;&amp; !file) {
+      const file = fileRef.current?.files && fileRef.current.files[0];
+      if (!notes && !file) {
         alert('Please paste some text or upload a PDF before generating.');
         setGenerating(false);
         return;
@@ -641,9 +641,9 @@ export function Studio() {
       const headerH = small ? 24 : 28;
       const pageW = doc.internal.pageSize.getWidth();
       try {
-        if (logoRef.current &amp;&amp; logoRef.current.dataUrl) {
+        if (logoRef.current && logoRef.current.dataUrl) {
           const { dataUrl, width, height } = logoRef.current;
-          const ratio = (width &amp;&amp; height) ? (width / height) : 1.0;
+          const ratio = (width && height) ? (width / height) : 1.0;
           const logoW = Math.min(120, headerH * ratio);
           const x = (pageW - logoW) / 2;
           doc.addImage(dataUrl, 'PNG', x, y - 6, logoW, headerH, undefined, 'FAST');
@@ -714,7 +714,7 @@ export function Studio() {
         if (t.includes(pad)) t = t.split(pad).join(' ');
         if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
         t = t.replace(/\s+/g, ' ').trim();
-        if (t &amp;&amp; !/[.!?]$/.test(t)) t += '.';
+        if (t && !/[.!?]$/.test(t)) t += '.';
         return t;
       } catch { return s; }
     };
@@ -725,7 +725,7 @@ export function Studio() {
       const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
       const jaccard = (a, b) =&gt; {
         const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
-        if (!A.size &amp;&amp; !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
+        if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
       };
       const balanceLen = (text, target) =&gt; {
         let t = sanitize(text);
@@ -769,7 +769,7 @@ export function Studio() {
         addIf(o);
       }
 
-      if (out.length &lt; 4 &amp;&amp; correct) {
+      if (out.length &lt; 4 && correct) {
         const cands = [];
         cands.push(correct.replace(/\bmay\b/gi, 'must'));
         cands.push(correct.replace(/\bmust\b/gi, 'may'));
@@ -782,7 +782,7 @@ export function Studio() {
         const numRx = /(\d+(?:\.\d+)?%?)/;
         if (numRx.test(correct)) {
           const m = correct.match(numRx);
-          const n = parseFloat((m &amp;&amp; m[1] || '0').replace('%',''));
+          const n = parseFloat((m && m[1] || '0').replace('%',''));
           if (!isNaN(n)) {
             const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
             for (const v of variants) {
@@ -810,7 +810,7 @@ export function Studio() {
       const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
       const arranged = out.slice(0, 4);
       const curIdx = arranged.findIndex(o =&gt; norm(o) === norm(correct));
-      if (curIdx !== -1 &amp;&amp; curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+      if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
       return { arranged, idx };
     };
     await withDoc((kit.title ? kit.title + ' — Quiz' : 'Quiz'), async ({ writeHeading, writePara }) => {
@@ -852,7 +852,7 @@ export function Studio() {
 
   // ---------- Share / Copy Link ----------
   function buildShareLink() {
-    if (!kit || (!kit.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length)) return '';
+    if (!kit || (!kit.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length)) return '';
     const payload = { v: 1, ts: Date.now(), title: titleRef.current?.value || kit.title || 'Study Kit', kit };
     const token = b64uEncodeObject(payload);
     const slug = (titleRef.current?.value || kit.title || 'study-kit').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'study-kit';
@@ -945,8 +945,8 @@ export function Studio() {
               <Button className="btn" variant="outline" onClick={downloadFlashcardsPDF} disabled={!kit?.flashcards?.length}><FileText size={16} className="mr-2"/>Flashcards PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadTheoryPDF} disabled={!kit?.theory?.length}><FileText size={16} className="mr-2"/>Theory PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadPlanPDF} disabled={!kit?.plan?.length}><FileText size={16} className="mr-2"/>7‑Day Plan PDF</Button>
-              <Button className="btn" variant="ghost" size="icon" aria-label="Share" onClick={onShare} disabled={!kit?.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length}><Share2 size={18} /></Button>
-              <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length}><LinkIcon size={18} /></Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Share" onClick={onShare} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><Share2 size={18} /></Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><LinkIcon size={18} /></Button>
             </div>
 
             <Tabs defaultValue="quiz" className="studio-tabs-wrap">
