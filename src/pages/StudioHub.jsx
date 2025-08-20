@@ -86,7 +86,9 @@ export default function StudioHub() {
             icon={<BriefcaseBusiness size={18}/>} 
             title="Resume Builder"
             desc="Select a template, fill details, and download a professional resume (no watermark)."
-            onOpen={() => navigate('/studio/resume')}
+            onOpen={undefined}
+            disabled={true}
+            label="Coming Soon"
           />
 
           {/* 4. Coming soon */}
