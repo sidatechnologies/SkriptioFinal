@@ -561,8 +561,9 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       if (alt) b = ensureCaseAndPeriod('', summarizeSentence(alt, 200));
     }
     if (!b || isInstructionish(b)) {
-      b = ensureCaseAndPeriod('', `${front} — concise explanation derived from the material.`);
+      return '';
     }
+    b = ensureCaseAndPeriod('', b);
     usedBacks.add(normalizeBack(b));
     return b;
   }
