@@ -147,7 +147,7 @@ function Landing() {
         </section>
 
         {/* Features */}
-        <section id="features" className="max-w-6xl mx_auto px-6 py-10">
+        <section id="features" className="max-w-6xl mx-auto px-6 py-10">
           <h2 className="section-title text-2xl font-semibold mb-6">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Card className="card-glow"><CardHeader><CardTitle>Tough quizzes</CardTitle><CardDescription>10 MCQs per kit: concept, property, and formula items tuned by difficulty.</CardDescription></CardHeader></Card>
