@@ -385,14 +385,22 @@ async function buildKitFromContent(rawText, title, difficulty) {
 }
 
 function QuizBlock({ quiz, selected, setSelected, evaluated }) {
+  // Collapse weird spaced-letter artifacts like "T e c h" to "Tech"
+  function unspaceLetters(t) {
+    try {
+      // Only when there is a long run of single-letter tokens
+      if (!/\b(?:[A-Za-z]\s){5,}[A-Za-z]\b/.test(t)) return t;
+      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) => m.replace(/\s+/g, ''));
+    } catch { return t; }
+  }
   const sanitize = (s) => {
     try {
       let t = String(s || '');
       const pad = 'In practice, this may vary under specific constraints.';
       const padNoDot = 'In practice, this may vary under specific constraints';
-      // Remove the filler phrase wherever it appears
       if (t.includes(pad)) t = t.split(pad).join(' ');
       if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
+      t = unspaceLetters(t);
       t = t.replace(/\s+/g, ' ').trim();
       if (t && !/[.!?]$/.test(t)) t += '.';
       return t;
@@ -411,17 +419,57 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       if (seen.has(k)) continue; out.push(o); seen.add(k);
       if (out.length >= 4) break;
     }
-    const generics = [
-      'A related but inaccurate claim about the topic.',
-      'An unrelated statement that does not follow from the text.',
-      'A plausible but incorrect detail about the material.',
-      'A misinterpretation of the concept discussed.'
-    ];
-    for (const g of generics) { if (out.length >= 4) break; const k = norm(g); if (!seen.has(k)) { out.push(g); seen.add(k); } }
-    // place correct at original index deterministically
+    // If still short, synthesize content-aware distractors from the correct sentence
+    if (out.length < 4 && correct) {
+      const cand = [];
+      // modal tweaks
+      cand.push(sanitize(correct.replace(/\bmay\b/gi, 'must')));
+      cand.push(sanitize(correct.replace(/\bmust\b/gi, 'may')));
+      cand.push(sanitize(correct.replace(/\boften\b/gi, 'sometimes')));
+      cand.push(sanitize(correct.replace(/\bsometimes\b/gi, 'often')));
+      // negations and includes/excludes
+      cand.push(sanitize(correct.replace(/\bis\b/gi, 'is not')));
+      cand.push(sanitize(correct.replace(/\bare\b/gi, 'are not')));
+      cand.push(sanitize(correct.replace(/\bincludes\b/gi, 'excludes')));
+      cand.push(sanitize(correct.replace(/\bexcludes\b/gi, 'includes')));
+      // numeric perturbations
+      const numRx = /(\d+(?:\.\d+)?%?)/;
+      if (numRx.test(correct)) {
+        const m = correct.match(numRx);
+        const n = parseFloat((m && m[1] || '0').replace('%',''));
+        if (!isNaN(n)) {
+          const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
+          for (const v of variants) {
+            const rep = m[1].endsWith('%') ? v.toFixed(1) + '%' : String(Math.round(v));
+            cand.push(sanitize(correct.replace(numRx, rep)));
+          }
+        }
+      }
+      // clause trim/swap around colon or dash
+      const parts = correct.split(/[:\u2013\u2014\-]\s*/);
+      if (parts.length >= 2) {
+        const head = parts[0];
+        const tail = parts.slice(1).join(': ');
+        cand.push(sanitize(`${tail}: ${head}`));
+        cand.push(sanitize(head));
+        cand.push(sanitize(tail));
+      }
+      for (const c of cand) {
+        if (!c) continue; const k = norm(c);
+        if (seen.has(k)) continue; out.push(c); seen.add(k);
+        if (out.length >= 4) break;
+      }
+    }
+    // Final: allow at most one generic as last resort
+    if (out.length < 4) {
+      const generics = [
+        'This statement appears related but does not reflect the material.',
+        'This conclusion does not follow from the provided context.'
+      ];
+      for (const g of generics) { if (out.length >= 4) break; const k = norm(g); if (!seen.has(k)) { out.push(g); seen.add(k); } }
+    }
     const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
     const arranged = out.slice(0, 4);
-    // ensure correct is at idx
     const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
     if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
     return { arranged, idx };
