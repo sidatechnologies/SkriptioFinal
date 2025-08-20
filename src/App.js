@@ -949,7 +949,7 @@ export function Studio() {
               <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><LinkIcon size={18} /></Button>
             </div>
 
-            <Tabs defaultValue="quiz" className="studio-tabs-wrap">
+            <Tabs defaultValue="flashcards" className="studio-tabs-wrap">
               <TabsList>
                 <TabsTrigger value="quiz">Quiz</TabsTrigger>
                 <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
