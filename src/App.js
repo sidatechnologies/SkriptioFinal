@@ -515,7 +515,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
                 const isWrong = evaluated && picked === oi && oi !== fixed.idx;
                 return (
                   <label key={oi} className={`flex items-start gap-2 p-2 rounded-md border cursor-pointer ${isCorrect ? 'border-green-600 bg-green-600/10' : isWrong ? 'border-red-600 bg-red-600/10' : 'border-border'}`}>
-                    <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() =&gt; setSelected(s =&gt; ({ ...s, [q.id]: oi }))} />
+                    <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() => setSelected(s => ({ ...s, [q.id]: oi }))} />
                     <span className="text-sm leading-relaxed">{op}</span>
                   </label>
                 );
