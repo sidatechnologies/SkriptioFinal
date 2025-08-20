@@ -325,11 +325,11 @@ async function buildKitFromContent(rawText, title, difficulty) {
       if (s.toLowerCase().includes(cand.toLowerCase())) continue;
       distracts.push(s);
     }
-    const correct = context.length &gt; 180 ? context.slice(0, context.lastIndexOf(' ', 170)) + '.' : context;
-    const optionsPool = [correct, ...distracts].slice(0, 6).map(s =&gt; s.length &gt; 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
+    const correct = context.length > 180 ? context.slice(0, context.lastIndexOf(' ', 170)) + '.' : context;
+    const optionsPool = [correct, ...distracts].slice(0, 6).map(s => s.length > 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
     const uniq = [];
     const seen = new Set();
-    const normKey = (s) =&gt; String(s||'').trim().replace(/[\s]+/g,' ').toLowerCase();
+    const normKey = (s) => String(s||'').trim().replace(/[\s]+/g,' ').toLowerCase();
     for (const op of optionsPool) {
       const k = normKey(op);
       if (!k || seen.has(k)) continue;
