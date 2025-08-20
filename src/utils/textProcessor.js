@@ -646,21 +646,23 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   }
   flashcards = cleaned;
 
-  // If still short, add generic but distinct placeholders tied to remaining phrases
+  // If still short, try to pull real sentences from content (no generic placeholders)
   if (flashcards.length < MIN_FC) {
-    for (let i = 0; i < phrases.length && flashcards.length < MIN_FC; i++) {
-      const p = phrases[i];
-      if (!p || STOPWORDS.has(p.toLowerCase())) continue;
-      const front = titleCase(clean(p));
-      const back = ensureCaseAndPeriod('', `${front} — concise explanation derived from the material.`);
+    for (let i = 0; i < baseSentences.length && flashcards.length < MIN_FC; i++) {
+      const s = baseSentences[i];
+      if (!s || isInstructionish(s)) continue;
+      const front = titleFromSentence(s, phrases);
+      let back = ensureCaseAndPeriod('', summarizeSentence(s, 200));
+      if (!back) continue;
       const nf = normFront(front), nb = normBack(back);
       if (seenFronts.has(nf) || seenBacks.has(nb)) continue;
       seenFronts.add(nf); seenBacks.add(nb);
-      flashcards.push({ front, back });
+      flashcards.push({ front: titleCase(clean(front)), back: back });
     }
   }
 
-  flashcards = flashcards.slice(0, Math.max(MIN_FC, Math.min(12, flashcards.length)));
+  // Enforce final cap but do NOT pad with placeholders
+  flashcards = flashcards.slice(0, Math.min(12, flashcards.length));
 
   // 7-day plan with variety
   const OBJECTIVES = [
