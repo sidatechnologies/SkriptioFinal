@@ -934,7 +934,7 @@ export function Studio() {
 
           <div className="lg:col-span-2 space-y-4">
             <div className="toolbar flex flex-wrap gap-2">
-              <Button className="btn" variant="outline" onClick={downloadQuizPDF} disabled={!kit?.quiz?.length}><FileText size={16} className="mr-2"/>Quiz PDF</Button>
+              
               <Button className="btn" variant="outline" onClick={downloadFlashcardsPDF} disabled={!kit?.flashcards?.length}><FileText size={16} className="mr-2"/>Flashcards PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadTheoryPDF} disabled={!kit?.theory?.length}><FileText size={16} className="mr-2"/>Theory PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadPlanPDF} disabled={!kit?.plan?.length}><FileText size={16} className="mr-2"/>7‑Day Plan PDF</Button>
