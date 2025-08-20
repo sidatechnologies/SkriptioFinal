@@ -1,4 +1,4 @@
-:root { --noise: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><filter id="n" x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" seed="15" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.04" /></svg>'); }
+:root { --noise: url('data:image/svg+xml;utf8,&lt;svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"&gt;&lt;filter id="n" x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB"&gt;&lt;feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" seed="15" stitchTiles="stitch"/&gt;&lt;feColorMatrix type="saturate" values="0"/&gt;&lt;/filter&gt;&lt;rect width="100%" height="100%" filter="url(%23n)" opacity="0.04" /&gt;&lt;/svg&gt;'); }
 
 html, body, #root { height: 100%; }
 body { font-family: 'Figtree', sans-serif; }
@@ -145,3 +145,7 @@ input[type=file] { display: none; }
 .segmented .item.active { background:#000; color:#fff; }
 .dark .segmented { border-color: #fff; }
 .dark .segmented .item.active { background:#fff; color:#000; }
+
+/* Flashcards typography adjustments */
+.flashcard-front { font-family: inherit; font-weight: 600; letter-spacing: -0.01em; }
+.flashcard-back { font-family: inherit; line-height: 1.6; font-size: 0.95rem; letter-spacing: 0; }

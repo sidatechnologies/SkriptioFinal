@@ -279,7 +279,7 @@ function balanceLength(text, target = 120) {
       'Based on operational requirements and compliance rules.'
     ];
     const pick = tails[(Math.abs(t.length + target) % tails.length)];
-    t = (t.replace(/[.!?]$/,'').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
+    t = (t.replace(/[.!?]$/, '').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
     t = ensureSentence(t);
   }
   return normalizeToLength(t, target);
@@ -375,7 +375,6 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const globalOptionCount = new Map(); // ensure option text appears at most once across quiz
   const usedBank = []; // global bank of option texts to avoid semantic repeats across questions
   function globallyNovel(s) { try { const t = String(s||''); for (const u of usedBank) { if (jaccard(t, u) >= 0.6) return false; } return true; } catch { return true; } }
-  function notOverused(opt) { return (globalOptionCount.get(normKey(opt)) || 0) < 1; }
 
   const total = 10;
   const quiz = [];
@@ -409,6 +408,28 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
   const QUESTION_STEM_TXT = 'Which statement is accurate based on the material?';
 
+  function nextAlt(correct, phrases, targetLen) {
+    const pool = [
+      tweakModals(correct),
+      flipNegations(correct),
+      perturbNumbers(correct),
+      entitySwap(correct, phrases),
+      'This statement appears related but does not reflect the material.',
+      'This conclusion does not follow from the provided context.',
+      'A plausible but incorrect interpretation of the content.',
+      'A misreading that conflicts with the material.'
+    ].filter(Boolean);
+    for (const cand of pool) {
+      const c = balanceLength(cand, targetLen);
+      const k = normKey(c);
+      if (!k) continue;
+      if ((globalOptionCount.get(k) || 0) >= 1) continue;
+      if (!globallyNovel(c)) continue;
+      return c;
+    }
+    return balanceLength(tweakModals(correct), targetLen);
+  }
+
   while (quiz.length < total && baseSentences.length > 0) {
     // Always use the same question stem for all 10, per spec
     let s = pickSentence();
@@ -422,26 +443,47 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     usedCorrects.add(normKey(correct));
 
     const d = buildDistractors(correct, phrases, text);
-    const opts = distinctFillOptions(correct, d, 4);
+    let opts = distinctFillOptions(correct, d, 4);
 
     // Deterministic placement seeded by question index
-    const placed = placeDeterministically(opts, correct, quiz.length);
+    let placed = placeDeterministically(opts, correct, quiz.length);
 
-    const setKey = placed.arranged.map(normKey).sort().join('|');
-    if (usedOptionKeys.has(setKey)) {
-      // Replace last distractor with a slight modal tweak to keep unique
-      const alt = tweakModals(correct);
-      if (alt && normKey(alt) !== normKey(correct)) placed.arranged[placed.arranged.length - 1] = normalizeToLength(alt, Math.max(100, correct.length));
+    // Global uniqueness enforcement for options across all questions
+    const targetLen = Math.max(100, Math.min(180, correct.length));
+    let arranged = placed.arranged.map(o => balanceLength(o, targetLen));
+
+    for (let oi = 0; oi < arranged.length; oi++) {
+      const k = normKey(arranged[oi]);
+      if ((globalOptionCount.get(k) || 0) >= 1 || !globallyNovel(arranged[oi])) {
+        const replacement = nextAlt(correct, phrases, targetLen);
+        arranged[oi] = replacement;
+      }
     }
-    usedOptionKeys.add(placed.arranged.map(normKey).sort().join('|'));
 
-    for (const o of placed.arranged) {
-      const key = normKey(o);
-      globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1);
+    // Ensure option set uniqueness (no two questions share same set)
+    let setKey = arranged.map(normKey).sort().join('|');
+    if (usedOptionKeys.has(setKey)) {
+      arranged[arranged.length - 1] = nextAlt(correct, phrases, targetLen);
+      setKey = arranged.map(normKey).sort().join('|');
+    }
+    usedOptionKeys.add(setKey);
+
+    // Fix correct index position after adjustments
+    let correctIdx = arranged.findIndex(o => normKey(o) === normKey(correct));
+    if (correctIdx === -1) {
+      // Force correct in
+      arranged[0] = balanceLength(correct, targetLen);
+      correctIdx = 0;
+    }
+
+    // Update global usage trackers
+    for (const o of arranged) {
+      const k = normKey(o);
+      globalOptionCount.set(k, (globalOptionCount.get(k) || 0) + 1);
       usedBank.push(o);
     }
 
-    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: arranged.slice(0,4), answer_index: correctIdx, explanation: '' });
   }
 
   // Pad if short
@@ -449,10 +491,18 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     const s = baseSentences[quiz.length % Math.max(1, baseSentences.length)] || text || 'The material describes a topic.';
     const correct = ensureCaseAndPeriod('', summarizeSentence(s, 150));
     const d = buildDistractors(correct, phrases, text);
-    const opts2 = distinctFillOptions(correct, d, 4);
-    const placed = placeDeterministically(opts2, correct, quiz.length);
-    for (const o of placed.arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
-    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    let opts2 = distinctFillOptions(correct, d, 4);
+    let placed = placeDeterministically(opts2, correct, quiz.length);
+    const targetLen = Math.max(100, Math.min(180, correct.length));
+    let arranged = placed.arranged.map(o => balanceLength(o, targetLen));
+    for (let oi = 0; oi < arranged.length; oi++) {
+      const k = normKey(arranged[oi]);
+      if ((globalOptionCount.get(k) || 0) >= 1 || !globallyNovel(arranged[oi])) {
+        arranged[oi] = balanceLength(tweakModals(correct), targetLen);
+      }
+    }
+    for (const o of arranged) { const k = normKey(o); globalOptionCount.set(k, (globalOptionCount.get(k) || 0) + 1); usedBank.push(o); }
+    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: arranged.slice(0,4), answer_index: arranged.findIndex(o => normKey(o) === normKey(correct)), explanation: '' });
   }
 
   // Flashcards — per-card titles

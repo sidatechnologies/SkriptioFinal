@@ -57,8 +57,8 @@ function Landing() {
   return (
     <div className="min-h-screen hero-gradient text-foreground">
       <Helmet>
-        <title>Skriptio — Study kits from your notes & PDFs</title>
-        <meta name="description" content="Skriptio turns your PDFs & notes into a complete study kit in seconds. A 10‑question quiz, smart flashcards, and a 7‑day plan — all in your browser." />
+        <title>Skriptio — Study kits from your notes &amp; PDFs</title>
+        <meta name="description" content="Skriptio turns your PDFs &amp; notes into a complete study kit in seconds. A 10‑question quiz, smart flashcards, and a 7‑day plan — all in your browser." />
         <link rel="canonical" href="https://skriptio.sidahq.com/" />
       </Helmet>
 
@@ -83,7 +83,7 @@ function Landing() {
             </Link>
           </div>
         </div>
-        {mobileOpen && (
+        {mobileOpen &amp;&amp; (
           <div className="md:hidden border-t border-border bg-background/95 shadow">
             <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
               <a href="#how" onClick={() => setMobileOpen(false)}>How it works</a>
@@ -105,7 +105,7 @@ function Landing() {
               <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
               A product by Aceel AI
             </p>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
             <p className="text-foreground/80 mb-5">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
             <div className="flex items-center gap-3">
               <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
@@ -114,7 +114,7 @@ function Landing() {
               <a href="#how" className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm">How it works</a>
             </div>
             <div className="flex items-center gap-5 mt-5 text-sm text-foreground/80">
-              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Fast & minimal</div>
+              <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Fast &amp; minimal</div>
               <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Private (runs in your browser)</div>
               <div className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full border border-foreground/70"></span> Saves hours of prep</div>
             </div>
@@ -155,7 +155,7 @@ function Landing() {
             <Card className="card-glow"><CardHeader><CardTitle>7‑Day plans</CardTitle><CardDescription>Clustered topics with daily objectives for steady, guided progress.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Combine sources</CardTitle><CardDescription>Upload PDFs and paste notes together for richer, more varied quizzes.</CardDescription></CardHeader></Card>
             <Card className="card-glow"><CardHeader><CardTitle>Private by design</CardTitle><CardDescription>Runs 100% in your browser after load. No servers, no data sharing.</CardDescription></CardHeader></Card>
-            <Card className="card-glow"><CardHeader><CardTitle>Fast & responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
+            <Card className="card-glow"><CardHeader><CardTitle>Fast &amp; responsive</CardTitle><CardDescription>Optimized, incremental processing keeps the UI smooth even on large notes.</CardDescription></CardHeader></Card>
           </div>
         </section>
 
@@ -225,36 +225,36 @@ async function buildKitFromContent(rawText, title, difficulty) {
   // Use robust textProcessor.generateArtifacts first; fallback to legacy pipeline if needed
   try {
     const artifacts = await generateArtifacts(rawText, title, { difficulty });
-    if (artifacts && Array.isArray(artifacts.quiz) && artifacts.quiz.length) {
+    if (artifacts &amp;&amp; Array.isArray(artifacts.quiz) &amp;&amp; artifacts.quiz.length) {
       return artifacts;
     }
   } catch {}
 
   const cleaned = normalizeText(rawText)
     .split(/\n+/)
-    .filter(line => line && !isAuthorish(line) && !looksLikeHeadingStrong(line))
+    .filter(line => line &amp;&amp; !isAuthorish(line) &amp;&amp; !looksLikeHeadingStrong(line))
     .join(' ');
   const sentences = splitSentences(cleaned);
 
   let chosenIdxs = [];
   try {
     const vecs = await embedSentences(sentences);
-    if (vecs && vecs.length) {
+    if (vecs &amp;&amp; vecs.length) {
       const picked = [];
       const used = new Set();
       const k = Math.min(10, sentences.length);
       let cur = 0;
-      for (let i = 0; i < vecs.length; i++) { if (vecs[i]) { cur = i; break; } }
+      for (let i = 0; i &lt; vecs.length; i++) { if (vecs[i]) { cur = i; break; } }
       picked.push(cur); used.add(cur);
-      while (picked.length < k) {
+      while (picked.length &lt; k) {
         let best = -1; let bestScore = -Infinity;
-        for (let i = 0; i < vecs.length; i++) {
+        for (let i = 0; i &lt; vecs.length; i++) {
           if (used.has(i)) continue;
           let rel = 0;
           for (const pi of picked) {
             const a = vecs[i], b = vecs[pi];
             let dot = 0, na = 0, nb = 0;
-            for (let d = 0; d < a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
+            for (let d = 0; d &lt; a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
             const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-8);
             rel += sim;
           }
@@ -263,39 +263,39 @@ async function buildKitFromContent(rawText, title, difficulty) {
           for (const pi of picked) {
             const a = vecs[i], b = vecs[pi];
             let dot = 0, na = 0, nb = 0;
-            for (let d = 0; d < a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
+            for (let d = 0; d &lt; a.length; d++) { dot += a[d]*b[d]; na += a[d]*a[d]; nb += b[d]*b[d]; }
             const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-8);
-            if (sim > div) div = sim;
+            if (sim &gt; div) div = sim;
           }
           const lambda = difficulty === 'expert' ? 0.8 : difficulty === 'harder' ? 0.75 : 0.7;
           const score = lambda * rel - (1 - lambda) * div;
-          if (score > bestScore) { bestScore = score; best = i; }
+          if (score &gt; bestScore) { bestScore = score; best = i; }
         }
         if (best === -1) break;
         picked.push(best); used.add(best);
-        if (picked.length >= k) break;
+        if (picked.length &gt;= k) break;
       }
       chosenIdxs = picked;
     }
   } catch {}
 
   if (!chosenIdxs.length) {
-    chosenIdxs = Array.from({ length: Math.min(10, sentences.length) }, (_, i) => i);
+    chosenIdxs = Array.from({ length: Math.min(10, sentences.length) }, (_, i) =&gt; i);
   }
 
   const phrases = extractKeyPhrases(cleaned, 18);
-  let flashcards = phrases.slice(0, 12).map(p => ({ front: p, back: sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[0] || p }));
+  let flashcards = phrases.slice(0, 12).map(p =&gt; ({ front: p, back: sentences.find(s =&gt; (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[0] || p }));
   // Ensure at least 8 flashcards by backfilling from phrases
-  if (flashcards.length < 8) {
+  if (flashcards.length &lt; 8) {
     const pool = phrases.slice(0, 24);
-    for (let i = 0; i < pool.length && flashcards.length < 8; i++) {
+    for (let i = 0; i &lt; pool.length &amp;&amp; flashcards.length &lt; 8; i++) {
       const p = pool[i];
       if (!p) continue;
       let best = '';
       try { best = await bestSentenceForPhrase(p, sentences, 160); } catch {}
-      const back = best || sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
+      const back = best || sentences.find(s =&gt; (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
       const front = p;
-      if (!flashcards.some(fc => (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
+      if (!flashcards.some(fc =&gt; (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
         flashcards.push({ front, back });
       }
     }
@@ -303,38 +303,38 @@ async function buildKitFromContent(rawText, title, difficulty) {
   flashcards = flashcards.slice(0, Math.max(8, Math.min(12, flashcards.length)));
 
   const quiz = [];
-  for (let qi = 0; qi < Math.min(10, chosenIdxs.length); qi++) {
+  for (let qi = 0; qi &lt; Math.min(10, chosenIdxs.length); qi++) {
     const si = chosenIdxs[qi];
     const context = sentences[si] || '';
     if (!context) continue;
-    let cand = phrases.find(p => context.toLowerCase().includes(p.toLowerCase()));
+    let cand = phrases.find(p =&gt; context.toLowerCase().includes(p.toLowerCase()));
     if (!cand) {
       const words = context.split(/\s+/);
       const start = Math.max(1, Math.floor(words.length/2) - 3);
       cand = words.slice(start, start + 4).join(' ');
     }
     let question = await generateQuestionFromContext(context, cand);
-    if (!question || question.length < 10) {
+    if (!question || question.length &lt; 10) {
       question = `Which statement is accurate based on the material?`;
     }
     const distracts = [];
-    for (let j = 0; j < sentences.length && distracts.length < 6; j++) {
+    for (let j = 0; j &lt; sentences.length &amp;&amp; distracts.length &lt; 6; j++) {
       if (j === si) continue;
       const s = sentences[j];
-      if (!s || s.length < 40) continue;
+      if (!s || s.length &lt; 40) continue;
       if (s.toLowerCase().includes(cand.toLowerCase())) continue;
       distracts.push(s);
     }
-    const correct = context.length > 180 ? context.slice(0, context.lastIndexOf(' ', 170)) + '.' : context;
-    const optionsPool = [correct, ...distracts].slice(0, 6).map(s => s.length > 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
+    const correct = context.length &gt; 180 ? context.slice(0, context.lastIndexOf(' ', 170)) + '.' : context;
+    const optionsPool = [correct, ...distracts].slice(0, 6).map(s =&gt; s.length &gt; 180 ? s.slice(0, s.lastIndexOf(' ', 170)) + '.' : s);
     const uniq = [];
     const seen = new Set();
-    const normKey = (s) => String(s||'').trim().replace(/[\s]+/g,' ').toLowerCase();
+    const normKey = (s) =&gt; String(s||'').trim().replace(/[\s]+/g,' ').toLowerCase();
     for (const op of optionsPool) {
       const k = normKey(op);
       if (!k || seen.has(k)) continue;
       seen.add(k); uniq.push(op);
-      if (uniq.length >= 4) break;
+      if (uniq.length &gt;= 4) break;
     }
     const generics = [
       'A related but inaccurate claim about the topic.',
@@ -343,17 +343,17 @@ async function buildKitFromContent(rawText, title, difficulty) {
       'A misinterpretation of the concept discussed.'
     ];
     let gi = 0;
-    while (uniq.length < 4 && gi < generics.length) {
+    while (uniq.length &lt; 4 &amp;&amp; gi &lt; generics.length) {
       const g = generics[gi++];
       const k = normKey(g);
       if (!seen.has(k)) { seen.add(k); uniq.push(g); }
     }
     // If still short, derive light modal variants of the correct sentence
     function tweakModal(s) { return String(s||'').replace(/\bmay\b/gi,'must').replace(/\boften\b/gi,'always').replace(/\bsometimes\b/gi,'always'); }
-    while (uniq.length < 4) {
+    while (uniq.length &lt; 4) {
       const v = tweakModal(correct);
       const k = normKey(v);
-      if (k && !seen.has(k)) { seen.add(k); uniq.push(v); }
+      if (k &amp;&amp; !seen.has(k)) { seen.add(k); uniq.push(v); }
       else break;
     }
     const idx = Math.floor(Math.random() * 4);
@@ -362,14 +362,14 @@ async function buildKitFromContent(rawText, title, difficulty) {
     const explanationBullets = await summarisePointwise(context, 'short');
     quiz.push({ id: `q-${qi}`, question, options: arranged, answer_index: idx, explanation: explanationBullets[0] || 'Derived from the provided material.' });
   }
-  while (quiz.length < 10) {
+  while (quiz.length &lt; 10) {
     const s = sentences[quiz.length % Math.max(1, sentences.length)] || cleaned;
-    const opts = [s, ...sentences.filter(x => x !== s)].slice(0,4);
-    while (opts.length < 4) opts.push('General concepts.');
+    const opts = [s, ...sentences.filter(x =&gt; x !== s)].slice(0,4);
+    while (opts.length &lt; 4) opts.push('General concepts.');
     quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is accurate based on the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
   }
 
-  const plan = Array.from({ length: 7 }, (_, i) => {
+  const plan = Array.from({ length: 7 }, (_, i) =&gt; {
     const topic = phrases[i] || `Topic ${i + 1}`;
     return { title: `Day ${i + 1}: ${topic}`,
       objectives: [
@@ -390,10 +390,10 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     try {
       // Only when there is a long run of single-letter tokens
       if (!/\b(?:[A-Za-z]\s){5,}[A-Za-z]\b/.test(t)) return t;
-      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) => m.replace(/\s+/g, ''));
+      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) =&gt; m.replace(/\s+/g, ''));
     } catch { return t; }
   }
-  const sanitize = (s) => {
+  const sanitize = (s) =&gt; {
     try {
       let t = String(s || '');
       const pad = 'In practice, this may vary under specific constraints.';
@@ -402,55 +402,62 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
       t = unspaceLetters(t);
       t = t.replace(/\s+/g, ' ').trim();
-      if (t && !/[.!?]$/.test(t)) t += '.';
+      if (t &amp;&amp; !/[.!?]$/.test(t)) t += '.';
       return t;
     } catch { return s; }
   };
-  const ensureFourOptions = (q) => {
+  const ensureFourOptions = (q) =&gt; {
     const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
     const correct = sanitize(q.options?.[q.answer_index] ?? '');
-    const norm = (x) => String(x || '').toLowerCase();
-    const tokenize = (t) => String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
-    const jaccard = (a, b) => {
+    const norm = (x) =&gt; String(x || '').toLowerCase();
+    const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
+    const jaccard = (a, b) =&gt; {
       const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
-      if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
+      if (!A.size &amp;&amp; !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/inter : 0; // safe fallback
     };
-    const clampWords = (text, minW = 12, maxW = 20) => {
+    const balanceLen = (text, target) =&gt; {
       let t = sanitize(text);
-      if (!t) return '';
-      const words = t.split(/\s+/);
-      if (words.length > maxW) {
-        t = words.slice(0, maxW).join(' ');
+      const min = Math.max(60, Math.floor(target * 0.9));
+      if (t.length &lt; min) {
+        const qualifiers = [
+          'within the organization network.',
+          'under internal policy controls.',
+          'subject to authorization requirements.',
+          'in accordance with governance standards.',
+          'under defined risk thresholds.',
+          'with appropriate safeguards and reviews.',
+          'as per established procedures.',
+          'with documented approvals in place.'
+        ];
+        const pick = qualifiers[(Math.abs(t.length + target) % qualifiers.length)];
+        t = t.replace(/[.!?]$/, '');
+        t = t + ' ' + pick;
       }
-      if (words.length < minW) return '';
       if (!/[.!?]$/.test(t)) t = t.trim() + '.';
       return t.trim();
     };
 
     const out = [];
     const seen = new Set();
+    const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
 
-    const addIf = (cand) => {
+    const addIf = (cand) =&gt; {
       if (!cand) return false;
-      const c = clampWords(cand, 12, 20);
-      if (!c) return false;
+      let c = balanceLen(cand, targetLen);
       const k = norm(c);
       if (!k || seen.has(k)) return false;
-      if (out.some(x => jaccard(x, c) >= 0.55)) return false;
+      if (out.some(x =&gt; jaccard(x, c) &gt;= 0.5)) return false;
       out.push(c); seen.add(k); return true;
     };
 
-    // keep correct first
     if (correct) addIf(correct);
 
-    // take unique from base
     for (const o of base) {
-      if (out.length >= 4) break;
+      if (out.length &gt;= 4) break;
       addIf(o);
     }
 
-    // If still short, synthesize content-aware distractors from the correct sentence (no clause swapping)
-    if (out.length < 4 && correct) {
+    if (out.length &lt; 4 &amp;&amp; correct) {
       const cands = [];
       cands.push(correct.replace(/\bmay\b/gi, 'must'));
       cands.push(correct.replace(/\bmust\b/gi, 'may'));
@@ -463,7 +470,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       const numRx = /(\d+(?:\.\d+)?%?)/;
       if (numRx.test(correct)) {
         const m = correct.match(numRx);
-        const n = parseFloat((m && m[1] || '0').replace('%',''));
+        const n = parseFloat((m &amp;&amp; m[1] || '0').replace('%',''));
         if (!isNaN(n)) {
           const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
           for (const v of variants) {
@@ -473,41 +480,51 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
         }
       }
       for (const c of cands) {
-        if (out.length >= 4) break;
+        if (out.length &gt;= 4) break;
         addIf(c);
       }
     }
 
+    if (out.length &lt; 4) {
+      const generics = [
+        'This statement appears related but does not reflect the material.',
+        'This conclusion does not follow from the provided context.',
+        'A plausible but incorrect interpretation of the content.',
+        'A misreading that conflicts with the material.'
+      ];
+      for (const g of generics) { if (out.length &gt;= 4) break; addIf(g); }
+    }
+
     const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
     const arranged = out.slice(0, 4);
-    const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
-    if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+    const curIdx = arranged.findIndex(o =&gt; norm(o) === norm(correct));
+    if (curIdx !== -1 &amp;&amp; curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
     return { arranged, idx };
   };
   return (
     <div className="space-y-4">
-      {quiz.map((q, i) => {
+      {quiz.map((q, i) =&gt; {
         const picked = selected[q.id];
         const fixed = ensureFourOptions(q);
         return (
           <div key={q.id} className="border rounded-md p-4">
             <div className="font-medium mb-3">{i + 1}. {q.question}</div>
             <div className="space-y-2">
-              {fixed.arranged.map((op, oi) => {
-                const isCorrect = evaluated && oi === fixed.idx;
-                const isWrong = evaluated && picked === oi && oi !== fixed.idx;
+              {fixed.arranged.map((op, oi) =&gt; {
+                const isCorrect = evaluated &amp;&amp; oi === fixed.idx;
+                const isWrong = evaluated &amp;&amp; picked === oi &amp;&amp; oi !== fixed.idx;
                 return (
                   <label key={oi} className={`flex items-start gap-2 p-2 rounded-md border cursor-pointer ${isCorrect ? 'border-green-600 bg-green-600/10' : isWrong ? 'border-red-600 bg-red-600/10' : 'border-border'}`}>
-                    <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() => setSelected(s => ({ ...s, [q.id]: oi }))} />
+                    <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() =&gt; setSelected(s =&gt; ({ ...s, [q.id]: oi }))} />
                     <span className="text-sm leading-relaxed">{op}</span>
                   </label>
                 );
               })}
             </div>
-            {evaluated && (
+            {evaluated &amp;&amp; (
               <div className="mt-2 text-sm text-foreground/80">
                 {selected[q.id] === fixed.idx ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{fixed.arranged[fixed.idx]}</span>
-                {q.explanation ? <div className="mt-1">Explanation: {q.explanation}</div> : null}
+                {q.explanation ? &lt;div className="mt-1">Explanation: {q.explanation}&lt;/div> : null}
               </div>
             )}
           </div>
@@ -529,16 +546,16 @@ export function Studio() {
   // Decode shared kit if present in hash
   React.useEffect(() => {
     try {
-      if (location.hash && location.hash.includes('#s=')) {
+      if (location.hash &amp;&amp; location.hash.includes('#s=')) {
         const token = location.hash.split('#s=')[1];
         if (token) {
           const bytes = fromB64Url(token);
           const jsonBytes = pako.inflate(bytes);
           const text = new TextDecoder().decode(jsonBytes);
           const payload = JSON.parse(text);
-          if (payload && payload.kit) {
+          if (payload &amp;&amp; payload.kit) {
             setKit(payload.kit);
-            if (payload.title && titleRef.current) titleRef.current.value = payload.title;
+            if (payload.title &amp;&amp; titleRef.current) titleRef.current.value = payload.title;
             setSelected({}); setEvaluated(false);
           }
         }
@@ -572,7 +589,7 @@ export function Studio() {
 
   async function onFileChange(e) {
     try {
-      const file = e.target.files && e.target.files[0];
+      const file = e.target.files &amp;&amp; e.target.files[0];
       setHasFile(!!file);
       if (!file) { setFileMeta(null); return; }
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
@@ -590,8 +607,8 @@ export function Studio() {
       setGenerating(true); setEvaluated(false); setSelected({});
       let combined = '';
       const notes = notesRef.current?.value || '';
-      const file = fileRef.current?.files && fileRef.current.files[0];
-      if (!notes && !file) {
+      const file = fileRef.current?.files &amp;&amp; fileRef.current.files[0];
+      if (!notes &amp;&amp; !file) {
         alert('Please paste some text or upload a PDF before generating.');
         setGenerating(false);
         return;
@@ -624,9 +641,9 @@ export function Studio() {
       const headerH = small ? 24 : 28;
       const pageW = doc.internal.pageSize.getWidth();
       try {
-        if (logoRef.current && logoRef.current.dataUrl) {
+        if (logoRef.current &amp;&amp; logoRef.current.dataUrl) {
           const { dataUrl, width, height } = logoRef.current;
-          const ratio = (width && height) ? (width / height) : 1.0;
+          const ratio = (width &amp;&amp; height) ? (width / height) : 1.0;
           const logoW = Math.min(120, headerH * ratio);
           const x = (pageW - logoW) / 2;
           doc.addImage(dataUrl, 'PNG', x, y - 6, logoW, headerH, undefined, 'FAST');
@@ -648,7 +665,7 @@ export function Studio() {
 
     const pageHeight = doc.internal.pageSize.getHeight();
     function ensureSpace(linesNeeded = 0) {
-      if (y + linesNeeded > pageHeight - margin - 20) {
+      if (y + linesNeeded &gt; pageHeight - margin - 20) {
         addFooter();
         doc.addPage();
         y = margin;
@@ -681,7 +698,7 @@ export function Studio() {
       }
     }
 
-    await cb({ doc, yRef: { get: () => y, set: (v) => { y = v; } }, writeHeading, writePara, writeBullets, addFooter, ensureSpace, margin });
+    await cb({ doc, yRef: { get: () =&gt; y, set: (v) =&gt; { y = v; } }, writeHeading, writePara, writeBullets, addFooter, ensureSpace, margin });
     addFooter();
     doc.save('Skriptio.pdf');
   }
@@ -689,7 +706,7 @@ export function Studio() {
   async function downloadQuizPDF() {
     if (!kit?.quiz?.length) return;
     // Local helpers to mirror on-screen repair
-    const sanitize = (s) => {
+    const sanitize = (s) =&gt; {
       try {
         let t = String(s || '');
         const pad = 'In practice, this may vary under specific constraints.';
@@ -697,23 +714,23 @@ export function Studio() {
         if (t.includes(pad)) t = t.split(pad).join(' ');
         if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
         t = t.replace(/\s+/g, ' ').trim();
-        if (t && !/[.!?]$/.test(t)) t += '.';
+        if (t &amp;&amp; !/[.!?]$/.test(t)) t += '.';
         return t;
       } catch { return s; }
     };
-    const ensureFour = (q) => {
+    const ensureFour = (q) =&gt; {
       const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
       const correct = sanitize(q.options?.[q.answer_index] ?? '');
-      const norm = (x) => String(x || '').toLowerCase();
-      const tokenize = (t) => String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
-      const jaccard = (a, b) => {
+      const norm = (x) =&gt; String(x || '').toLowerCase();
+      const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
+      const jaccard = (a, b) =&gt; {
         const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
-        if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
+        if (!A.size &amp;&amp; !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
       };
-      const balanceLen = (text, target) => {
+      const balanceLen = (text, target) =&gt; {
         let t = sanitize(text);
         const min = Math.max(60, Math.floor(target * 0.9));
-        if (t.length < min) {
+        if (t.length &lt; min) {
           const qualifiers = [
             'within the organization network.',
             'under internal policy controls.',
@@ -736,23 +753,23 @@ export function Studio() {
       const seen = new Set();
       const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
 
-      const addIf = (cand) => {
+      const addIf = (cand) =&gt; {
         if (!cand) return false;
         let c = balanceLen(cand, targetLen);
         const k = norm(c);
         if (!k || seen.has(k)) return false;
-        if (out.some(x => jaccard(x, c) >= 0.5)) return false;
+        if (out.some(x =&gt; jaccard(x, c) &gt;= 0.5)) return false;
         out.push(c); seen.add(k); return true;
       };
 
       if (correct) addIf(correct);
 
       for (const o of base) {
-        if (out.length >= 4) break;
+        if (out.length &gt;= 4) break;
         addIf(o);
       }
 
-      if (out.length < 4 && correct) {
+      if (out.length &lt; 4 &amp;&amp; correct) {
         const cands = [];
         cands.push(correct.replace(/\bmay\b/gi, 'must'));
         cands.push(correct.replace(/\bmust\b/gi, 'may'));
@@ -765,7 +782,7 @@ export function Studio() {
         const numRx = /(\d+(?:\.\d+)?%?)/;
         if (numRx.test(correct)) {
           const m = correct.match(numRx);
-          const n = parseFloat((m && m[1] || '0').replace('%',''));
+          const n = parseFloat((m &amp;&amp; m[1] || '0').replace('%',''));
           if (!isNaN(n)) {
             const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
             for (const v of variants) {
@@ -775,25 +792,25 @@ export function Studio() {
           }
         }
         for (const c of cands) {
-          if (out.length >= 4) break;
+          if (out.length &gt;= 4) break;
           addIf(c);
         }
       }
 
-      if (out.length < 4) {
+      if (out.length &lt; 4) {
         const generics = [
           'This statement appears related but does not reflect the material.',
           'This conclusion does not follow from the provided context.',
           'A plausible but incorrect interpretation of the content.',
           'A misreading that conflicts with the material.'
         ];
-        for (const g of generics) { if (out.length >= 4) break; addIf(g); }
+        for (const g of generics) { if (out.length &gt;= 4) break; addIf(g); }
       }
 
       const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
       const arranged = out.slice(0, 4);
-      const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
-      if (curIdx !== -1 && curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
+      const curIdx = arranged.findIndex(o =&gt; norm(o) === norm(correct));
+      if (curIdx !== -1 &amp;&amp; curIdx !== idx) { const tmp = arranged[idx]; arranged[idx] = arranged[curIdx]; arranged[curIdx] = tmp; }
       return { arranged, idx };
     };
     await withDoc((kit.title ? kit.title + ' — Quiz' : 'Quiz'), async ({ writeHeading, writePara }) => {
@@ -835,7 +852,7 @@ export function Studio() {
 
   // ---------- Share / Copy Link ----------
   function buildShareLink() {
-    if (!kit || (!kit.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length)) return '';
+    if (!kit || (!kit.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length)) return '';
     const payload = { v: 1, ts: Date.now(), title: titleRef.current?.value || kit.title || 'Study Kit', kit };
     const token = b64uEncodeObject(payload);
     const slug = (titleRef.current?.value || kit.title || 'study-kit').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'study-kit';
@@ -928,8 +945,8 @@ export function Studio() {
               <Button className="btn" variant="outline" onClick={downloadFlashcardsPDF} disabled={!kit?.flashcards?.length}><FileText size={16} className="mr-2"/>Flashcards PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadTheoryPDF} disabled={!kit?.theory?.length}><FileText size={16} className="mr-2"/>Theory PDF</Button>
               <Button className="btn" variant="outline" onClick={downloadPlanPDF} disabled={!kit?.plan?.length}><FileText size={16} className="mr-2"/>7‑Day Plan PDF</Button>
-              <Button className="btn" variant="ghost" size="icon" aria-label="Share" onClick={onShare} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><Share2 size={18} /></Button>
-              <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length && !kit?.flashcards?.length && !kit?.plan?.length && !kit?.theory?.length}><LinkIcon size={18} /></Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Share" onClick={onShare} disabled={!kit?.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length}><Share2 size={18} /></Button>
+              <Button className="btn" variant="ghost" size="icon" aria-label="Copy link" onClick={onCopyLink} disabled={!kit?.quiz?.length &amp;&amp; !kit?.flashcards?.length &amp;&amp; !kit?.plan?.length &amp;&amp; !kit?.theory?.length}><LinkIcon size={18} /></Button>
             </div>
 
             <Tabs defaultValue="quiz" className="studio-tabs-wrap">
@@ -960,8 +977,8 @@ export function Studio() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {kit.flashcards.map((fc, i) => (
                         <div key={i} className="border rounded-md p-4">
-                          <div className="font-medium">{fc.front}</div>
-                          <div className="mt-2 text-sm text-foreground/80">{fc.back}</div>
+                          <div className="font-medium flashcard-front">{fc.front}</div>
+                          <div className="mt-2 text-sm text-foreground/80 flashcard-back">{fc.back}</div>
                         </div>
                       ))}
                     </div>
@@ -976,7 +993,7 @@ export function Studio() {
                         <div key={i} className="border rounded-md p-4">
                           <div className="font-medium mb-1">{d.title}</div>
                           <ul className="list-disc pl-5 text-sm text-foreground/80 space-y-1">
-                            {d.objectives.map((o, j) => (<li key={j}>{o}</li>))}
+                            {d.objectives.map((o, j) => (&lt;li key={j}>{o}&lt;/li>))}
                           </ul>
                         </div>
                       ))}
@@ -988,7 +1005,7 @@ export function Studio() {
                 <Card className="kit-surface"><div className="kit-toolbar">Theory Qs</div><CardContent>
                   {kit.theory?.length ? (
                     <ol className="list-decimal pl-5 space-y-2 text-sm">
-                      {kit.theory.map((q, i) => (<li key={i}>{q}</li>))}
+                      {kit.theory.map((q, i) => (&lt;li key={i}>{q}&lt;/li>))}
                     </ol>
                   ) : <EmptyState label="No theory questions yet." />}
                 </CardContent></Card>
