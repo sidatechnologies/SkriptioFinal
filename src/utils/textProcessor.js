@@ -540,6 +540,29 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     if (!seenSig.has(sig)) { seenSig.add(sig); flashPicked.push(s); }
     if (flashPicked.length >= 12) break;
   }
+  // Ensure flashcard backs are real content (not generic instructions) and unique
+  const usedBacks = new Set();
+  function normalizeBack(b) { return String(b || '').trim().toLowerCase(); }
+  async function fixBack(front, back) {
+    let b = String(back || '').trim();
+    if (isInstructionish(b) || usedBacks.has(normalizeBack(b))) {
+      try {
+        const ml = await import('./ml');
+        const best = await ml.bestSentenceForPhrase(front, baseSentences, 200);
+        if (best) b = ensureCaseAndPeriod('', summarizeSentence(best, 200));
+      } catch {}
+    }
+    if (!b || isInstructionish(b) || usedBacks.has(normalizeBack(b))) {
+      const alt = (baseSentences.find(x => !isInstructionish(x)) || '').trim();
+      if (alt) b = ensureCaseAndPeriod('', summarizeSentence(alt, 200));
+    }
+    if (!b || isInstructionish(b)) {
+      b = ensureCaseAndPeriod('', `${front} — concise explanation derived from the material.`);
+    }
+    usedBacks.add(normalizeBack(b));
+    return b;
+  }
+
   let flashcards = (flashPicked.map((s, i) => ({ front: titleFromSentence(s, phrases), back: ensureCaseAndPeriod('', summarizeSentence(s, 200)) })));
   if (flashcards.length === 0 && text.trim()) flashcards.push({ front: titleFromSentence(text, phrases), back: ensureCaseAndPeriod('', summarizeSentence(text, 200)) });
   // Ensure at least 8 flashcards by backfilling from phrases
