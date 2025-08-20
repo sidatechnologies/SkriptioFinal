@@ -307,7 +307,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     const si = chosenIdxs[qi];
     const context = sentences[si] || '';
     if (!context) continue;
-    let cand = phrases.find(p =&gt; context.toLowerCase().includes(p.toLowerCase()));
+    let cand = phrases.find(p => context.toLowerCase().includes(p.toLowerCase()));
     if (!cand) {
       const words = context.split(/\s+/);
       const start = Math.max(1, Math.floor(words.length/2) - 3);
