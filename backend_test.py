@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Backend URL from supervisor configuration
-BACKEND_URL = "https://knowledge-check-3.preview.emergentagent.com"
+BACKEND_URL = "https://skriptio-fix.preview.emergentagent.com"
 
 def create_test_pdf():
     """Create a simple PDF with 'Hello OCR' text for testing"""
