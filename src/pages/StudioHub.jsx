@@ -12,7 +12,7 @@ export default function StudioHub() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const CardCommon = ({ icon, title, desc, onOpen, disabled = false }) => (
+  const CardCommon = ({ icon, title, desc, onOpen, disabled = false, label = "Open" }) => (
     <Card className="bg-card border border-black/70 dark:border-white/60 relative">
       {disabled && (
         <div className="absolute inset-0 backdrop-blur-[2px] bg-background/40 z-10 rounded-md" />
@@ -23,12 +23,13 @@ export default function StudioHub() {
       </CardHeader>
       <CardContent>
         <Button
-          onClick={onOpen}
+          onClick={disabled ? undefined : onOpen}
           disabled={disabled}
           aria-disabled={disabled}
+          title={disabled ? 'Coming Soon' : undefined}
           className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          Open <ArrowRight size={16} className="ml-1"/>
+          {label} {!disabled && <ArrowRight size={16} className="ml-1"/>}
         </Button>
       </CardContent>
     </Card>
