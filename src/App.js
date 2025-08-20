@@ -362,10 +362,10 @@ async function buildKitFromContent(rawText, title, difficulty) {
     const explanationBullets = await summarisePointwise(context, 'short');
     quiz.push({ id: `q-${qi}`, question, options: arranged, answer_index: idx, explanation: explanationBullets[0] || 'Derived from the provided material.' });
   }
-  while (quiz.length &lt; 10) {
+  while (quiz.length < 10) {
     const s = sentences[quiz.length % Math.max(1, sentences.length)] || cleaned;
-    const opts = [s, ...sentences.filter(x =&gt; x !== s)].slice(0,4);
-    while (opts.length &lt; 4) opts.push('General concepts.');
+    const opts = [s, ...sentences.filter(x => x !== s)].slice(0,4);
+    while (opts.length < 4) opts.push('General concepts.');
     quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is accurate based on the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
   }
 
