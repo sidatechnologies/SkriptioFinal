@@ -293,9 +293,9 @@ async function buildKitFromContent(rawText, title, difficulty) {
       if (!p) continue;
       let best = '';
       try { best = await bestSentenceForPhrase(p, sentences, 160); } catch {}
-      const back = best || sentences.find(s =&gt; (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
+      const back = best || sentences.find(s => (s||'').toLowerCase().includes((p||'').toLowerCase())) || sentences[i] || cleaned;
       const front = p;
-      if (!flashcards.some(fc =&gt; (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
+      if (!flashcards.some(fc => (fc.front||'').toLowerCase() === (front||'').toLowerCase())) {
         flashcards.push({ front, back });
       }
     }
