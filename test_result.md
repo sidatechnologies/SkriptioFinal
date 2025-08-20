@@ -598,6 +598,9 @@
     - "Fix dropdown styling in light theme - StudioNav mobile dropdown and difficulty selects need white background, black text, black arrow"
   stuck_tasks: []
   test_all: false
+  - "Quiz render: force 4 unique options per question (sanitize filler; pad generics; stable index)"
+  - "PDF exports: header logo aspect ratio; header on each page; margins respected; footer fixed"
+
   test_priority: "high_first"
 
 ## agent_communication:
