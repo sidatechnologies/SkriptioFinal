@@ -440,7 +440,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     const opts2 = distinctFillOptions(correct, d, 4);
     const placed = placeDeterministically(opts2, correct, quiz.length);
     for (const o of placed.arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
-    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: QUESTION_STEM, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: QUESTION_STEM_TXT, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
   // Flashcards — per-card titles
