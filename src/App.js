@@ -658,6 +658,28 @@ export function Studio() {
 
   function onEvaluate() { setEvaluated(true); }
 
+  // ---------- Flashcards safety filter ----------
+  const isInstructionishText = (s) => {
+    const t = String(s || '').trim();
+    if (!t) return false;
+    const patterns = [
+      /in your own words/i,
+      /\btheory questions?\b/i,
+      /\bquestions?\s*\d+\b/i,
+      /^\s*(?:q|question)\s*\d+\b/i,
+      /^explain\b/i,
+      /summariz(e|e) the key ideas/i,
+      /\banalyze\b/i,
+      /identify (?:causes|consequences)/i,
+      /include what it is[, ]+why it matters/i,
+      /one example from (?:the )?material/i
+    ];
+    return patterns.some(rx => rx.test(t));
+  };
+  const filterFlashcards = (list) => {
+    return (list || []).filter(fc => fc && fc.front && fc.back && !isInstructionishText(fc.front) && !isInstructionishText(fc.back) && /[A-Za-z]/.test(fc.back) && fc.back.trim().length >= 40 && !fc.back.trim().endsWith('?'));
+  };
+
   // ---------- PDF helpers ----------
   async function withDoc(title, cb) {
     const jsPDF = await getJsPDF(2000);
