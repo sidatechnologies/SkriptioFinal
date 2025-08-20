@@ -369,15 +369,6 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
   const quiz = [];
   let si = 0, pi = 0;
 
-  // Per spec: All 10 quiz questions share the same stem and the same option templates
-  const QUESTION_STEM = 'Which statement is accurate based on the material?';
-  const TEMPLATE_OPTIONS = [
-    'Include what it is, why it matters, and one example from the material.',
-    'A related but inaccurate claim about the topic.',
-    'Include what it is not, why it matters, and one example from the material.',
-    'This statement appears related but does not reflect the material.'
-  ];
-
   function pickSentence() {
     for (let t = 0; t < baseSentences.length; t++) {
       const idx = (si + t) % baseSentences.length;
