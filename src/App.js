@@ -393,7 +393,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){5,})\b/g, (m) => m.replace(/\s+/g, ''));
     } catch { return t; }
   }
-  const sanitize = (s) =&gt; {
+  const sanitize = (s) => {
     try {
       let t = String(s || '');
       const pad = 'In practice, this may vary under specific constraints.';
