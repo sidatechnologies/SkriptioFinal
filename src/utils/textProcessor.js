@@ -267,12 +267,20 @@ function balanceLength(text, target = 120) {
   const min = Math.max(60, Math.floor(target * 0.85));
   if (t.length < min) {
     const tails = [
-      ' Consider context and scope.',
-      ' This may vary across scenarios.',
-      ' Practical cases can differ.'
+      'Consider context and scope.',
+      'This may vary across scenarios.',
+      'Practical cases can differ.',
+      'Subject to policy, limits, and approvals.',
+      'Depending on jurisdiction and scope.',
+      'With safeguards, governance, and audit controls.',
+      'Under explicit authorization and oversight.',
+      'In alignment with internal procedures and risk thresholds.',
+      'As documented in the execution plan.',
+      'Based on operational requirements and compliance rules.'
     ];
     const pick = tails[(Math.abs(t.length + target) % tails.length)];
-    t = ensureSentence((t.replace(/[.!?]$/,'').trim() + '.').replace(/\.\s*$/,'') + pick);
+    t = (t.replace(/[.!?]$/,'').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
+    t = ensureSentence(t);
   }
   return normalizeToLength(t, target);
 }
