@@ -480,7 +480,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
         }
       }
       for (const c of cands) {
-        if (out.length &gt;= 4) break;
+        if (out.length >= 4) break;
         addIf(c);
       }
     }
