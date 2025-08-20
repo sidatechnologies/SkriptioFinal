@@ -895,7 +895,7 @@ export function Studio() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Input placeholder="Title (optional)" className="studio-input-title" ref={titleRef} />
-                <Textarea rows={10} placeholder="Paste text here (supports LaTeX like $...$)" className="studio-textarea-notes" ref={notesRef} />
+                <Textarea rows={10} placeholder="Paste text here (supports LaTeX like $...$)" className="studio-textarea-notes" ref={notesRef} onChange={(e)=>setNotesVal(e.target.value)} />
                 <div className="text-xs text-foreground/70">Tip: You can combine PDF + pasted notes. Math formulas in text are preserved.</div>
                 <input ref={fileRef} type="file" accept="application/pdf" className="file-input-reset" onChange={onFileChange} />
                 <Button onClick={() => fileRef.current?.click()} variant="outline" className="button-upload w-full">
