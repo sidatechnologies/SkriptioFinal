@@ -42,10 +42,14 @@ export function normalizeText(raw) {
 function isInstructionish(s) {
   const t = String(s || '').trim();
   if (!t) return false;
+  // Common instructional prompts and headings that should not become content
   if (/include what it is, why it matters, and one example from the material\.?/i.test(t)) return true;
   if (/^explain the concept/i.test(t) && /in your own words/i.test(t)) return true;
   if (/^summarize the key ideas/i.test(t)) return true;
-  if (/^analyze .* in context/i.test(t)) return true;
+  if (/^analyze\b/i.test(t)) return true;
+  if (/^identify causes, consequences, and two mitigation strategies\.?/i.test(t)) return true;
+  if (/\btheory questions?\b/i.test(t)) return true;
+  if (/\bquestions?\s*\d+\b/i.test(t)) return true;
   return false;
 }
 
