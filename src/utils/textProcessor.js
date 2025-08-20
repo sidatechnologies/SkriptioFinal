@@ -271,7 +271,7 @@ export function distinctFillOptions(correct, pool = [], needed = 4) {
     const norm = normalizeToLength(opt, Math.max(100, String(correct||'').length));
     const key = norm.toLowerCase();
     if (!norm || seen.has(key)) return false;
-    if (selected.some(s => jaccard(s, norm) >= 0.55)) return false;
+    if (selected.some(s => jaccard(s, norm) >= 0.75)) return false;
     selected.push(norm); seen.add(key); return true;
   };
   addIf(String(correct || '').trim());
