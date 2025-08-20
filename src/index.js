@@ -24,7 +24,7 @@ root.render(
 // Service Worker kill-switch: Unregister any existing SWs and clear caches once (prevents stale black screens).
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const onceKey = 'sw_kill_once_v2';
+    const onceKey = 'sw_kill_once_v3';
     // Unregister all active registrations
     navigator.serviceWorker.getRegistrations()
       .then((regs) => regs.forEach((r) => { try { r.unregister(); } catch (e) {} }))
