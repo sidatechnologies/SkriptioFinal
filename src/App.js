@@ -718,12 +718,12 @@ export function Studio() {
         return t;
       } catch { return s; }
     };
-    const ensureFour = (q) =&gt; {
+    const ensureFour = (q) => {
       const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
       const correct = sanitize(q.options?.[q.answer_index] ?? '');
-      const norm = (x) =&gt; String(x || '').toLowerCase();
-      const tokenize = (t) =&gt; String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
-      const jaccard = (a, b) =&gt; {
+      const norm = (x) => String(x || '').toLowerCase();
+      const tokenize = (t) => String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
+      const jaccard = (a, b) => {
         const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
         if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
       };
