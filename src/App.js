@@ -321,7 +321,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     for (let j = 0; j < sentences.length && distracts.length < 6; j++) {
       if (j === si) continue;
       const s = sentences[j];
-      if (!s || s.length &lt; 40) continue;
+      if (!s || s.length < 40) continue;
       if (s.toLowerCase().includes(cand.toLowerCase())) continue;
       distracts.push(s);
     }
