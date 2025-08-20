@@ -385,12 +385,16 @@ async function buildKitFromContent(rawText, title, difficulty) {
 }
 
 function QuizBlock({ quiz, selected, setSelected, evaluated }) {
-  const BAD_PAD_RX = /In practice, this may vary under specific constraints\.?/gi;
   const sanitize = (s) => {
     try {
-      let t = String(s || '').replace(BAD_PAD_RX, '');
+      let t = String(s || '');
+      const pad = 'In practice, this may vary under specific constraints.';
+      const padNoDot = 'In practice, this may vary under specific constraints';
+      // Remove the filler phrase wherever it appears
+      if (t.includes(pad)) t = t.split(pad).join(' ');
+      if (t.includes(padNoDot)) t = t.split(padNoDot).join(' ');
       t = t.replace(/\s+/g, ' ').trim();
-      if (!t.endsWith('.')) t += '.';
+      if (t && !/[.!?]$/.test(t)) t += '.';
       return t;
     } catch { return s; }
   };
