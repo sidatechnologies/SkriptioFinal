@@ -105,7 +105,7 @@ function Landing() {
               <span className="gold-dot w-1.5 h-1.5 rounded-full"></span>
               A product by Aceel AI
             </p>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs &amp; notes into a complete study kit in seconds.</h1>
+            <h1 className="text-4xl md:text-5xl font-semibold leading-tight mb-3">Skriptio turns your PDFs & notes into a complete study kit in seconds.</h1>
             <p className="text-foreground/80 mb-5">Upload content or paste notes — get a 10‑question quiz, smart flashcards, and a 7‑day plan. Stay focused and learn faster — without complex setup.</p>
             <div className="flex items-center gap-3">
               <Link to="/studio" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
