@@ -549,6 +549,8 @@ export function Studio() {
   const navigate = useNavigate();
   const logoRef = React.useRef(null);
   const [notesVal, setNotesVal] = React.useState('');
+  const [hasFile, setHasFile] = React.useState(false);
+  const [notesVal, setNotesVal] = React.useState('');
 
   // Decode shared kit if present in hash
   React.useEffect(() => {
