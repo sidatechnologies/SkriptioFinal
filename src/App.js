@@ -441,12 +441,12 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     const seen = new Set();
     const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
 
-    const addIf = (cand) =&gt; {
+    const addIf = (cand) => {
       if (!cand) return false;
       let c = balanceLen(cand, targetLen);
       const k = norm(c);
       if (!k || seen.has(k)) return false;
-      if (out.some(x =&gt; jaccard(x, c) &gt;= 0.5)) return false;
+      if (out.some(x => jaccard(x, c) >= 0.5)) return false;
       out.push(c); seen.add(k); return true;
     };
 
