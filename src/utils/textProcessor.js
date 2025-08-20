@@ -583,10 +583,13 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
 
   // If nothing yet, seed with whole-text summary
   if (flashcards.length === 0 && text.trim()) {
-    const front = titleFromSentence(text, phrases);
-    const back0 = ensureCaseAndPeriod('', summarizeSentence(text, 200));
-    const back = await fixBack(front, back0);
-    flashcards.push({ front, back });
+    const seed = baseSentences.find(x => !isInstructionish(x)) || '';
+    if (seed) {
+      const front = titleFromSentence(seed, phrases);
+      const back0 = ensureCaseAndPeriod('', summarizeSentence(seed, 200));
+      const back = await fixBack(front, back0);
+      if (back) flashcards.push({ front, back });
+    }
   }
 
   // Ensure at least 8 flashcards by backfilling from phrases (skip weak one-word/noise)
