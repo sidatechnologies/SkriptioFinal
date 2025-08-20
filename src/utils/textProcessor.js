@@ -39,6 +39,16 @@ export function normalizeText(raw) {
   return lines.join('\n');
 }
 
+function isInstructionish(s) {
+  const t = String(s || '').trim();
+  if (!t) return false;
+  if (/include what it is, why it matters, and one example from the material\.?/i.test(t)) return true;
+  if (/^explain the concept/i.test(t) && /in your own words/i.test(t)) return true;
+  if (/^summarize the key ideas/i.test(t)) return true;
+  if (/^analyze .* in context/i.test(t)) return true;
+  return false;
+}
+
 export function splitSentences(text) {
   const clean = normalizeText(text);
   const merged = clean.replace(/\s+/g, ' ').trim();
