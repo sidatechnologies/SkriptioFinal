@@ -510,7 +510,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
           <div key={q.id} className="border rounded-md p-4">
             <div className="font-medium mb-3">{i + 1}. {q.question}</div>
             <div className="space-y-2">
-              {fixed.arranged.map((op, oi) =&gt; {
+              {fixed.arranged.map((op, oi) => {
                 const isCorrect = evaluated && oi === fixed.idx;
                 const isWrong = evaluated && picked === oi && oi !== fixed.idx;
                 return (
