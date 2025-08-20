@@ -670,9 +670,9 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     }
   }
 
-  // Final sanitization: drop instruction-like/too-short backs
-  flashcards = flashcards.filter(fc => !isInstructionish(fc.front) && !isInstructionish(fc.back) && /[A-Za-z]/.test(fc.back || '') && (fc.back || '').length >= 40);
-  // Enforce final cap but do NOT pad with placeholders
+  // Final filter: only real content backs; drop instruction-like or too-short backs
+  flashcards = flashcards.filter(fc => fc && fc.back && !isInstructionish(fc.back) && !isInstructionish(fc.front) && /[A-Za-z]/.test(fc.back) && fc.back.length >= 40);
+  // Cap to 12, do not pad
   flashcards = flashcards.slice(0, Math.min(12, flashcards.length));
 
   // 7-day plan with variety
