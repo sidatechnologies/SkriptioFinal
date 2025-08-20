@@ -47,11 +47,37 @@ export default function StudioHandwriting() {
       });
     } catch { return null; }
   };
-  const ensureAssetsLoaded = async () => { if (!logoDataRef.current) logoDataRef.current = await fetchAsDataURL(LOGO_URL); };
+  const ensureAssetsLoaded = async () => {
+    if (logoDataRef.current) return;
+    try {
+      const res = await fetch(LOGO_URL);
+      const blob = await res.blob();
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onload = () => resolve();
+        reader.readAsDataURL(blob);
+      });
+      const dataUrl = reader.result;
+      const img = new Image();
+      await new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.src = URL.createObjectURL(blob);
+      });
+      logoDataRef.current = { dataUrl, width: img.naturalWidth || img.width, height: img.naturalHeight || img.height };
+      try { URL.revokeObjectURL(img.src); } catch {}
+    } catch {}
+  };
   const addHeader = (doc) => {
-    const pw = doc.internal.pageSize.getWidth();
-    const topY = 12;
-    try { if (logoDataRef.current) doc.addImage(logoDataRef.current, 'PNG', (pw - 18) / 2, topY - 6, 18, 18, undefined, 'FAST'); } catch {}
+    const margin = 15;
+    const headerH = 12; // mm
+    try {
+      if (logoDataRef.current && logoDataRef.current.dataUrl) {
+        const { dataUrl, width, height } = logoDataRef.current;
+        const ratio = (width && height) ? (width / height) : 1.0;
+        const logoW = headerH * ratio;
+        doc.addImage(dataUrl, 'PNG', margin, 12, logoW, headerH, undefined, 'FAST');
+      }
+    } catch {}
     try { doc.setFont('helvetica', 'normal'); } catch {}
   };
   const addFooter = (doc) => {
