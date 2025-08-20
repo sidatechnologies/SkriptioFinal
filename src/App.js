@@ -273,7 +273,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
         }
         if (best === -1) break;
         picked.push(best); used.add(best);
-        if (picked.length &gt;= k) break;
+        if (picked.length >= k) break;
       }
       chosenIdxs = picked;
     }
