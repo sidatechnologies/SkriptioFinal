@@ -343,7 +343,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       'A misinterpretation of the concept discussed.'
     ];
     let gi = 0;
-    while (uniq.length &lt; 4 && gi &lt; generics.length) {
+    while (uniq.length < 4 && gi < generics.length) {
       const g = generics[gi++];
       const k = normKey(g);
       if (!seen.has(k)) { seen.add(k); uniq.push(g); }
