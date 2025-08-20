@@ -287,11 +287,23 @@ function distinctFillOptions(correct, pool = [], needed = 4) {
     if (addIf(GENERIC_POOL[gi++])) usedGeneric = true;
   }
   // If still short, duplicate slight modal variants to reach 4
-  while (selected.length < needed) {
-    const v = tweakModals(selected[selected.length - 1] || correct);
-    if (!addIf(v)) break;
+  // Final de-duplication safeguard to ensure exactly 4 unique options
+  const uniq = [];
+  const seen2 = new Set();
+  for (const o of selected) {
+    const k = (o||'').toLowerCase();
+    if (!k || seen2.has(k)) continue;
+    if (uniq.some(x => jaccard(x, o) >= 0.55)) continue;
+    uniq.push(o); seen2.add(k);
+    if (uniq.length >= needed) break;
   }
-  return selected.slice(0, needed);
+  // Pad via light modal tweaks on the correct answer if still short
+  while (uniq.length < needed) {
+    const v = tweakModals(correct);
+    if (v && !seen2.has(v.toLowerCase()) && !uniq.some(x => jaccard(x, v) >= 0.55)) { uniq.push(v); seen2.add(v.toLowerCase()); }
+    else break;
+  }
+  return uniq.slice(0, needed);
 }
 
 // -------------------- Artifact builder with improved MCQs/Flashcards/Plan --------------------
