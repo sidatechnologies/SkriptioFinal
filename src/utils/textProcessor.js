@@ -288,12 +288,9 @@ function balanceLength(text, target = 120) {
 export function distinctFillOptions(correct, pool = [], needed = 4) {
   const selected = [];
   const seen = new Set();
-  const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
+  const targetLen = Math.max(80, Math.min(200, String(correct||'').length));
   const addIf = (opt) => {
-    let norm = normalizeToLength(opt, targetLen);
-    if (norm.length < Math.floor(targetLen * 0.85)) {
-      norm = balanceLength(norm, targetLen);
-    }
+    const norm = normalizeToLength(opt, targetLen);
     const key = norm.toLowerCase();
     if (!norm || seen.has(key)) return false;
     if (selected.some(s => jaccard(s, norm) >= 0.7)) return false;
@@ -303,12 +300,6 @@ export function distinctFillOptions(correct, pool = [], needed = 4) {
   for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
   const variants = [tweakModals(correct), flipNegations(correct), perturbNumbers(correct)];
   for (const v of variants) { if (selected.length >= needed) break; if (v) addIf(v); }
-  const GENERIC_POOL = ['A related but inaccurate claim about the topic.', 'A broad contextual statement that does not match the material.'];
-  let usedGeneric = false;
-  let gi = 0;
-  while (selected.length < needed && gi < GENERIC_POOL.length && !usedGeneric) {
-    if (addIf(GENERIC_POOL[gi++])) usedGeneric = true;
-  }
   const uniq = [];
   const seen2 = new Set();
   for (const o of selected) {
@@ -318,10 +309,10 @@ export function distinctFillOptions(correct, pool = [], needed = 4) {
     uniq.push(o); seen2.add(k);
     if (uniq.length >= needed) break;
   }
+  // Last resort: duplicate a lightly tweaked modal form
   while (uniq.length < needed) {
     const v = tweakModals(correct);
-    const vv = balanceLength(v || correct, targetLen);
-    if (vv && !seen2.has(vv.toLowerCase()) && !uniq.some(x => jaccard(x, vv) >= 0.55)) { uniq.push(vv); seen2.add(vv.toLowerCase()); }
+    if (v && !seen2.has(v.toLowerCase()) && !uniq.some(x => jaccard(x, v) >= 0.55)) { uniq.push(normalizeToLength(v, targetLen)); seen2.add(v.toLowerCase()); }
     else break;
   }
   return uniq.slice(0, needed);
