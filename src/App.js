@@ -457,7 +457,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       addIf(o);
     }
 
-    if (out.length &lt; 4 && correct) {
+    if (out.length < 4 && correct) {
       const cands = [];
       cands.push(correct.replace(/\bmay\b/gi, 'must'));
       cands.push(correct.replace(/\bmust\b/gi, 'may'));
