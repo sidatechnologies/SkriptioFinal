@@ -797,7 +797,7 @@ export function Studio() {
         }
       }
 
-      if (out.length &lt; 4) {
+      if (out.length < 4) {
         const generics = [
           'This statement appears related but does not reflect the material.',
           'This conclusion does not follow from the provided context.',
