@@ -248,7 +248,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       picked.push(cur); used.add(cur);
       while (picked.length &lt; k) {
         let best = -1; let bestScore = -Infinity;
-        for (let i = 0; i &lt; vecs.length; i++) {
+        for (let i = 0; i < vecs.length; i++) {
           if (used.has(i)) continue;
           let rel = 0;
           for (const pi of picked) {
