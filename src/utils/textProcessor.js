@@ -254,9 +254,8 @@ function normalizeToLength(text, target = 120) {
   let t = ensureSentence(String(text || ''));
   const min = Math.max(60, Math.floor(target * 0.65));
   const max = Math.floor(target * 1.15);
-  if (t.length < min) {
-    t = t.replace(/\.$/, '') + ' In practice, this may vary under specific constraints.';
-  }
+  // Avoid padding short sentences with a fixed clause (caused duplicate-looking options)
+  // If too long, trim to a sensible boundary; if short, keep as-is to preserve distinctness.
   if (t.length > max) {
     const cut = t.slice(0, max - 1);
     const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'));
