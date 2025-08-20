@@ -314,11 +314,11 @@ async function buildKitFromContent(rawText, title, difficulty) {
       cand = words.slice(start, start + 4).join(' ');
     }
     let question = await generateQuestionFromContext(context, cand);
-    if (!question || question.length &lt; 10) {
+    if (!question || question.length < 10) {
       question = `Which statement is accurate based on the material?`;
     }
     const distracts = [];
-    for (let j = 0; j &lt; sentences.length && distracts.length &lt; 6; j++) {
+    for (let j = 0; j < sentences.length && distracts.length < 6; j++) {
       if (j === si) continue;
       const s = sentences[j];
       if (!s || s.length &lt; 40) continue;
