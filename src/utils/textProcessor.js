@@ -252,10 +252,8 @@ function buildDistractors(correct, phrases, sourceText) {
 
 function normalizeToLength(text, target = 120) {
   let t = ensureSentence(String(text || ''));
-  const min = Math.max(60, Math.floor(target * 0.65));
-  const max = Math.floor(target * 1.15);
-  // Avoid padding short sentences with a fixed clause (caused duplicate-looking options)
-  // If too long, trim to a sensible boundary; if short, keep as-is to preserve distinctness.
+  const min = Math.max(60, Math.floor(target * 0.8));
+  const max = Math.floor(target * 1.2);
   if (t.length > max) {
     const cut = t.slice(0, max - 1);
     const idx = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf(','), cut.lastIndexOf(';'));
@@ -264,30 +262,45 @@ function normalizeToLength(text, target = 120) {
   return ensureSentence(t);
 }
 
+function balanceLength(text, target = 120) {
+  let t = ensureSentence(String(text || ''));
+  const min = Math.max(60, Math.floor(target * 0.85));
+  if (t.length < min) {
+    const tails = [
+      ' Consider context and scope.',
+      ' This may vary across scenarios.',
+      ' Practical cases can differ.'
+    ];
+    const pick = tails[(Math.abs(t.length + target) % tails.length)];
+    t = ensureSentence((t.replace(/[.!?]$/,'').trim() + '.').replace(/\.\s*$/,'') + pick);
+  }
+  return normalizeToLength(t, target);
+}
+
 export function distinctFillOptions(correct, pool = [], needed = 4) {
   const selected = [];
   const seen = new Set();
+  const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
   const addIf = (opt) => {
-    const norm = normalizeToLength(opt, Math.max(100, String(correct||'').length));
+    let norm = normalizeToLength(opt, targetLen);
+    if (norm.length < Math.floor(targetLen * 0.85)) {
+      norm = balanceLength(norm, targetLen);
+    }
     const key = norm.toLowerCase();
     if (!norm || seen.has(key)) return false;
-    if (selected.some(s => jaccard(s, norm) >= 0.75)) return false;
+    if (selected.some(s => jaccard(s, norm) >= 0.7)) return false;
     selected.push(norm); seen.add(key); return true;
   };
   addIf(String(correct || '').trim());
   for (const c of pool) { if (selected.length >= needed) break; addIf(c); }
-  // Create minor variants of the correct to keep length/grammar comparable
   const variants = [tweakModals(correct), flipNegations(correct), perturbNumbers(correct)];
   for (const v of variants) { if (selected.length >= needed) break; if (v) addIf(v); }
-  // As a last resort, allow at most one generic, not more
   const GENERIC_POOL = ['A related but inaccurate claim about the topic.', 'A broad contextual statement that does not match the material.'];
   let usedGeneric = false;
   let gi = 0;
   while (selected.length < needed && gi < GENERIC_POOL.length && !usedGeneric) {
     if (addIf(GENERIC_POOL[gi++])) usedGeneric = true;
   }
-  // If still short, duplicate slight modal variants to reach 4
-  // Final de-duplication safeguard to ensure exactly 4 unique options
   const uniq = [];
   const seen2 = new Set();
   for (const o of selected) {
@@ -297,10 +310,10 @@ export function distinctFillOptions(correct, pool = [], needed = 4) {
     uniq.push(o); seen2.add(k);
     if (uniq.length >= needed) break;
   }
-  // Pad via light modal tweaks on the correct answer if still short
   while (uniq.length < needed) {
     const v = tweakModals(correct);
-    if (v && !seen2.has(v.toLowerCase()) && !uniq.some(x => jaccard(x, v) >= 0.55)) { uniq.push(v); seen2.add(v.toLowerCase()); }
+    const vv = balanceLength(v || correct, targetLen);
+    if (vv && !seen2.has(vv.toLowerCase()) && !uniq.some(x => jaccard(x, vv) >= 0.55)) { uniq.push(vv); seen2.add(vv.toLowerCase()); }
     else break;
   }
   return uniq.slice(0, needed);
