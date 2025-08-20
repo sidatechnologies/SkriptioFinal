@@ -471,15 +471,33 @@ export function Studio() {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const margin = 40; let y = margin;
 
-    // Header: logo + title
-    try {
-      if (logoRef.current) {
-        doc.addImage(logoRef.current, 'PNG', margin, y - 10, 80, 32);
-      }
-    } catch {}
-    doc.setFontSize(14);
-    doc.text(title || 'Skriptio', margin + 90, y + 10);
-    y += 40;
+    function drawHeader(small = false) {
+      const headerH = small ? 24 : 28;
+      const pageW = doc.internal.pageSize.getWidth();
+      let logoW = 0;
+      try {
+        if (logoRef.current && logoRef.current.dataUrl) {
+          const { dataUrl, width, height } = logoRef.current;
+          const ratio = (width && height) ? (width / height) : 1.0;
+          logoW = Math.min(120, headerH * ratio);
+          doc.addImage(dataUrl, 'PNG', margin, y - 6, logoW, headerH, undefined, 'FAST');
+        }
+      } catch {}
+      doc.setFontSize(14);
+      const tx = margin + (logoW ? logoW + 12 : 0);
+      doc.text(title || 'Skriptio', tx, y + 8);
+      y += small ? 34 : 42;
+    }
+
+    function addFooter() {
+      const pageH = doc.internal.pageSize.getHeight();
+      const footer = 'aceel@sidahq.com | skriptio.sidahq.com';
+      doc.setFontSize(10);
+      doc.text(footer, doc.internal.pageSize.getWidth() / 2, pageH - 20, { align: 'center' });
+    }
+
+    // First page header
+    drawHeader(false);
 
     const pageHeight = doc.internal.pageSize.getHeight();
     function ensureSpace(linesNeeded = 0) {
@@ -487,19 +505,13 @@ export function Studio() {
         addFooter();
         doc.addPage();
         y = margin;
-        // header on new page (logo small)
-        try { if (logoRef.current) doc.addImage(logoRef.current, 'PNG', margin, y - 10, 60, 24); } catch {}
-        y += 30;
+        drawHeader(true);
       }
     }
-    function addFooter() {
-      const footer = 'aceel@sidahq.com | skriptio.sidahq.com';
-      doc.setFontSize(10);
-      doc.text(footer, doc.internal.pageSize.getWidth()/2, pageHeight - 20, { align: 'center' });
-    }
+
     function writeHeading(text) {
       doc.setFontSize(12); doc.setFont(undefined, 'bold');
-      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin*2);
+      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin * 2);
       ensureSpace(wrapped.length * 14 + 6);
       doc.text(wrapped, margin, y);
       y += wrapped.length * 14 + 6;
@@ -507,7 +519,7 @@ export function Studio() {
     }
     function writePara(text) {
       doc.setFontSize(11);
-      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin*2);
+      const wrapped = doc.splitTextToSize(text, doc.internal.pageSize.getWidth() - margin * 2);
       ensureSpace(wrapped.length * 14 + 8);
       doc.text(wrapped, margin, y);
       y += wrapped.length * 14 + 8;
@@ -515,7 +527,7 @@ export function Studio() {
     function writeBullets(items) {
       doc.setFontSize(11);
       for (const it of items) {
-        const wrapped = doc.splitTextToSize('• ' + it, doc.internal.pageSize.getWidth() - margin*2);
+        const wrapped = doc.splitTextToSize('• ' + it, doc.internal.pageSize.getWidth() - margin * 2);
         ensureSpace(wrapped.length * 14 + 4);
         doc.text(wrapped, margin, y);
         y += wrapped.length * 14 + 4;
