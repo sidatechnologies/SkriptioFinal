@@ -415,36 +415,25 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
       if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
     };
-    const balanceLen = (text, target) => {
+    const clampWords = (text, minW = 12, maxW = 20) => {
       let t = sanitize(text);
-      const min = Math.max(60, Math.floor(target * 0.85));
-      if (t.length < min) {
-        const tails = [
-          'Consider context and scope.',
-          'This may vary across scenarios.',
-          'Practical cases can differ.',
-          'Subject to policy, limits, and approvals.',
-          'Depending on jurisdiction and scope.',
-          'With safeguards, governance, and audit controls.',
-          'Under explicit authorization and oversight.',
-          'In alignment with internal procedures and risk thresholds.',
-          'As documented in the execution plan.',
-          'Based on operational requirements and compliance rules.'
-        ];
-        const pick = tails[(Math.abs(t.length + target) % tails.length)];
-        t = (t.replace(/[.!?]$/,'').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
-        if (!/[.!?]$/.test(t)) t += '.';
+      if (!t) return '';
+      const words = t.split(/\s+/);
+      if (words.length > maxW) {
+        t = words.slice(0, maxW).join(' ');
       }
-      return t;
+      if (words.length < minW) return '';
+      if (!/[.!?]$/.test(t)) t = t.trim() + '.';
+      return t.trim();
     };
 
     const out = [];
     const seen = new Set();
-    const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
 
     const addIf = (cand) => {
       if (!cand) return false;
-      let c = balanceLen(cand, targetLen);
+      const c = clampWords(cand, 12, 20);
+      if (!c) return false;
       const k = norm(c);
       if (!k || seen.has(k)) return false;
       if (out.some(x => jaccard(x, c) >= 0.55)) return false;
@@ -486,20 +475,6 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
       for (const c of cands) {
         if (out.length >= 4) break;
         addIf(c);
-      }
-    }
-
-    // Final: allow generics, but length-balance them
-    if (out.length < 4) {
-      const generics = [
-        'This statement appears related but does not reflect the material.',
-        'This conclusion does not follow from the provided context.',
-        'A plausible but incorrect interpretation of the content.',
-        'A misreading that conflicts with the material.'
-      ];
-      for (const g of generics) {
-        if (out.length >= 4) break;
-        addIf(g);
       }
     }
 
