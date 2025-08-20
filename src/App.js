@@ -524,7 +524,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
             {evaluated && (
               <div className="mt-2 text-sm text-foreground/80">
                 {selected[q.id] === fixed.idx ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{fixed.arranged[fixed.idx]}</span>
-                {q.explanation ? &lt;div className="mt-1">Explanation: {q.explanation}&lt;/div> : null}
+                {q.explanation ? <div className="mt-1">Explanation: {q.explanation}</div> : null}
               </div>
             )}
           </div>
