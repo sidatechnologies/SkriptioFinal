@@ -599,6 +599,7 @@ export function Studio() {
   async function onFileChange(e) {
     try {
       const file = e.target.files && e.target.files[0];
+      setHasFile(!!file);
       if (!file) { setFileMeta(null); return; }
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
