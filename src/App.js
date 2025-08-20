@@ -426,13 +426,14 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
     <div className="space-y-4">
       {quiz.map((q, i) => {
         const picked = selected[q.id];
+        const fixed = ensureFourOptions(q);
         return (
           <div key={q.id} className="border rounded-md p-4">
             <div className="font-medium mb-3">{i + 1}. {q.question}</div>
             <div className="space-y-2">
-              {q.options.map((op, oi) => {
-                const isCorrect = evaluated && oi === q.answer_index;
-                const isWrong = evaluated && picked === oi && oi !== q.answer_index;
+              {fixed.arranged.map((op, oi) => {
+                const isCorrect = evaluated && oi === fixed.idx;
+                const isWrong = evaluated && picked === oi && oi !== fixed.idx;
                 return (
                   <label key={oi} className={`flex items-start gap-2 p-2 rounded-md border cursor-pointer ${isCorrect ? 'border-green-600 bg-green-600/10' : isWrong ? 'border-red-600 bg-red-600/10' : 'border-border'}`}>
                     <input type="radio" name={q.id} className="mt-1" checked={picked === oi} onChange={() => setSelected(s => ({ ...s, [q.id]: oi }))} />
@@ -443,7 +444,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
             </div>
             {evaluated && (
               <div className="mt-2 text-sm text-foreground/80">
-                {selected[q.id] === q.answer_index ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{q.options[q.answer_index]}</span>
+                {selected[q.id] === fixed.idx ? 'Correct.' : 'Incorrect.'} Correct answer: <span className="font-medium">{fixed.arranged[fixed.idx]}</span>
                 {q.explanation ? <div className="mt-1">Explanation: {q.explanation}</div> : null}
               </div>
             )}
