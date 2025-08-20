@@ -369,7 +369,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is accurate based on the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
   }
 
-  const plan = Array.from({ length: 7 }, (_, i) =&gt; {
+  const plan = Array.from({ length: 7 }, (_, i) => {
     const topic = phrases[i] || `Topic ${i + 1}`;
     return { title: `Day ${i + 1}: ${topic}`,
       objectives: [
