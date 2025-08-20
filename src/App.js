@@ -170,8 +170,8 @@ function Landing() {
 
         {/* About */}
         <section id="about" className="max-w-6xl mx-auto px-6 py-10">
-          <h2 className="section-title text-2xl font-semibold mb-3">About Skriptio</h2>
-          <p className="text-foreground/80 max-w-3xl">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.</p>
+          <h2 className="section-title text-2xl font-semibold mb-3 text-center">About Skriptio</h2>
+          <p className="text-foreground/80 max-w-3xl mx-auto text-center">Skriptio turns your PDFs and notes into a complete study kit — a tough quiz, smart flashcards, and a 7‑day plan — in seconds. It’s minimal, private, and designed for focused learning. Difficulty modes adjust question composition, and formula detection preserves math expressions for exact‑match questions. Everything runs locally in your browser.</p>
         </section>
 
         {/* FAQ */}
