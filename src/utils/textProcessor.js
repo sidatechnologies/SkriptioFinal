@@ -49,7 +49,7 @@ export function splitSentences(text) {
     return acc;
   }, []);
   // Keep medium-length sentences, avoid all-caps headings
-  return parts.map(s => s.trim()).filter(s => s.length >= 40 && /[.!?]$/.test(s) && !/^[\-A-Z0-9 ,.:]{10,}$/.test(s)).slice(0, 2000);
+  return parts.map(s => s.trim()).filter(s => s.length >= 40 && /[.!?]$/.test(s) && !/^[\-A-Z0-9 ,.:]{10,}$/.test(s) && !isInstructionish(s)).slice(0, 2000);
 }
 
 export function isAuthorish(s) {
