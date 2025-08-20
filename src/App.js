@@ -698,7 +698,7 @@ export function Studio() {
       }
     }
 
-    await cb({ doc, yRef: { get: () =&gt; y, set: (v) =&gt; { y = v; } }, writeHeading, writePara, writeBullets, addFooter, ensureSpace, margin });
+    await cb({ doc, yRef: { get: () => y, set: (v) => { y = v; } }, writeHeading, writePara, writeBullets, addFooter, ensureSpace, margin });
     addFooter();
     doc.save('Skriptio.pdf');
   }
