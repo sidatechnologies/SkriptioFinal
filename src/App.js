@@ -83,7 +83,7 @@ function Landing() {
             </Link>
           </div>
         </div>
-        {mobileOpen &amp;&amp; (
+        {mobileOpen && (
           <div className="md:hidden border-t border-border bg-background/95 shadow">
             <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-3 text-sm">
               <a href="#how" onClick={() => setMobileOpen(false)}>How it works</a>
