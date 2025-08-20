@@ -395,7 +395,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     return { arranged, idx };
   }
 
-  const QUESTION_STEM = 'Which statement is accurate based on the material?';
+  const QUESTION_STEM_TXT = 'Which statement is accurate based on the material?';
 
   while (quiz.length < total && baseSentences.length > 0) {
     // Always use the same question stem for all 10, per spec
