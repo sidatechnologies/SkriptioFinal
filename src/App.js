@@ -303,7 +303,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
   flashcards = flashcards.slice(0, Math.max(8, Math.min(12, flashcards.length)));
 
   const quiz = [];
-  for (let qi = 0; qi &lt; Math.min(10, chosenIdxs.length); qi++) {
+  for (let qi = 0; qi < Math.min(10, chosenIdxs.length); qi++) {
     const si = chosenIdxs[qi];
     const context = sentences[si] || '';
     if (!context) continue;
