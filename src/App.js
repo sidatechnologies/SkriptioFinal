@@ -722,21 +722,92 @@ export function Studio() {
       const base = Array.isArray(q.options) ? q.options.map(sanitize) : [];
       const correct = sanitize(q.options?.[q.answer_index] ?? '');
       const norm = (x) => String(x || '').toLowerCase();
+      const tokenize = (t) => String(t||'').toLowerCase().match(/[a-z][a-z\-']+/g) || [];
+      const jaccard = (a, b) => {
+        const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
+        if (!A.size && !B.size) return 0; let inter = 0; for (const x of A) if (B.has(x)) inter++; const uni = A.size + B.size - inter; return uni ? inter/uni : 0;
+      };
+      const balanceLen = (text, target) => {
+        let t = sanitize(text);
+        const min = Math.max(60, Math.floor(target * 0.85));
+        if (t.length < min) {
+          const tails = [
+            'Consider context and scope.',
+            'This may vary across scenarios.',
+            'Practical cases can differ.',
+            'Subject to policy, limits, and approvals.',
+            'Depending on jurisdiction and scope.',
+            'With safeguards, governance, and audit controls.',
+            'Under explicit authorization and oversight.',
+            'In alignment with internal procedures and risk thresholds.',
+            'As documented in the execution plan.',
+            'Based on operational requirements and compliance rules.'
+          ];
+          const pick = tails[(Math.abs(t.length + target) % tails.length)];
+          t = (t.replace(/[.!?]$/,'').trim() + '. ' + pick).replace(/\s{2,}/g,' ').trim();
+          if (!/[.!?]$/.test(t)) t += '.';
+        }
+        return t;
+      };
+
       const out = [];
       const seen = new Set();
-      if (correct) { out.push(correct); seen.add(norm(correct)); }
+      const targetLen = Math.max(90, Math.min(180, String(correct||'').length));
+
+      const addIf = (cand) => {
+        if (!cand) return false;
+        let c = balanceLen(cand, targetLen);
+        const k = norm(c);
+        if (!k || seen.has(k)) return false;
+        if (out.some(x => jaccard(x, c) >= 0.5)) return false;
+        out.push(c); seen.add(k); return true;
+      };
+
+      if (correct) addIf(correct);
+
       for (const o of base) {
-        if (!o) continue; const k = norm(o);
-        if (seen.has(k)) continue; out.push(o); seen.add(k);
         if (out.length >= 4) break;
+        addIf(o);
       }
-      const generics = [
-        'A related but inaccurate claim about the topic.',
-        'An unrelated statement that does not follow from the text.',
-        'A plausible but incorrect detail about the material.',
-        'A misinterpretation of the concept discussed.'
-      ];
-      for (const g of generics) { if (out.length >= 4) break; const k = norm(g); if (!seen.has(k)) { out.push(g); seen.add(k); } }
+
+      if (out.length < 4 && correct) {
+        const cands = [];
+        cands.push(correct.replace(/\bmay\b/gi, 'must'));
+        cands.push(correct.replace(/\bmust\b/gi, 'may'));
+        cands.push(correct.replace(/\boften\b/gi, 'sometimes'));
+        cands.push(correct.replace(/\bsometimes\b/gi, 'often'));
+        cands.push(correct.replace(/\bis\b/gi, 'is not'));
+        cands.push(correct.replace(/\bare\b/gi, 'are not'));
+        cands.push(correct.replace(/\bincludes\b/gi, 'excludes'));
+        cands.push(correct.replace(/\bexcludes\b/gi, 'includes'));
+        const numRx = /(\d+(?:\.\d+)?%?)/;
+        if (numRx.test(correct)) {
+          const m = correct.match(numRx);
+          const n = parseFloat((m && m[1] || '0').replace('%',''));
+          if (!isNaN(n)) {
+            const variants = [n * 0.85, n * 1.15, n + 1, Math.max(0, n - 1)];
+            for (const v of variants) {
+              const rep = m[1].endsWith('%') ? v.toFixed(1) + '%' : String(Math.round(v));
+              cands.push(correct.replace(numRx, rep));
+            }
+          }
+        }
+        for (const c of cands) {
+          if (out.length >= 4) break;
+          addIf(c);
+        }
+      }
+
+      if (out.length < 4) {
+        const generics = [
+          'This statement appears related but does not reflect the material.',
+          'This conclusion does not follow from the provided context.',
+          'A plausible but incorrect interpretation of the content.',
+          'A misreading that conflicts with the material.'
+        ];
+        for (const g of generics) { if (out.length >= 4) break; addIf(g); }
+      }
+
       const idx = Math.min(out.length - 1, Math.max(0, q.answer_index || 0));
       const arranged = out.slice(0, 4);
       const curIdx = arranged.findIndex(o => norm(o) === norm(correct));
