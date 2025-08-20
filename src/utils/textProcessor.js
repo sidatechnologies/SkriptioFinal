@@ -567,30 +567,40 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     return b;
   }
 
+  // Build initial flashcards from top sentences
   let flashcards = await Promise.all(flashPicked.map(async (s, i) => {
     const front = titleFromSentence(s, phrases);
     const back0 = ensureCaseAndPeriod('', summarizeSentence(s, 200));
     const back = await fixBack(front, back0);
     return { front, back };
   }));
+
+  // If nothing yet, seed with whole-text summary
   if (flashcards.length === 0 && text.trim()) {
     const front = titleFromSentence(text, phrases);
     const back0 = ensureCaseAndPeriod('', summarizeSentence(text, 200));
     const back = await fixBack(front, back0);
     flashcards.push({ front, back });
   }
-  // Ensure at least 8 flashcards by backfilling from phrases
+
+  // Ensure at least 8 flashcards by backfilling from phrases (skip weak one-word/noise)
   const MIN_FC = 8;
   if (flashcards.length < MIN_FC) {
-    const pool = phrases.slice(0, 24);
+    const pool = phrases.slice(0, 32);
     for (let i = 0; i < pool.length && flashcards.length < MIN_FC; i++) {
-      const p = pool[i];
-      if (!p) continue;
+      const pRaw = pool[i];
+      const p = String(pRaw || '').trim();
+      if (!p || p.length < 3) continue;
+      if (STOPWORDS.has(p.toLowerCase())) continue;
+      // avoid extremely short single-token concepts unless they reoccur strongly
+      const tokCount = (p.match(/\S+/g) || []).length;
+      if (tokCount === 1 && p.length < 5) continue;
+
       // pick best matching sentence for the phrase
       let best = '';
       try {
         const ml = await import('./ml');
-        best = await ml.bestSentenceForPhrase(p, baseSentences, 160);
+        best = await ml.bestSentenceForPhrase(p, baseSentences, 180);
       } catch {}
       const back = ensureCaseAndPeriod('', summarizeSentence(best || (baseSentences[i] || text), 200));
       const front = titleCase(p);
@@ -600,6 +610,55 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       }
     }
   }
+
+  // Final cleanup: normalize, deduplicate by fronts and backs, collapse spacing, enforce min quality
+  function collapseLetters(t) {
+    try {
+      if (!/\b(?:[A-Za-z]\s){4,}[A-Za-z]\b/.test(t)) return t;
+      return t.replace(/\b(([A-Za-z])(?:\s+[A-Za-z]){4,})\b/g, (m) => m.replace(/\s+/g, ''));
+    } catch { return t; }
+  }
+  const clean = (s) => {
+    let t = String(s || '').replace(/\s+/g, ' ').trim();
+    t = collapseLetters(t);
+    // drop trailing dangling hyphens/colons
+    t = t.replace(/[\-:]+$/, '').trim();
+    // ensure punctuation at end for backs
+    return t;
+  };
+  const normFront = (s) => clean(s).toLowerCase();
+  const normBack = (s) => clean(s).toLowerCase();
+
+  const seenFronts = new Set();
+  const seenBacks = new Set();
+  const cleaned = [];
+  for (const fc of flashcards) {
+    let front = titleCase(clean(fc.front));
+    let back = ensureCaseAndPeriod('', clean(fc.back));
+    if (front.length < 2) continue;
+    const nf = normFront(front);
+    const nb = normBack(back);
+    if (seenFronts.has(nf) || seenBacks.has(nb)) continue;
+    seenFronts.add(nf); seenBacks.add(nb);
+    cleaned.push({ front, back });
+    if (cleaned.length >= 12) break;
+  }
+  flashcards = cleaned;
+
+  // If still short, add generic but distinct placeholders tied to remaining phrases
+  if (flashcards.length < MIN_FC) {
+    for (let i = 0; i < phrases.length && flashcards.length < MIN_FC; i++) {
+      const p = phrases[i];
+      if (!p || STOPWORDS.has(p.toLowerCase())) continue;
+      const front = titleCase(clean(p));
+      const back = ensureCaseAndPeriod('', `${front} — concise explanation derived from the material.`);
+      const nf = normFront(front), nb = normBack(back);
+      if (seenFronts.has(nf) || seenBacks.has(nb)) continue;
+      seenFronts.add(nf); seenBacks.add(nb);
+      flashcards.push({ front, back });
+    }
+  }
+
   flashcards = flashcards.slice(0, Math.max(MIN_FC, Math.min(12, flashcards.length)));
 
   // 7-day plan with variety
