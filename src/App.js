@@ -244,7 +244,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
       const used = new Set();
       const k = Math.min(10, sentences.length);
       let cur = 0;
-      for (let i = 0; i &lt; vecs.length; i++) { if (vecs[i]) { cur = i; break; } }
+      for (let i = 0; i < vecs.length; i++) { if (vecs[i]) { cur = i; break; } }
       picked.push(cur); used.add(cur);
       while (picked.length &lt; k) {
         let best = -1; let bestScore = -Infinity;
