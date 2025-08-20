@@ -115,15 +115,25 @@ function Landing() {
             </div>
             <div className="flex items-center gap-5 mt-5 text-sm text-foreground/80">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-sm border border-foreground/60"><span className="inline-block w-2 h-2 bg-foreground/80"/></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" className="text-foreground/80" aria-hidden>
+                  <path d="M13 2v6h6" fill="none" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M13 8l6-6" fill="none" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M3 13a9 9 0 009 9" fill="none" stroke="currentColor" strokeWidth="2"/>
+                </svg>
                 Fast & minimal
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-foreground/60"><span className="inline-block w-2 h-2 rounded-full bg-foreground/80"/></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" className="text-foreground/80" aria-hidden>
+                  <path d="M12 22s8-4 8-10V7l-8-5-8 5v5c0 6 8 10 8 10z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M9 12a3 3 0 006 0" fill="none" stroke="currentColor" strokeWidth="2"/>
+                </svg>
                 Private (runs in your browser)
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-sm border border-foreground/60"><span className="inline-block w-2 h-2 rotate-45 border-b-2 border-r-2 border-foreground/80"/></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" className="text-foreground/80" aria-hidden>
+                  <path d="M3 12h13" fill="none" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M17 8l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="2"/>
+                </svg>
                 Saves hours of prep
               </div>
             </div>
