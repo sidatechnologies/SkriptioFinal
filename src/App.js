@@ -730,7 +730,7 @@ export function Studio() {
       const balanceLen = (text, target) =&gt; {
         let t = sanitize(text);
         const min = Math.max(60, Math.floor(target * 0.9));
-        if (t.length &lt; min) {
+        if (t.length < min) {
           const qualifiers = [
             'within the organization network.',
             'under internal policy controls.',
