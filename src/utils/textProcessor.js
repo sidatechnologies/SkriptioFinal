@@ -234,7 +234,7 @@ function notInSource(sent, src) { try { return !src || !src.toLowerCase().includ
 
 function buildDistractors(correct, phrases, sourceText) {
   const c = ensureSentence(correct);
-  const cands = [flipNegations(c), perturbNumbers(c), tweakModals(c), entitySwap(c, phrases)].filter(Boolean);
+  const cands = [flipNegations(c), perturbNumbers(c), tweakModals(c), entitySwap(c, phrases), synonymSwap(c)].filter(Boolean);
   const out = [];
   const seen = new Set([c.toLowerCase()]);
   for (const x of cands) {
