@@ -908,14 +908,7 @@ export function Studio() {
                     Selected: <span className="font-medium">{fileMeta.name}</span> · {Math.round(fileMeta.size/1024)} KB · {fileMeta.pages} page{fileMeta.pages===1?'':'s'}
                   </div>
                 ) : null}
-                <div>
-                  <div className="text-sm mb-2">Difficulty</div>
-                  <div className="segmented" role="tablist" aria-label="Difficulty">
-                    <button className={`item ${difficulty==='balanced'?'active':''}`} role="tab" aria-selected={difficulty==='balanced'} onClick={()=>setDifficulty('balanced')}>Balanced</button>
-                    <button className={`item ${difficulty==='harder'?'active':''}`} role="tab" aria-selected={difficulty==='harder'} onClick={()=>setDifficulty('harder')}>Harder</button>
-                    <button className={`item ${difficulty==='expert'?'active':''}`} role="tab" aria-selected={difficulty==='expert'} onClick={()=>setDifficulty('expert')}>Expert</button>
-                  </div>
-                </div>
+                {/* Difficulty hidden for launch */}
                 <div className="flex items-center gap-6">
                   <label className="inline-flex items-center gap-2 text-sm">
                     <input type="checkbox" defaultChecked />
