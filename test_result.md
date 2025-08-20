@@ -582,6 +582,30 @@
       agent: "main"
       comment: "Added robust fallback when Transformers summarizer is slow/unavailable: extractive top‑sentence ranking via selectTopSentences + ensureSentence. Default length Short selected. Tested end‑to‑end with provided PDF: bullets appear and Download Summary PDF works."
 
+
+  - task: "Hide Quiz PDF download button on Study Kit toolbar"
+    implemented: true
+    working: "NA"
+    file: "/app/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed Quiz PDF button from toolbar; function retained but not exposed in UI."
+  - task: "Flashcards quality: uniqueness and clean backs"
+    implemented: true
+    working: "NA"
+    file: "/app/src/utils/textProcessor.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Improved flashcard generation: skip weak one-word phrases, dedupe by fronts and backs, collapse spaced letters, clean punctuation, ensure 8–12 unique cards."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
