@@ -385,7 +385,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
 }
 
 function QuizBlock({ quiz, selected, setSelected, evaluated }) {
-  const BAD_PAD_RX = /\bIn practice, this may vary under specific constraints\.?\s*$/i;
+  const BAD_PAD_RX = /In practice, this may vary under specific constraints\.?/gi;
   const sanitize = (s) => {
     try {
       let t = String(s || '').replace(BAD_PAD_RX, '');
