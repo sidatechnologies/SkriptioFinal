@@ -503,7 +503,7 @@ function QuizBlock({ quiz, selected, setSelected, evaluated }) {
   };
   return (
     <div className="space-y-4">
-      {quiz.map((q, i) =&gt; {
+      {quiz.map((q, i) => {
         const picked = selected[q.id];
         const fixed = ensureFourOptions(q);
         return (
