@@ -49,7 +49,7 @@ export function splitSentences(text) {
     return acc;
   }, []);
   // Keep medium-length sentences, avoid all-caps headings
-  return parts.map(s => s.trim()).filter(s => s.length >= 40 && /[.!?]$/.test(s) && !/^[-A-Z0-9 ,.:]{10,}$/.test(s)).slice(0, 2000);
+  return parts.map(s => s.trim()).filter(s => s.length >= 40 && /[.!?]$/.test(s) && !/^[\-A-Z0-9 ,.:]{10,}$/.test(s)).slice(0, 2000);
 }
 
 export function isAuthorish(s) {
@@ -224,9 +224,9 @@ function pickEntityFromSentence(s) {
 function entitySwap(text, phrases = []) {
   const ent = pickEntityFromSentence(text);
   if (!ent) return '';
-  const repl = (phrases || []).find(p => !new RegExp(`\\b${ent.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(String(text||'')) && p.length >= Math.min(4, ent.length));
+  const repl = (phrases || []).find(p => !new RegExp(`\\b${ent.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(String(text||'')) && p.length >= Math.min(4, ent.length));
   if (!repl) return '';
-  const out = String(text).replace(new RegExp(`\\b${ent.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'g'), repl);
+  const out = String(text).replace(new RegExp(`\\b${ent.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'g'), repl);
   return ensureSentence(out);
 }
 function tooSimilar(a, b) { try { return jaccard(a, b) >= 0.6; } catch { return false; } }
@@ -395,9 +395,10 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     return { arranged, idx };
   }
 
-  while (quiz.length < total && baseSentences.length > 0) {
-    const typeIdx = quiz.length % 3; // 0: statement, 1: term, 2: fact
+  const QUESTION_STEM = 'Which statement is accurate based on the material?';
 
+  while (quiz.length < total && baseSentences.length > 0) {
+    // Always use the same question stem for all 10, per spec
     let s = pickSentence();
     let correct = ensureCaseAndPeriod('', summarizeSentence(s, 160));
     let guard = 0;
@@ -408,33 +409,8 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     }
     usedCorrects.add(normKey(correct));
 
-    let question = 'Which statement is accurate based on the material?';
-    let opts = [];
-
-    if (typeIdx === 1) {
-      // term definition
-      const term = phrases[pi % Math.max(1, phrases.length)] || 'the topic';
-      pi++;
-      question = `Which option best describes ${term} as used in the material?`;
-      let definition = s;
-      try {
-        const ml = await import('./ml');
-        const best = await ml.bestSentenceForPhrase(term, baseSentences, 220);
-        if (best) definition = best;
-      } catch {}
-      const defCorrect = ensureCaseAndPeriod('', summarizeSentence(definition, 150));
-      const d = buildDistractors(defCorrect, phrases, text);
-      opts = distinctFillOptions(defCorrect, d, 4);
-      correct = defCorrect;
-    } else if (typeIdx === 2) {
-      question = 'Which of the following aligns with the material?';
-      const d = buildDistractors(correct, phrases, text);
-      opts = distinctFillOptions(correct, d, 4);
-    } else {
-      question = 'Which statement is accurate based on the material?';
-      const d = buildDistractors(correct, phrases, text);
-      opts = distinctFillOptions(correct, d, 4);
-    }
+    const d = buildDistractors(correct, phrases, text);
+    const opts = distinctFillOptions(correct, d, 4);
 
     // Deterministic placement seeded by question index
     const placed = placeDeterministically(opts, correct, quiz.length);
@@ -453,7 +429,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
       usedBank.push(o);
     }
 
-    quiz.push({ id: `q-${quiz.length}`, type: typeIdx === 1 ? 'term' : (typeIdx === 2 ? 'fact' : 'statement'), question, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    quiz.push({ id: `q-${quiz.length}`, type: 'statement', question: QUESTION_STEM, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
   // Pad if short
@@ -464,7 +440,7 @@ export async function generateArtifacts(rawText, providedTitle = null, opts = {}
     const opts2 = distinctFillOptions(correct, d, 4);
     const placed = placeDeterministically(opts2, correct, quiz.length);
     for (const o of placed.arranged) { const key = normKey(o); globalOptionCount.set(key, (globalOptionCount.get(key) || 0) + 1); usedBank.push(o);}    
-    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: `Which statement is accurate based on the material?`, options: placed.arranged, answer_index: placed.idx, explanation: '' });
+    quiz.push({ id: `t-${quiz.length}`, type: 'statement', question: QUESTION_STEM, options: placed.arranged, answer_index: placed.idx, explanation: '' });
   }
 
   // Flashcards — per-card titles

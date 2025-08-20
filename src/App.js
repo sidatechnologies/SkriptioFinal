@@ -315,7 +315,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     }
     let question = await generateQuestionFromContext(context, cand);
     if (!question || question.length < 10) {
-      question = `Which statement best describes: ${cand}?`;
+      question = `Which statement is accurate based on the material?`;
     }
     const distracts = [];
     for (let j = 0; j < sentences.length && distracts.length < 6; j++) {
@@ -366,7 +366,7 @@ async function buildKitFromContent(rawText, title, difficulty) {
     const s = sentences[quiz.length % Math.max(1, sentences.length)] || cleaned;
     const opts = [s, ...sentences.filter(x => x !== s)].slice(0,4);
     while (opts.length < 4) opts.push('General concepts.');
-    quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is supported by the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
+    quiz.push({ id: `f-${quiz.length}`, question: 'Which statement is accurate based on the material?', options: opts.slice(0,4), answer_index: 0, explanation: 'Supported by the context.' });
   }
 
   const plan = Array.from({ length: 7 }, (_, i) => {
@@ -605,18 +605,16 @@ export function Studio() {
     function drawHeader(small = false) {
       const headerH = small ? 24 : 28;
       const pageW = doc.internal.pageSize.getWidth();
-      let logoW = 0;
       try {
         if (logoRef.current && logoRef.current.dataUrl) {
           const { dataUrl, width, height } = logoRef.current;
           const ratio = (width && height) ? (width / height) : 1.0;
-          logoW = Math.min(120, headerH * ratio);
-          doc.addImage(dataUrl, 'PNG', margin, y - 6, logoW, headerH, undefined, 'FAST');
+          const logoW = Math.min(120, headerH * ratio);
+          const x = (pageW - logoW) / 2;
+          doc.addImage(dataUrl, 'PNG', x, y - 6, logoW, headerH, undefined, 'FAST');
         }
       } catch {}
-      doc.setFontSize(14);
-      const tx = margin + (logoW ? logoW + 12 : 0);
-      doc.text(title || 'Skriptio', tx, y + 8);
+      // No title text next to logo — per spec: centered logo only
       y += small ? 34 : 42;
     }
 
