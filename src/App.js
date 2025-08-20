@@ -955,21 +955,7 @@ export function Studio() {
                 <TabsTrigger value="plan">7‑Day Plan</TabsTrigger>
                 <TabsTrigger value="theory">Theory Qs</TabsTrigger>
               </TabsList>
-              <TabsContent value="quiz">
-                <Card className="kit-surface">
-                  <div className="kit-toolbar flex items-center justify-between">
-                    <div>Quiz</div>
-                    {kit.quiz?.length ? <Button size="sm" onClick={onEvaluate} disabled={evaluated}>Evaluate</Button> : null}
-                  </div>
-                  <CardContent>
-                    {kit.quiz?.length ? (
-                      <QuizBlock quiz={kit.quiz} selected={selected} setSelected={setSelected} evaluated={evaluated} />
-                    ) : (
-                      <div className="text-center text-sm text-foreground/70 py-10">Your quiz will appear here once generated.</div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+
               <TabsContent value="flashcards">
                 <Card className="kit-surface"><div className="kit-toolbar">Flashcards</div><CardContent>
                   {kit.flashcards?.length ? (
